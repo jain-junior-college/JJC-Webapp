@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}All Students{% endblock %}
+{% block header_title %}Student Directory{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h3 style="font-weight: 700;">Enrolled Students</h3>
+        <a href="{{ url_for('enroll') }}" class="btn btn-primary" style="text-decoration: none;">
+            <i class="fas fa-plus"></i> New Student
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Class</th>
+                    <th>Contact</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td style="font-weight: 700; color: var(--primary-color);">{{ student.student_id }}</td>
+                    <td style="font-weight: 600;">{{ student.name }}</td>
+                    <td><span style="background: rgba(79, 70, 229, 0.1); color: var(--primary-color); padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600;">{{ student.student_class }}</span></td>
+                    <td>{{ student.contact }}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="{{ url_for('report_card', student_id=student.id) }}" class="btn" style="background: rgba(14, 165, 233, 0.1); color: #0ea5e9; padding: 0.4rem 0.8rem; font-size: 0.8rem; text-decoration: none;">
+                                <i class="fas fa-file-invoice"></i> Report
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 3rem;">
+                        <i class="fas fa-user-slash" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.3; display: block;"></i>
+                        No students found. Start by enrolling a student.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

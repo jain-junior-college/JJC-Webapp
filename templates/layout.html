@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - Jain Junior College</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#1a365d">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register("{{ url_for('static', filename='sw.js') }}");
+            });
+        }
+    </script>
+</head>
+<body>
+    {% if session.user_id %}
+    <nav class="sidebar">
+        <div class="logo-container">
+            <h1>JJ-CMS</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('student_list') }}" class="{% if request.endpoint == 'student_list' %}active{% endif %}"><i class="fas fa-user-graduate"></i> Students</a></li>
+            <li><a href="{{ url_for('enroll') }}" class="{% if request.endpoint == 'enroll' %}active{% endif %}"><i class="fas fa-plus-circle"></i> Enrollment</a></li>
+            <li><a href="{{ url_for('collect_fees') }}" class="{% if request.endpoint == 'collect_fees' %}active{% endif %}"><i class="fas fa-receipt"></i> Fee Mgmt</a></li>
+            <li><a href="{{ url_for('academic_entry') }}" class="{% if request.endpoint == 'academic_entry' %}active{% endif %}"><i class="fas fa-book"></i> Academics</a></li>
+        </ul>
+        <div style="margin-top: auto; padding: 1rem;">
+            <a href="{{ url_for('logout') }}" style="color: #ef4444; text-decoration: none; font-weight: 600;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </nav>
+    <main class="main-content">
+        <header>
+            <div>
+                <h2 style="font-weight: 700; color: var(--text-primary);">{% block header_title %}{% endblock %}</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Jain Junior College Management System</p>
+            </div>
+            <div class="user-profile">
+                <span style="font-weight: 600; font-size: 0.9rem;">Admin Panel</span>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="glass-card animate-in" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); color: #065f46; margin-bottom: 2rem; padding: 1rem;">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="animate-in">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    {% else %}
+        {% block login_content %}{% endblock %}
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

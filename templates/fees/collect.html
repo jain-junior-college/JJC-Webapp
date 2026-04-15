@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block title %}Collect Fees{% endblock %}
+{% block header_title %}Fee Management{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem;">
+    <!-- Fee Collection Form -->
+    <div class="glass-card">
+        <h3 style="margin-bottom: 2rem; font-weight: 700;">Record Payment</h3>
+        <form method="POST">
+            <div class="form-group">
+                <label for="student_id">Select Student</label>
+                <select name="student_id" id="student_id" class="form-control" required>
+                    <option value="" disabled selected>Choose a student...</option>
+                    {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.name }} ({{ student.student_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="amount">Payment Amount (₹)</label>
+                <input type="number" step="0.01" name="amount" id="amount" class="form-control" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+                <label for="method">Payment Method</label>
+                <select name="method" id="method" class="form-control">
+                    <option value="Cash">Cash</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Cheque">Cheque</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="remarks">Remarks</label>
+                <textarea name="remarks" id="remarks" class="form-control" rows="3" placeholder="Tuition Fee / Admission Fee..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Process Payment</button>
+        </form>
+    </div>
+
+    <!-- Info / History Placeholder -->
+    <div class="glass-card" style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(14, 165, 233, 0.05) 100%);">
+        <h3 style="margin-bottom: 2rem; font-weight: 700;">Financial Summary</h3>
+        <div style="text-align: center; padding: 3rem 1rem;">
+            <i class="fas fa-money-check-alt" style="font-size: 3rem; color: var(--primary-color); opacity: 0.2; margin-bottom: 1.5rem;"></i>
+            <p style="color: var(--text-secondary); line-height: 1.6;">
+                Ensure all payments are recorded with valid receipts. Once a payment is submitted, it will be reflected in the student's ledger and the main dashboard.
+            </p>
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1.5rem; background: white; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+            <h4 style="font-weight: 700; margin-bottom: 1rem; font-size: 0.9rem;">Payment Guidelines</h4>
+            <ul style="list-style: none; color: var(--text-secondary); font-size: 0.85rem;">
+                <li style="margin-bottom: 0.5rem;"><i class="fas fa-check-circle" style="color: #10b981; margin-right: 0.5rem;"></i> Verify Student ID before processing.</li>
+                <li style="margin-bottom: 0.5rem;"><i class="fas fa-check-circle" style="color: #10b981; margin-right: 0.5rem;"></i> Issue manual receipt for cash.</li>
+                <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 0.5rem;"></i> Record Transaction Hub for UPI.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

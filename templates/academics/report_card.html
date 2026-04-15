@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+
+{% block title %}Report Card - {{ student.name }}{% endblock %}
+{% block header_title %}Student Report Card{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 900px; margin: 0 auto; background: white; padding: 4rem;">
+    <!-- Report Header -->
+    <div style="text-align: center; border-bottom: 3px solid var(--primary-color); padding-bottom: 2rem; margin-bottom: 3rem;">
+        <h1 style="font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem; letter-spacing: -1px;">JAIN JUNIOR COLLEGE</h1>
+        <p style="color: var(--text-secondary); text-transform: uppercase; font-weight: 600; font-size: 0.8rem; letter-spacing: 2px;">Academic Performance Record</p>
+    </div>
+
+    <!-- Student Info -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-bottom: 4rem;">
+        <div>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Student Name</p>
+            <h4 style="font-size: 1.25rem; font-weight: 700;">{{ student.name }}</h4>
+        </div>
+        <div style="text-align: right;">
+            <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Student ID</p>
+            <h4 style="font-size: 1.25rem; font-weight: 700; color: var(--primary-color);">{{ student.student_id }}</h4>
+        </div>
+        <div>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Class / Stream</p>
+            <p style="font-weight: 600;">{{ student.student_class }}</p>
+        </div>
+        <div style="text-align: right;">
+            <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Academic Year</p>
+            <p style="font-weight: 600;">2024 - 2025</p>
+        </div>
+    </div>
+
+    <!-- Marks Table -->
+    <div class="table-container" style="margin-bottom: 4rem;">
+        <table style="border: 1px solid rgba(0,0,0,0.05);">
+            <thead style="background: rgba(0,0,0,0.02);">
+                <tr>
+                    <th>Subject</th>
+                    <th>Exam Type</th>
+                    <th>Marks Obtained</th>
+                    <th>Total Marks</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set ns = namespace(total_obt=0, total_max=0) %}
+                {% for exam in exams %}
+                {% set ns.total_obt = ns.total_obt + exam.marks_obtained %}
+                {% set ns.total_max = ns.total_max + exam.total_marks %}
+                <tr>
+                    <td style="font-weight: 600;">{{ exam.subject }}</td>
+                    <td>{{ exam.exam_type }}</td>
+                    <td style="font-weight: 700;">{{ exam.marks_obtained }}</td>
+                    <td>{{ exam.total_marks }}</td>
+                    <td>
+                        {% if exam.total_marks > 0 %}
+                        {{ "{:.1f}%".format((exam.marks_obtained / exam.total_marks) * 100) }}
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No academic records found for this student.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% if exams %}
+            <tfoot style="background: rgba(79, 70, 229, 0.05); font-weight: 700;">
+                <tr>
+                    <td colspan="2">TOTAL AGGREGATE</td>
+                    <td>{{ ns.total_obt }}</td>
+                    <td>{{ ns.total_max }}</td>
+                    <td style="color: var(--primary-color);">
+                        {% if ns.total_max > 0 %}
+                        {{ "{:.2f}%".format((ns.total_obt / ns.total_max) * 100) }}
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </td>
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+    </div>
+
+    <!-- Footer Signatures -->
+    <div style="display: flex; justify-content: space-between; margin-top: 6rem;">
+        <div style="text-align: center; width: 200px;">
+            <div style="border-top: 1px solid #000; padding-top: 0.5rem;">
+                <p style="font-size: 0.8rem; font-weight: 600;">Class Teacher</p>
+            </div>
+        </div>
+        <div style="text-align: center; width: 200px;">
+            <div style="border-top: 1px solid #000; padding-top: 0.5rem;">
+                <p style="font-size: 0.8rem; font-weight: 600;">Principal</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="text-align: center; margin-top: 2rem;">
+    <button onclick="window.print()" class="btn btn-primary">
+        <i class="fas fa-print"></i> Print Report Card
+    </button>
+</div>
+{% endblock %}

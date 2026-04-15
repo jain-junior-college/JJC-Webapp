@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jain Junior College - Dnyan Sanskaren Manushya shobhate</title>
+    <meta name="description" content="VISHWAKALYAN EDUCATION SOCIETY's JAIN JUNIOR COLLEGE of Science, Commerce, and Arts. Quality education in Talegaon Dabhade.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#1a365d">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register("{{ url_for('static', filename='sw.js') }}");
+            });
+        }
+    </script>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <div style="display: flex; align-items: center;">
+                <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" class="logo-img">
+                <div>
+                    <h1>JJ-COLLEGE</h1>
+                    <p>Talegaon Dabhade</p>
+                </div>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#courses">Courses</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li><a href="{{ url_for('login') }}" class="portal-btn">Student Portal</a></li>
+        </ul>
+    </nav>
+
+    <header id="home" class="hero">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="College Logo" class="hero-logo-img">
+        <h2 style="text-transform: uppercase;">VISHWAKALYAN EDUCATION SOCIETY's</h2>
+        <h1 class="elegant-serif">JAIN JUNIOR COLLEGE</h1>
+        <p class="tagline artistic-marathi">॥ ज्ञान संस्कारेण मनुष्य शोभते ॥</p>
+        <p class="desc">Nurturing excellence through knowledge and values. Join us in shaping the leaders of tomorrow in Science, Commerce, and Arts.</p>
+        <div style="display: flex; gap: 1.5rem;">
+            <a href="#contact" class="portal-btn" style="padding: 1rem 2.5rem; font-size: 1.1rem;">Inquiry Now</a>
+            <a href="#courses" class="portal-btn" style="padding: 1rem 2.5rem; font-size: 1.1rem; background: transparent; border: 2px solid var(--white);">View Courses</a>
+        </div>
+    </header>
+
+    <section id="about">
+        <div class="section-title">
+            <h2>About Our Institution</h2>
+            <div class="underline"></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
+            <div style="position: relative;">
+                <img src="{{ url_for('static', filename='images/hero.png') }}" alt="College Campus" style="width: 100%; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+                <div style="position: absolute; bottom: -20px; right: -20px; background: var(--secondary); padding: 2rem; border-radius: 15px; color: var(--primary); font-weight: 800; text-align: center;">
+                    <span style="font-size: 2.5rem;">15+</span><br>Years of Excellence
+                </div>
+            </div>
+            <div>
+                <h3 style="color: var(--primary); font-size: 1.8rem; margin-bottom: 1.5rem;">Empowering Students Since Inception</h3>
+                <p style="margin-bottom: 1.5rem; color: var(--text-light);">VISHWAKALYAN EDUCATION SOCIETY's JAIN JUNIOR COLLEGE is dedicated to providing high-quality academic training and personal development. Our mission is to foster a learning environment that encourages curiosity, innovation, and ethical leadership.</p>
+                <div class="features-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <i class="fas fa-check-circle" style="color: var(--secondary);"></i>
+                        <span>Experienced Faculty</span>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <i class="fas fa-check-circle" style="color: var(--secondary);"></i>
+                        <span>State-of-the-art Labs</span>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <i class="fas fa-check-circle" style="color: var(--secondary);"></i>
+                        <span>Modern Library</span>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <i class="fas fa-check-circle" style="color: var(--secondary);"></i>
+                        <span>Sports Excellence</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="courses" style="background: var(--white);">
+        <div class="section-title">
+            <h2>Our Academic Streams</h2>
+            <div class="underline"></div>
+        </div>
+        <div class="stats-grid">
+            <div class="course-card">
+                <img src="{{ url_for('static', filename='images/science.png') }}" alt="Science Stream" class="course-img">
+                <div class="course-info">
+                    <h3>Science</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">Prepare for Engineering, Medical, and Research fields with our intensive Science curriculum (PCMB/PCMC).</p>
+                    <ul style="list-style: none; font-size: 0.85rem;">
+                        <li><i class="fas fa-microscope" style="color: var(--secondary); margin-right: 10px;"></i> Physics, Chemistry, Biology</li>
+                        <li><i class="fas fa-laptop-code" style="color: var(--secondary); margin-right: 10px;"></i> Mathematics & Computer Science</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="course-card">
+                <img src="{{ url_for('static', filename='images/commerce.png') }}" alt="Commerce Stream" class="course-img">
+                <div class="course-info">
+                    <h3>Commerce</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">Build a strong foundation in Business, Finance, and Accountancy for a successful corporate career.</p>
+                    <ul style="list-style: none; font-size: 0.85rem;">
+                        <li><i class="fas fa-calculator" style="color: var(--secondary); margin-right: 10px;"></i> Accountancy & SP/Maths</li>
+                        <li><i class="fas fa-chart-line" style="color: var(--secondary); margin-right: 10px;"></i> Economics & OCM</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="course-card">
+                <img src="{{ url_for('static', filename='images/arts.png') }}" alt="Arts Stream" class="course-img">
+                <div class="course-info">
+                    <h3>Arts & Humanities</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">Explore the depths of Social Sciences, Languages, and Creative Arts to shape a cultured society.</p>
+                    <ul style="list-style: none; font-size: 0.85rem;">
+                        <li><i class="fas fa-landmark" style="color: var(--secondary); margin-right: 10px;"></i> History & Political Science</li>
+                        <li><i class="fas fa-users" style="color: var(--secondary); margin-right: 10px;"></i> Sociology & Psychology</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <div class="section-title">
+            <h2>Contact & Find Us</h2>
+            <div class="underline"></div>
+        </div>
+        <div class="contact-container">
+            <div class="contact-info">
+                <h3>Get In Touch</h3>
+                <div class="contact-detail">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <strong>Address:</strong><br>
+                        Rao Colony,<br>
+                        Talegaon Dabhade. Maharashtra,<br>
+                        Maval, Pune. 410506.
+                    </div>
+                </div>
+                <div class="contact-detail">
+                    <i class="fas fa-phone-alt"></i>
+                    <div>
+                        <strong>Phone:</strong><br>
+                        +91 880-655-9777
+                    </div>
+                </div>
+                <div class="contact-detail">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <strong>Email:</strong><br>
+                        jjc.talegaon@gmail.com
+                    </div>
+                </div>
+                <div style="margin-top: 3rem;">
+                    <a href="mailto:jjc.talegaon@gmail.com" class="portal-btn" style="width: 100%; text-align: center; display: block;">Send an Email</a>
+                </div>
+            </div>
+            <div class="map-container">
+                <!-- Google Maps Embed for Jain Junior College, Rao Colony, Talegaon Dabhade -->
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3778.856506450459!2d73.68082177493447!3d18.715241363199492!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2b1bbe49ca43b%3A0x1e1a2ce9229de7a2!2sJain%20English%20School%20and%20Junior%20College!5e0!3m2!1sen!2sin!4v1775710903708!5m2!1sen!2sin" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-logo">
+            <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" style="height: 60px; margin-bottom: 1rem;">
+            <p style="font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.5rem; opacity: 0.8;">VISHWAKALYAN EDUCATION SOCIETY'S</p>
+            <h2 class="elegant-serif">JAIN JUNIOR COLLEGE</h2>
+            <p class="artistic-marathi" style="color: var(--secondary); font-size: 1.5rem !important;">॥ ज्ञान संस्कारेण मनुष्य शोभते ॥</p>
+        </div>
+        <div class="social-links">
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2026 VISHWAKALYAN EDUCATION SOCIETY'S JAIN JUNIOR COLLEGE. All Rights Reserved.</p>
+            <p>Designed and Maintained for Excellence.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Simple reveal on scroll
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 100) {
+                nav.style.padding = '0.8rem 5%';
+                nav.style.background = 'rgba(255, 255, 255, 0.95)';
+            } else {
+                nav.style.padding = '1.5rem 5%';
+                nav.style.background = 'rgba(255, 255, 255, 0.8)';
+            }
+        });
+    </script>
+</body>
+</html>

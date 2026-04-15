@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block login_content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 100vh;">
+    <div class="glass-card animate-in" style="width: 100%; max-width: 400px; padding: 3rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h1 style="font-weight: 800; background: linear-gradient(to right, #4f46e5, #0ea5e9); -webkit-background-clip: text; -webkit-fill-color: transparent; margin-bottom: 0.5rem; color: #4f46e5;">JJ-CMS</h1>
+            <p style="color: var(--text-secondary); font-weight: 500;">Please sign in to continue</p>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <p style="color: #ef4444; text-align: center; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 600;">{{ message }}</p>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username" class="form-control" placeholder="admin" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Sign In</button>
+        </form>
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <a href="{{ url_for('index') }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem;">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

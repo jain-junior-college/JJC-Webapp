@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block title %}Enroll Student{% endblock %}
+{% block header_title %}Student Enrollment{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+    <h3 style="margin-bottom: 2rem; font-weight: 700;">New Student Profile</h3>
+    
+    <form method="POST">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group">
+                <label for="student_id">Permanent Student ID</label>
+                <input type="text" name="student_id" id="student_id" class="form-control" placeholder="e.g. JJ-2024-001" required>
+            </div>
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" name="name" id="name" class="form-control" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" name="dob" id="dob" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select name="gender" id="gender" class="form-control">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="student_class">Class / Stream</label>
+                <input type="text" name="student_class" id="student_class" class="form-control" placeholder="Science XII-A" required>
+            </div>
+            <div class="form-group">
+                <label for="contact">Contact Number</label>
+                <input type="tel" name="contact" id="contact" class="form-control" placeholder="+91 9876543210" required>
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="email">Email Address</label>
+                <input type="email" name="email" id="email" class="form-control" placeholder="john.doe@example.com">
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="{{ url_for('student_list') }}" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-secondary); text-decoration: none;">Cancel</a>
+            <button type="submit" class="btn btn-primary">Complete Enrollment</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
