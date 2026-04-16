@@ -41,3 +41,12 @@ class Exam(db.Model):
     total_marks = db.Column(db.Float, default=100.0)
     exam_type = db.Column(db.String(50)) # Mid-term, Final, etc.
     exam_date = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Enquiry(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    course_interest = db.Column(db.String(50))
+    message = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

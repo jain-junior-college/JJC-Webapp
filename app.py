@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User, Student, Fee, Exam
+from models import db, User, Student, Fee, Exam, Enquiry
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
@@ -62,6 +62,27 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
+# Enquiry Route
+@app.route('/enquire', methods=['POST'])
+def submit_enquiry():
+    name = request.form.get('name')
+    email = request.form.get('email')
+    phone = request.form.get('phone')
+    course = request.form.get('course')
+    message = request.form.get('message')
+    
+    if name and phone:
+        new_enquiry = Enquiry(
+            name=name, email=email, phone=phone, course_interest=course, message=message
+        )
+        db.session.add(new_enquiry)
+        db.session.commit()
+        flash('Thank you for your enquiry! Our dedicated team will contact you shortly.', 'success')
+    else:
+        flash('Please provide at least your name and phone number.', 'error')
+        
+    return redirect(url_for('index', _anchor='contact'))
 
 # Enrollment Routes
 @app.route('/enroll', methods=['GET', 'POST'])

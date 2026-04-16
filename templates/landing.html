@@ -45,7 +45,6 @@
             <li><a href="#about">About</a></li>
             <li><a href="#courses">Courses</a></li>
             <li><a href="#contact">Contact</a></li>
-            <li><a href="{{ url_for('login') }}" class="portal-btn">Student Portal</a></li>
         </ul>
     </nav>
 
@@ -171,14 +170,40 @@
                         jjc.talegaon@gmail.com
                     </div>
                 </div>
-                <div style="margin-top: 3rem;">
-                    <a href="mailto:jjc.talegaon@gmail.com" class="portal-btn" style="width: 100%; text-align: center; display: block;">Send an Email</a>
-                </div>
             </div>
-            <div class="map-container">
-                <!-- Google Maps Embed for Jain Junior College, Rao Colony, Talegaon Dabhade -->
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3778.856506450459!2d73.68082177493447!3d18.715241363199492!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2b1bbe49ca43b%3A0x1e1a2ce9229de7a2!2sJain%20English%20School%20and%20Junior%20College!5e0!3m2!1sen!2sin!4v1775710903708!5m2!1sen!2sin" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <div class="contact-form-container" style="background: rgba(255,255,255,0.5); padding: 2rem; border-radius: 15px; border: 1px solid #e2e8f0;">
+                <h3 style="color: var(--primary); margin-bottom: 1.5rem;">Submit an Enquiry</h3>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div style="background: {% if category == 'success' %}#d1fae5{% else %}#fee2e2{% endif %}; color: {% if category == 'success' %}#065f46{% else %}#991b1b{% endif %}; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid {% if category == 'success' %}#10b981{% else %}#ef4444{% endif %};">
+                        {{ message }}
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+
+                <form action="{{ url_for('submit_enquiry') }}" method="POST" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <input type="text" name="name" placeholder="Your Name" required style="padding: 1rem; border-radius: 8px; border: 1px solid #cbd5e0; font-family: 'Outfit';">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <input type="email" name="email" placeholder="Email Address" required style="padding: 1rem; border-radius: 8px; border: 1px solid #cbd5e0; font-family: 'Outfit';">
+                        <input type="tel" name="phone" placeholder="Phone Number" required style="padding: 1rem; border-radius: 8px; border: 1px solid #cbd5e0; font-family: 'Outfit';">
+                    </div>
+                    <select name="course" required style="padding: 1rem; border-radius: 8px; border: 1px solid #cbd5e0; font-family: 'Outfit'; color: #4a5568;">
+                        <option value="">Select Course of Interest</option>
+                        <option value="Science">Science</option>
+                        <option value="Commerce">Commerce</option>
+                        <option value="Arts">Arts</option>
+                    </select>
+                    <textarea name="message" placeholder="Your Message / Query" rows="3" style="padding: 1rem; border-radius: 8px; border: 1px solid #cbd5e0; font-family: 'Outfit'; resize: vertical;"></textarea>
+                    <button type="submit" class="portal-btn" style="border: none; cursor: pointer; padding: 1rem; font-size: 1.1rem; margin-top: 0.5rem;">Submit Request</button>
+                </form>
             </div>
+        </div>
+        <div class="map-container" style="margin-top: 3rem;">
+            <!-- Google Maps Embed for Jain Junior College, Rao Colony, Talegaon Dabhade -->
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3778.856506450459!2d73.68082177493447!3d18.715241363199492!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2b1bbe49ca43b%3A0x1e1a2ce9229de7a2!2sJain%20English%20School%20and%20Junior%20College!5e0!3m2!1sen!2sin!4v1775710903708!5m2!1sen!2sin" width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
     </section>
 
@@ -194,6 +219,10 @@
             <a href="#"><i class="fab fa-instagram"></i></a>
             <a href="#"><i class="fab fa-twitter"></i></a>
             <a href="#"><i class="fab fa-linkedin"></i></a>
+        </div>
+        <div class="footer-quick-links" style="margin-bottom: 2rem;">
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">Quick Links</p>
+            <a href="{{ url_for('login') }}" style="color: var(--secondary); text-decoration: none; font-size: 0.9rem; border-bottom: 1px dashed var(--secondary); padding-bottom: 3px;"><i class="fas fa-lock" style="margin-right: 5px;"></i>Admin / Staff Portal</a>
         </div>
         <div class="copyright">
             <p>&copy; 2026 VISHWAKALYAN EDUCATION SOCIETY'S JAIN JUNIOR COLLEGE. All Rights Reserved.</p>

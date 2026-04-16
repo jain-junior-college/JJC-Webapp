@@ -89,6 +89,7 @@ nav {
     letter-spacing: 0.35rem;
     margin-right: -0.35rem;
     line-height: 1;
+    text-align: center;
 }
 
 .logo p {
@@ -97,6 +98,7 @@ nav {
     text-transform: uppercase;
     letter-spacing: 0.05rem;
     margin-top: 3px;
+    text-align: center;
 }
 
 .nav-links {
