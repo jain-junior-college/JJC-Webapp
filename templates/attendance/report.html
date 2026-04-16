@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+
+{% block title %}Attendance Reports{% endblock %}
+{% block header_title %}Attendance Statistics{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <!-- Search/Filter -->
+    <div style="margin-bottom: 3rem;">
+        <h4 style="margin-bottom: 1.5rem; font-weight: 600; color: var(--primary-color);">Filter Reports</h4>
+        <form method="GET" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: flex-end;">
+            <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Report Type</label>
+                <select name="type" class="form-control">
+                    <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>Daily Summary</option>
+                    <option value="student" {% if report_type == 'student' %}selected{% endif %}>Student-wise History</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Date (for Daily)</label>
+                <input type="date" name="date" class="form-control" value="{{ date_str }}">
+            </div>
+            <div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Select Student (for Student-wise)</label>
+                <select name="student_id" class="form-control">
+                    <option value="">-- Select Student --</option>
+                    {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.name }} ({{ student.student_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="height: 45px;">Generate Report</button>
+        </form>
+    </div>
+
+    <!-- Report View (Printable) -->
+    <div id="printableReport" class="glass-card" style="border: 2px solid #eee; padding: 3rem !important; position: relative; overflow: hidden;">
+        <!-- Watermark/Header for Print -->
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--primary-color); padding-bottom: 1.5rem; margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" style="height: 80px;">
+                <div>
+                    <h1 style="color: var(--primary-color); margin: 0; font-size: 1.8rem; font-weight: 800;">JAIN JUNIOR COLLEGE</h1>
+                    <p style="margin: 0; font-size: 0.9rem; letter-spacing: 1px; color: #666;">Talegaon Dabhade - Academic Record</p>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <p style="margin: 0; font-weight: 700; color: var(--primary-color);">ATTENDANCE REPORT</p>
+                <p style="margin: 0; font-size: 0.8rem; opacity: 0.7;">Printed on: {{ date_str }}</p>
+            </div>
+        </div>
+
+        {% if report_data %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8fafc; text-align: left;">
+                    <th style="padding: 1rem; border-bottom: 2px solid #e2e8f0;">Date / Student</th>
+                    <th style="padding: 1rem; border-bottom: 2px solid #e2e8f0;">Name</th>
+                    <th style="padding: 1rem; border-bottom: 2px solid #e2e8f0; text-align: center;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in report_data %}
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 1rem; font-weight: 600;">{{ log.date }}</td>
+                    <td style="padding: 1rem;">{{ log.student.name }}</td>
+                    <td style="padding: 1rem; text-align: center;">
+                        <span style="padding: 0.3rem 1rem; border-radius: 50px; font-weight: 700; font-size: 0.8rem; 
+                                     background: {% if log.status == 'Present' %}#d1fae5{% else %}#fee2e2{% endif %};
+                                     color: {% if log.status == 'Present' %}#059669{% else %}#b91c1c{% endif %};">
+                            {{ log.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #94a3b8; padding: 4rem;">No records found for the selection.</p>
+        {% endif %}
+    </div>
+
+    <!-- Print Action -->
+    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+        <button onclick="printReport()" class="btn btn-primary" style="background: #0ea5e9; padding: 1rem 3rem; box-shadow: 0 10px 15px rgba(14, 165, 233, 0.2);">
+            <i class="fas fa-print"></i> Download / Print Professional Report
+        </button>
+    </div>
+</div>
+
+<script>
+function printReport() {
+    var prtContent = document.getElementById("printableReport");
+    var WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+    WinPrint.document.write('<html><head><title>JJC Attendance Report</title>');
+    WinPrint.document.write('<link rel="stylesheet" href="/static/css/style.css">');
+    WinPrint.document.write('</head><body>');
+    WinPrint.document.write(prtContent.innerHTML);
+    WinPrint.document.write('</body></html>');
+    WinPrint.document.close();
+    WinPrint.focus();
+    WinPrint.print();
+    WinPrint.close();
+}
+</script>
+{% endblock %}

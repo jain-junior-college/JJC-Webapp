@@ -22,7 +22,7 @@ def init_db():
                 db.session.add(Stream(name=s))
 
         # Seed Academic Classes
-        classes = ['XIth', 'XIIth']
+        classes = ['XI', 'XII']
         for c in classes:
             if not AcademicClass.query.filter_by(name=c).first():
                 db.session.add(AcademicClass(name=c))

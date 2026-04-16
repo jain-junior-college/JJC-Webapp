@@ -22,6 +22,29 @@ class AcademicClass(db.Model):
     name = db.Column(db.String(50), nullable=False, unique=True)
     students = db.relationship('Student', backref='academic_class', lazy=True)
 
+class Subject(db.Model):
+    __tablename__ = 'subject'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    stream_id = db.Column(db.Integer, db.ForeignKey('stream.id'))
+    teachers = db.relationship('Teacher', secondary='teacher_subject', backref='subjects')
+
+class Teacher(db.Model):
+    __tablename__ = 'teacher'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100))
+    phone = db.Column(db.String(20))
+    qualification = db.Column(db.String(100))
+    dob = db.Column(db.String(20))
+    join_date = db.Column(db.String(20))
+
+# Association Table for Teacher and Subject
+teacher_subject = db.Table('teacher_subject',
+    db.Column('teacher_id', db.Integer, db.ForeignKey('teacher.id'), primary_key=True),
+    db.Column('subject_id', db.Integer, db.ForeignKey('subject.id'), primary_key=True)
+)
+
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.String(20), unique=True, nullable=False)
@@ -33,11 +56,21 @@ class Student(db.Model):
     class_id = db.Column(db.Integer, db.ForeignKey('academic_class.id'))
     contact = db.Column(db.String(20))
     email = db.Column(db.String(100))
+    address = db.Column(db.Text)
+    guardian_name = db.Column(db.String(100))
     admission_date = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
     fees = db.relationship('Fee', backref='student', lazy=True)
     exams = db.relationship('Exam', backref='student', lazy=True)
+    attendance = db.relationship('Attendance', backref='student', lazy=True)
+
+class Attendance(db.Model):
+    __tablename__ = 'attendance'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    status = db.Column(db.String(10), nullable=False) # 'Present' or 'Absent'
 
 class Fee(db.Model):
     id = db.Column(db.Integer, primary_key=True)

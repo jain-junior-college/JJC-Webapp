@@ -140,6 +140,99 @@ def delete_master(mtype, mid):
         flash(f"{mtype.title()} deleted successfully!")
     return redirect(url_for('masters'))
 
+# Teacher & Subject Management
+@app.route('/teachers', methods=['GET', 'POST'])
+@login_required
+def manage_teachers():
+    if request.method == 'POST':
+        teacher = Teacher(
+            name=request.form['name'],
+            email=request.form['email'],
+            phone=request.form['phone'],
+            qualification=request.form['qualification'],
+            dob=request.form['dob'],
+            join_date=request.form['join_date']
+        )
+        db.session.add(teacher)
+        db.session.commit()
+        flash('Teacher added successfully!')
+    teachers = Teacher.query.all()
+    return render_template('teachers/manage.html', teachers=teachers)
+
+@app.route('/subjects', methods=['GET', 'POST'])
+@login_required
+def manage_subjects():
+    if request.method == 'POST':
+        subject = Subject(
+            name=request.form['name'],
+            stream_id=request.form['stream_id']
+        )
+        db.session.add(subject)
+        db.session.commit()
+        flash('Subject added successfully!')
+    subjects = Subject.query.all()
+    streams = Stream.query.all()
+    return render_template('subjects/manage.html', subjects=subjects, streams=streams)
+
+# Attendance Routes
+@app.route('/attendance/mark', methods=['GET', 'POST'])
+@login_required
+def mark_attendance():
+    selected_class = request.args.get('class_id')
+    selected_stream = request.args.get('stream_id')
+    date_str = request.args.get('date', datetime.utcnow().strftime('%Y-%m-%d'))
+    attendance_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+    if request.method == 'POST':
+        for student_id, status in request.form.items():
+            if student_id.startswith('status_'):
+                real_student_id = student_id.replace('status_', '')
+                # Check if attendance already exists for this day
+                existing = Attendance.query.filter_by(student_id=real_student_id, date=attendance_date).first()
+                if existing:
+                    existing.status = status
+                else:
+                    new_att = Attendance(student_id=real_student_id, date=attendance_date, status=status)
+                    db.session.add(new_att)
+        db.session.commit()
+        flash('Attendance updated successfully!')
+
+    students = []
+    if selected_class and selected_stream:
+        students = Student.query.filter_by(class_id=selected_class, stream_id=selected_stream).all()
+    
+    classes = AcademicClass.query.all()
+    streams = Stream.query.all()
+    return render_template('attendance/mark.html', 
+                         students=students, 
+                         classes=classes, 
+                         streams=streams,
+                         selected_class=int(selected_class) if selected_class else None,
+                         selected_stream=int(selected_stream) if selected_stream else None,
+                         date_str=date_str)
+
+@app.route('/attendance/report')
+@login_required
+def attendance_report():
+    report_type = request.args.get('type', 'daily')
+    date_str = request.args.get('date', datetime.utcnow().strftime('%Y-%m-%d'))
+    student_id = request.args.get('student_id')
+    
+    attendance_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    
+    report_data = []
+    if report_type == 'daily':
+        report_data = Attendance.query.filter_by(date=attendance_date).all()
+    elif report_type == 'student' and student_id:
+        report_data = Attendance.query.filter_by(student_id=student_id).order_by(Attendance.date.desc()).all()
+        
+    students = Student.query.all()
+    return render_template('attendance/report.html', 
+                         report_data=report_data, 
+                         report_type=report_type,
+                         students=students,
+                         date_str=date_str)
+
 @app.route('/students')
 @login_required
 def student_list():
