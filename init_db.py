@@ -1,5 +1,5 @@
 from app import app, db
-from models import User, Student, Fee, Exam, Enquiry
+from models import User, Student, Fee, Exam, Enquiry, Stream, AcademicClass
 from werkzeug.security import generate_password_hash
 
 def init_db():
@@ -15,9 +15,21 @@ def init_db():
             )
             db.session.add(admin)
             db.session.commit()
-            print("Database initialized and admin user created.")
-        else:
-            print("Database already initialized.")
+        # Seed Streams
+        streams = ['Science', 'Commerce', 'Arts']
+        for s in streams:
+            if not Stream.query.filter_by(name=s).first():
+                db.session.add(Stream(name=s))
+
+        # Seed Academic Classes
+        classes = ['XIth', 'XIIth']
+        for c in classes:
+            if not AcademicClass.query.filter_by(name=c).first():
+                db.session.add(AcademicClass(name=c))
+        
+        db.session.commit()
+        
+        print("Database initialized, admin user created, and masters seeded.")
 
 if __name__ == "__main__":
     init_db()

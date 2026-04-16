@@ -30,8 +30,22 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="student_class">Class / Stream</label>
-                <input type="text" name="student_class" id="student_class" class="form-control" placeholder="Science XII-A" required>
+                <label for="stream_id">Stream</label>
+                <select name="stream_id" id="stream_id" class="form-control" required>
+                    <option value="">Select Stream</option>
+                    {% for stream in streams %}
+                    <option value="{{ stream.id }}">{{ stream.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="class_id">Class</label>
+                <select name="class_id" id="class_id" class="form-control" required>
+                    <option value="">Select Class</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
             </div>
             <div class="form-group">
                 <label for="contact">Contact Number</label>

@@ -10,13 +10,27 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default='staff') # admin or staff
 
+class Stream(db.Model):
+    __tablename__ = 'stream'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False, unique=True)
+    students = db.relationship('Student', backref='stream', lazy=True)
+
+class AcademicClass(db.Model):
+    __tablename__ = 'academic_class'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False, unique=True)
+    students = db.relationship('Student', backref='academic_class', lazy=True)
+
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.String(20), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     dob = db.Column(db.String(20))
     gender = db.Column(db.String(10))
-    student_class = db.Column(db.String(50)) # Using student_class to avoid 'class' keyword conflict
+    student_class = db.Column(db.String(50)) # Legacy string column
+    stream_id = db.Column(db.Integer, db.ForeignKey('stream.id'))
+    class_id = db.Column(db.Integer, db.ForeignKey('academic_class.id'))
     contact = db.Column(db.String(20))
     email = db.Column(db.String(100))
     admission_date = db.Column(db.DateTime, default=datetime.utcnow)

@@ -94,7 +94,9 @@ def enroll():
             name=request.form['name'],
             dob=request.form['dob'],
             gender=request.form['gender'],
-            student_class=request.form['student_class'],
+            student_class="",
+            stream_id=request.form.get('stream_id'),
+            class_id=request.form.get('class_id'),
             contact=request.form['contact'],
             email=request.form['email']
         )
@@ -102,7 +104,41 @@ def enroll():
         db.session.commit()
         flash('Student enrolled successfully!')
         return redirect(url_for('student_list'))
-    return render_template('students/enroll.html')
+    
+    streams = Stream.query.all()
+    classes = AcademicClass.query.all()
+    return render_template('students/enroll.html', streams=streams, classes=classes)
+
+@app.route('/masters', methods=['GET', 'POST'])
+@login_required
+def masters():
+    if request.method == 'POST':
+        master_type = request.form.get('type')
+        name = request.form.get('name')
+        if master_type == 'stream':
+            db.session.add(Stream(name=name))
+        elif master_type == 'class':
+            db.session.add(AcademicClass(name=name))
+        db.session.commit()
+        flash(f"{master_type.title()} added successfully!")
+        return redirect(url_for('masters'))
+        
+    streams = Stream.query.all()
+    classes = AcademicClass.query.all()
+    return render_template('masters.html', streams=streams, classes=classes)
+
+@app.route('/masters/delete/<string:mtype>/<int:mid>', methods=['POST'])
+@login_required
+def delete_master(mtype, mid):
+    if mtype == 'stream':
+        obj = Stream.query.get(mid)
+    else:
+        obj = AcademicClass.query.get(mid)
+    if obj:
+        db.session.delete(obj)
+        db.session.commit()
+        flash(f"{mtype.title()} deleted successfully!")
+    return redirect(url_for('masters'))
 
 @app.route('/students')
 @login_required

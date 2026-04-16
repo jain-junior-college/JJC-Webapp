@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+{% block title %}Master Settings{% endblock %}
+{% block header_title %}System Masters{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <!-- Streams Master -->
+    <div class="glass-card">
+        <h3 style="font-weight: 700; margin-bottom: 1.5rem;"><i class="fas fa-stream" style="color: var(--primary-color);"></i> Manage Streams</h3>
+        <form method="POST" action="{{ url_for('masters') }}" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+            <input type="hidden" name="type" value="stream">
+            <input type="text" name="name" class="form-control" placeholder="e.g. Science" required style="flex: 1;">
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+        
+        <table style="width: 100%; border-collapse: collapse;">
+            {% for s in streams %}
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td style="padding: 1rem 0; font-weight: 600;">{{ s.name }}</td>
+                <td style="padding: 1rem 0; text-align: right;">
+                    <form method="POST" action="{{ url_for('delete_master', mtype='stream', mid=s.id) }}" style="display: inline;">
+                        <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.4rem 0.8rem; font-size: 0.8rem; border: none; cursor: pointer; border-radius: 5px;"><i class="fas fa-trash"></i> Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="2" style="color: var(--text-secondary); text-align: center; padding: 1rem;">No streams added.</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- Classes Master -->
+    <div class="glass-card">
+        <h3 style="font-weight: 700; margin-bottom: 1.5rem;"><i class="fas fa-chalkboard-teacher" style="color: var(--primary-color);"></i> Manage Classes</h3>
+        <form method="POST" action="{{ url_for('masters') }}" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+            <input type="hidden" name="type" value="class">
+            <input type="text" name="name" class="form-control" placeholder="e.g. XIth" required style="flex: 1;">
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+        
+        <table style="width: 100%; border-collapse: collapse;">
+            {% for c in classes %}
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td style="padding: 1rem 0; font-weight: 600;">{{ c.name }}</td>
+                <td style="padding: 1rem 0; text-align: right;">
+                    <form method="POST" action="{{ url_for('delete_master', mtype='class', mid=c.id) }}" style="display: inline;">
+                        <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.4rem 0.8rem; font-size: 0.8rem; border: none; cursor: pointer; border-radius: 5px;"><i class="fas fa-trash"></i> Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="2" style="color: var(--text-secondary); text-align: center; padding: 1rem;">No classes added.</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endblock %}
