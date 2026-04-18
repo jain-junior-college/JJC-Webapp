@@ -23,7 +23,7 @@ db.init_app(app)
 
 # Database Auto-Initialization
 def auto_init_db():
-    with app.app_context():
+    try:
         db.create_all()
         # Seed default data
         if not Stream.query.first():
@@ -32,11 +32,23 @@ def auto_init_db():
         if not AcademicClass.query.first():
             for c in ['XI', 'XII']:
                 db.session.add(AcademicClass(name=c))
-        if not User.query.filter_by(username='admin').first():
-            admin = User(username='admin', password_hash=generate_password_hash('admin123'), role='admin')
+        
+        # Ensure admin exists
+        admin_user = User.query.filter_by(username='admin').first()
+        if not admin_user:
+            admin = User(
+                username='admin', 
+                password_hash=generate_password_hash('admin123'), 
+                role='admin'
+            )
             db.session.add(admin)
         db.session.commit()
+        print("Database initialized successfully.")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Database init deferred or failed: {e}")
 
+# Run initialization once on startup
 with app.app_context():
     auto_init_db()
 
