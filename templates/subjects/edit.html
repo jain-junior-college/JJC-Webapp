@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Subject{% endblock %}
+{% block header_title %}Update Subject Details{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 500px; margin: 0 auto;">
+    <h3 style="margin-bottom: 2rem; font-weight: 700;">Edit Subject: {{ subject.name }}</h3>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label>Subject Name</label>
+            <input type="text" name="name" value="{{ subject.name }}" class="form-control" required>
+        </div>
+        
+        <div class="form-group" style="margin-top: 1.5rem;">
+            <label>Stream</label>
+            <select name="stream_id" class="form-control" required>
+                {% for stream in streams %}
+                <option value="{{ stream.id }}" {% if stream.id == subject.stream_id %}selected{% endif %}>{{ stream.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="{{ url_for('manage_subjects') }}" class="btn" style="text-decoration: none;">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

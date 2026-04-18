@@ -59,10 +59,22 @@ def repair_db():
         db.drop_all()
         db.create_all()
         # Re-seed default data
-        for s in ['Science', 'Commerce', 'Arts']:
-            db.session.add(Stream(name=s))
-        for c in ['XI', 'XII']:
-            db.session.add(AcademicClass(name=c))
+        s1 = Stream(name='Science')
+        s2 = Stream(name='Commerce')
+        s3 = Stream(name='Arts')
+        db.session.add_all([s1, s2, s3])
+        db.session.commit()
+
+        c1 = AcademicClass(name='XI')
+        c2 = AcademicClass(name='XII')
+        db.session.add_all([c1, c2])
+        
+        # Add Sample Subjects so Teacher form isn't empty
+        db.session.add(Subject(name='Physics', stream_id=s1.id))
+        db.session.add(Subject(name='Chemistry', stream_id=s1.id))
+        db.session.add(Subject(name='Accountancy', stream_id=s2.id))
+        db.session.add(Subject(name='Economics', stream_id=s2.id))
+        
         admin = User(
             username='admin', 
             password_hash=generate_password_hash('admin123'), 
@@ -70,7 +82,7 @@ def repair_db():
         )
         db.session.add(admin)
         db.session.commit()
-        return "Database Repaired! You can now log in with admin / admin123. <a href='/login'>Go to Login</a>"
+        return "Database Repaired with Sample Subjects! <a href='/login'>Go to Login</a>"
     except Exception as e:
         return f"Repair failed: {e}"
 
@@ -313,6 +325,28 @@ def manage_subjects():
     subjects = Subject.query.all()
     streams = Stream.query.all()
     return render_template('subjects/manage.html', subjects=subjects, streams=streams)
+
+@app.route('/subjects/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_subject(id):
+    subject = Subject.query.get_or_404(id)
+    if request.method == 'POST':
+        subject.name = request.form.get('name')
+        subject.stream_id = request.form.get('stream_id')
+        db.session.commit()
+        flash('Subject updated successfully!')
+        return redirect(url_for('manage_subjects'))
+    streams = Stream.query.all()
+    return render_template('subjects/edit.html', subject=subject, streams=streams)
+
+@app.route('/subjects/delete/<int:id>')
+@login_required
+def delete_subject(id):
+    subject = Subject.query.get_or_404(id)
+    db.session.delete(subject)
+    db.session.commit()
+    flash('Subject deleted successfully.')
+    return redirect(url_for('manage_subjects'))
 
 # Attendance Routes
 @app.route('/attendance/mark', methods=['GET', 'POST'])
