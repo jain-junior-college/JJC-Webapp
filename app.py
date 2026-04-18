@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User, Student, Fee, Exam, Enquiry
+from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
@@ -9,7 +9,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 
 # Database Configuration
-# Use DATABASE_URL from environment (Postgres), fallback to SQLite for local development
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
@@ -18,6 +17,25 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+
+# Database Auto-Initialization
+def auto_init_db():
+    with app.app_context():
+        db.create_all()
+        # Seed default data
+        if not Stream.query.first():
+            for s in ['Science', 'Commerce', 'Arts']:
+                db.session.add(Stream(name=s))
+        if not AcademicClass.query.first():
+            for c in ['XI', 'XII']:
+                db.session.add(AcademicClass(name=c))
+        if not User.query.filter_by(username='admin').first():
+            admin = User(username='admin', password_hash=generate_password_hash('admin123'), role='admin')
+            db.session.add(admin)
+        db.session.commit()
+
+with app.app_context():
+    auto_init_db()
 
 # Login required decorator
 def login_required(f):
