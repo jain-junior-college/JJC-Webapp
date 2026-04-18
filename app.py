@@ -54,11 +54,23 @@ with app.app_context():
 
 @app.route('/repair-database')
 def repair_db():
+    confirm = request.args.get('confirm')
+    if confirm != 'true':
+        return """
+        <div style='font-family: sans-serif; padding: 2rem; border: 2px solid red; border-radius: 10px; max-width: 600px; margin: 5rem auto;'>
+            <h1 style='color: red;'>⚠️ DANGER: Factory Reset</h1>
+            <p>Visiting this page with confirmation will <b>ERASE ALL STUDENT DATA, FEES, AND TEACHERS</b> and reset the system.</p>
+            <p>Only use this if the website is crashing and cannot be fixed otherwise.</p>
+            <a href='/repair-database?confirm=true' style='background: red; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;'>I UNDERSTAND - WIPE AND REPAIR EVERYTHING</a>
+            <br><br>
+            <a href='/dashboard'>No, take me back to safety</a>
+        </div>
+        """
     try:
         # The Nuclear Option: Drop and Recreate
         db.drop_all()
         db.create_all()
-        # Re-seed default data
+        # ... [rest of the seeding logic] ...
         s1 = Stream(name='Science')
         s2 = Stream(name='Commerce')
         s3 = Stream(name='Arts')
@@ -69,7 +81,6 @@ def repair_db():
         c2 = AcademicClass(name='XII')
         db.session.add_all([c1, c2])
         
-        # Add Sample Subjects so Teacher form isn't empty
         db.session.add(Subject(name='Physics', stream_id=s1.id))
         db.session.add(Subject(name='Chemistry', stream_id=s1.id))
         db.session.add(Subject(name='Accountancy', stream_id=s2.id))
@@ -82,7 +93,7 @@ def repair_db():
         )
         db.session.add(admin)
         db.session.commit()
-        return "Database Repaired with Sample Subjects! <a href='/login'>Go to Login</a>"
+        return "Database Repaired! <a href='/login'>Go to Login</a>"
     except Exception as e:
         return f"Repair failed: {e}"
 
