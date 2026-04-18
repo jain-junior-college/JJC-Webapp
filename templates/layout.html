@@ -33,6 +33,7 @@
             <li><a href="{{ url_for('enroll') }}" class="{% if request.endpoint == 'enroll' %}active{% endif %}"><i class="fas fa-plus-circle"></i> Enrollment</a></li>
             <li><a href="{{ url_for('collect_fees') }}" class="{% if request.endpoint == 'collect_fees' %}active{% endif %}"><i class="fas fa-receipt"></i> Fee Mgmt</a></li>
             <li><a href="{{ url_for('academic_entry') }}" class="{% if request.endpoint == 'academic_entry' %}active{% endif %}"><i class="fas fa-book"></i> Academics</a></li>
+            <li><a href="{{ url_for('manage_subjects') }}" class="{% if request.endpoint == 'manage_subjects' %}active{% endif %}"><i class="fas fa-book-open"></i> Subject Master</a></li>
             <li><a href="{{ url_for('mark_attendance') }}" class="{% if request.endpoint == 'mark_attendance' %}active{% endif %}"><i class="fas fa-calendar-check"></i> Attendance</a></li>
             <li><a href="{{ url_for('manage_teachers') }}" class="{% if request.endpoint == 'manage_teachers' %}active{% endif %}"><i class="fas fa-chalkboard-teacher"></i> Teachers</a></li>
             <li><a href="{{ url_for('masters') }}" class="{% if request.endpoint == 'masters' %}active{% endif %}"><i class="fas fa-layer-group"></i> Masters</a></li>
