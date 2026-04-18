@@ -7,16 +7,36 @@
 <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
     <h3 style="margin-bottom: 2rem; font-weight: 700;">New Student Profile</h3>
     
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
             <div class="form-group">
                 <label for="student_id">Permanent Student ID</label>
-                <input type="text" name="student_id" id="student_id" class="form-control" placeholder="Blank for Auto-Generate (e.g. JJCXII-2026-001)">
+                <input type="text" name="student_id" id="student_id" class="form-control" placeholder="Automatic (Select class first)" readonly style="background: rgba(0,0,0,0.03); cursor: not-allowed;">
             </div>
             <div class="form-group">
                 <label for="name">Full Name</label>
                 <input type="text" name="name" id="name" class="form-control" placeholder="John Doe" required>
             </div>
+            
+            <div class="form-group">
+                <label for="class_id">Class</label>
+                <select name="class_id" id="class_id" class="form-control" required onchange="updateStudentId()">
+                    <option value="">Select Class</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="stream_id">Stream</label>
+                <select name="stream_id" id="stream_id" class="form-control" required>
+                    <option value="">Select Stream</option>
+                    {% for stream in streams %}
+                    <option value="{{ stream.id }}">{{ stream.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <div class="form-group">
                 <label for="dob">Date of Birth</label>
                 <input type="date" name="dob" id="dob" class="form-control" required>
@@ -29,24 +49,7 @@
                     <option value="Other">Other</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label for="stream_id">Stream</label>
-                <select name="stream_id" id="stream_id" class="form-control" required>
-                    <option value="">Select Stream</option>
-                    {% for stream in streams %}
-                    <option value="{{ stream.id }}">{{ stream.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="class_id">Class</label>
-                <select name="class_id" id="class_id" class="form-control" required>
-                    <option value="">Select Class</option>
-                    {% for c in classes %}
-                    <option value="{{ c.id }}">{{ c.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+
             <div class="form-group">
                 <label for="contact">Contact Number</label>
                 <input type="tel" name="contact" id="contact" class="form-control" placeholder="+91 9876543210" required>
@@ -55,13 +58,23 @@
                 <label for="email">Email Address</label>
                 <input type="email" name="email" id="email" class="form-control" placeholder="john.doe@example.com">
             </div>
+
+            <div class="form-group">
+                <label for="photo">Student Photograph (Image)</label>
+                <input type="file" name="photo" id="photo" class="form-control" accept="image/*">
+            </div>
+            <div class="form-group">
+                <label for="document">ID/Academic Documents (PDF)</label>
+                <input type="file" name="document" id="document" class="form-control" accept=".pdf">
+            </div>
+
             <div class="form-group">
                 <label for="guardian_name">Guardian Name</label>
                 <input type="text" name="guardian_name" id="guardian_name" class="form-control" placeholder="Guardian Full Name" required>
             </div>
-            <div class="form-group" style="grid-column: span 2;">
+            <div class="form-group">
                 <label for="address">Residential Address</label>
-                <textarea name="address" id="address" class="form-control" rows="2" placeholder="Full residential address"></textarea>
+                <textarea name="address" id="address" class="form-control" rows="1" placeholder="Full address"></textarea>
             </div>
         </div>
         
@@ -71,4 +84,22 @@
         </div>
     </form>
 </div>
+
+<script>
+function updateStudentId() {
+    const classId = document.getElementById('class_id').value;
+    const idInput = document.getElementById('student_id');
+    
+    if (classId) {
+        fetch(`/api/next-student-id?class_id=${classId}`)
+            .then(response => response.json())
+            .then(data => {
+                idInput.value = data.next_id;
+            })
+            .catch(err => console.error('Error fetching ID:', err));
+    } else {
+        idInput.value = '';
+    }
+}
+</script>
 {% endblock %}

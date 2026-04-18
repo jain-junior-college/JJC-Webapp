@@ -62,6 +62,8 @@ class Student(db.Model):
     email = db.Column(db.String(100))
     address = db.Column(db.Text)
     guardian_name = db.Column(db.String(100))
+    photo_url = db.Column(db.String(255)) # Path to student photograph
+    document_url = db.Column(db.String(255)) # Path to uploaded PDF document
     admission_date = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships

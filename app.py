@@ -7,9 +7,9 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
-
-# Database Configuration
-db_url = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+# Ensure upload folder exists
+os.makedirs(os.path.join(app.root_path, 'static/uploads'), exist_ok=True)
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
@@ -133,6 +133,20 @@ def enroll():
             guardian_name=request.form.get('guardian_name', ''),
             address=request.form.get('address', '')
         )
+        
+        # Handle File Uploads
+        photo = request.files.get('photo')
+        if photo and photo.filename:
+            filename = f"photo_{assigned_id}_{photo.filename}"
+            photo.save(os.path.join(app.root_path, 'static/uploads', filename))
+            new_student.photo_url = f"uploads/{filename}"
+            
+        doc = request.files.get('document')
+        if doc and doc.filename:
+            filename = f"doc_{assigned_id}_{doc.filename}"
+            doc.save(os.path.join(app.root_path, 'static/uploads', filename))
+            new_student.document_url = f"uploads/{filename}"
+
         db.session.add(new_student)
         db.session.commit()
         flash('Student enrolled successfully!')
@@ -141,6 +155,17 @@ def enroll():
     streams = Stream.query.all()
     classes = AcademicClass.query.all()
     return render_template('students/enroll.html', streams=streams, classes=classes)
+
+@app.route('/api/next-student-id')
+@login_required
+def get_next_student_id():
+    class_id = request.args.get('class_id')
+    class_obj = AcademicClass.query.get(class_id)
+    class_name = class_obj.name if class_obj else "XX"
+    year = datetime.utcnow().year
+    prefix = f"JJC{class_name}-{year}-"
+    count = Student.query.filter(Student.student_id.like(f"{prefix}%")).count()
+    return {"next_id": f"{prefix}{str(count + 1).zfill(3)}"}
 
 @app.route('/masters', methods=['GET', 'POST'])
 @login_required
