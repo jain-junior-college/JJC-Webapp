@@ -21,8 +21,14 @@
                 <input type="email" name="email" class="form-control" placeholder="Email Address">
                 <input type="tel" name="phone" class="form-control" placeholder="Contact Number">
                 <input type="text" name="qualification" class="form-control" placeholder="Qualification (e.g. M.Sc, B.Ed)">
-                <input type="date" name="dob" class="form-control" title="Date of Birth">
-                <input type="date" name="join_date" class="form-control" title="Date of Joining">
+                <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+                    <label style="font-size: 0.8rem; color: #666; font-weight: 500;">Date of Birth</label>
+                    <input type="date" name="dob" class="form-control">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+                    <label style="font-size: 0.8rem; color: #666; font-weight: 500;">Date of Joining</label>
+                    <input type="date" name="join_date" class="form-control">
+                </div>
             </div>
             
             <div style="margin-top: 1.5rem;">

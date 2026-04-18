@@ -107,16 +107,31 @@ def submit_enquiry():
 @login_required
 def enroll():
     if request.method == 'POST':
+        # Auto-generate Student ID if not provided
+        stream_id = request.form.get('stream_id')
+        class_id = request.form.get('class_id')
+        
+        assigned_id = request.form.get('student_id')
+        if not assigned_id:
+            class_obj = AcademicClass.query.get(class_id)
+            class_name = class_obj.name if class_obj else "XX"
+            year = datetime.utcnow().year
+            # Prefix search for count
+            prefix = f"JJC{class_name}-{year}-"
+            count = Student.query.filter(Student.student_id.like(f"{prefix}%")).count()
+            assigned_id = f"{prefix}{str(count + 1).zfill(3)}"
+
         new_student = Student(
-            student_id=request.form['student_id'],
+            student_id=assigned_id,
             name=request.form['name'],
             dob=request.form['dob'],
             gender=request.form['gender'],
-            student_class="",
-            stream_id=request.form.get('stream_id'),
-            class_id=request.form.get('class_id'),
+            stream_id=stream_id,
+            class_id=class_id,
             contact=request.form['contact'],
-            email=request.form['email']
+            email=request.form['email'],
+            guardian_name=request.form.get('guardian_name', ''),
+            address=request.form.get('address', '')
         )
         db.session.add(new_student)
         db.session.commit()
