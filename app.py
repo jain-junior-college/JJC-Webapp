@@ -200,6 +200,43 @@ def manage_teachers():
     subjects = Subject.query.all()
     return render_template('teachers/manage.html', teachers=teachers, subjects=subjects)
 
+@app.route('/teachers/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_teacher(id):
+    teacher = Teacher.query.get_or_404(id)
+    if request.method == 'POST':
+        teacher.name = request.form.get('name', '')
+        teacher.email = request.form.get('email', '')
+        teacher.phone = request.form.get('phone', '')
+        teacher.qualification = request.form.get('qualification', '')
+        teacher.dob = request.form.get('dob', '')
+        teacher.join_date = request.form.get('join_date', '')
+        
+        # Update subjects
+        selected_subjects = request.form.getlist('subjects')
+        teacher.subjects = [] # Clear and refill
+        for sid in selected_subjects:
+            subj = Subject.query.get(sid)
+            if subj:
+                teacher.subjects.append(subj)
+        
+        db.session.commit()
+        flash('Teacher updated successfully!')
+        return redirect(url_for('manage_teachers'))
+        
+    subjects = Subject.query.all()
+    teacher_subject_ids = [s.id for s in teacher.subjects]
+    return render_template('teachers/edit.html', teacher=teacher, subjects=subjects, teacher_subject_ids=teacher_subject_ids)
+
+@app.route('/teachers/delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def delete_teacher(id):
+    teacher = Teacher.query.get_or_404(id)
+    db.session.delete(teacher)
+    db.session.commit()
+    flash('Teacher record deleted successfully.')
+    return redirect(url_for('manage_teachers'))
+
 @app.route('/subjects', methods=['GET', 'POST'])
 @login_required
 def manage_subjects():

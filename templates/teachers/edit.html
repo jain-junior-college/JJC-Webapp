@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Teacher{% endblock %}
+{% block header_title %}Update Faculty Profile{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+    <h3 style="margin-bottom: 2rem; font-weight: 700;">Editing: {{ teacher.name }}</h3>
+    
+    <form method="POST">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="name" value="{{ teacher.name }}" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="email" value="{{ teacher.email }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Contact Number</label>
+                <input type="tel" name="phone" value="{{ teacher.phone }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Qualification</label>
+                <input type="text" name="qualification" value="{{ teacher.qualification }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Date of Birth</label>
+                <input type="date" name="dob" value="{{ teacher.dob }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Date of Joining</label>
+                <input type="date" name="join_date" value="{{ teacher.join_date }}" class="form-control">
+            </div>
+        </div>
+        
+        <div style="margin-top: 1.5rem;">
+            <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Update Subject Assignments</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; background: rgba(0,0,0,0.02); padding: 1rem; border-radius: 8px;">
+                {% for sub in subjects %}
+                <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer;">
+                    <input type="checkbox" name="subjects" value="{{ sub.id }}" {% if sub.id in teacher_subject_ids %}checked{% endif %}> 
+                    {{ sub.name }} <small style="color: #666;">({{ sub.stream.name if sub.stream else 'General' }})</small>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="{{ url_for('manage_teachers') }}" class="btn" style="text-decoration: none; display: flex; align-items: center;">Cancel</a>
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
