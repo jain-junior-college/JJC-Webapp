@@ -164,12 +164,12 @@ def delete_master(mtype, mid):
 def manage_teachers():
     if request.method == 'POST':
         teacher = Teacher(
-            name=request.form['name'],
-            email=request.form['email'],
-            phone=request.form['phone'],
-            qualification=request.form['qualification'],
-            dob=request.form['dob'],
-            join_date=request.form['join_date']
+            name=request.form.get('name', ''),
+            email=request.form.get('email', ''),
+            phone=request.form.get('phone', ''),
+            qualification=request.form.get('qualification', ''),
+            dob=request.form.get('dob', ''),
+            join_date=request.form.get('join_date', '')
         )
         # Capture selected subjects
         subject_ids = request.form.getlist('subjects')
