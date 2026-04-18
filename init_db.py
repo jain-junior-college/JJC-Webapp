@@ -1,5 +1,5 @@
 from app import app, db
-from models import User, Student, Fee, Exam, Enquiry, Stream, AcademicClass
+from models import User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance
 from werkzeug.security import generate_password_hash
 
 def init_db():
