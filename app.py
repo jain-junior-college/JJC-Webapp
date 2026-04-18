@@ -52,6 +52,28 @@ def auto_init_db():
 with app.app_context():
     auto_init_db()
 
+@app.route('/repair-database')
+def repair_db():
+    try:
+        # The Nuclear Option: Drop and Recreate
+        db.drop_all()
+        db.create_all()
+        # Re-seed default data
+        for s in ['Science', 'Commerce', 'Arts']:
+            db.session.add(Stream(name=s))
+        for c in ['XI', 'XII']:
+            db.session.add(AcademicClass(name=c))
+        admin = User(
+            username='admin', 
+            password_hash=generate_password_hash('admin123'), 
+            role='admin'
+        )
+        db.session.add(admin)
+        db.session.commit()
+        return "Database Repaired! You can now log in with admin / admin123. <a href='/login'>Go to Login</a>"
+    except Exception as e:
+        return f"Repair failed: {e}"
+
 # Login required decorator
 def login_required(f):
     from functools import wraps
