@@ -21,10 +21,21 @@
                 <input type="email" name="email" class="form-control" placeholder="Email Address">
                 <input type="tel" name="phone" class="form-control" placeholder="Contact Number">
                 <input type="text" name="qualification" class="form-control" placeholder="Qualification (e.g. M.Sc, B.Ed)">
-                <input type="date" name="dob" class="form-control" title="Date of Birth">
                 <input type="date" name="join_date" class="form-control" title="Date of Joining">
             </div>
-            <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            
+            <div style="margin-top: 1.5rem;">
+                <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Assign Subjects</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; background: rgba(0,0,0,0.02); padding: 1rem; border-radius: 8px;">
+                    {% for sub in subjects %}
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer;">
+                        <input type="checkbox" name="subjects" value="{{ sub.id }}"> {{ sub.name }} ({{ sub.stream.name if sub.stream else 'General' }})
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: flex-end;">
                 <button type="button" onclick="document.getElementById('teacherForm').style.display='none'" class="btn">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save Teacher</button>
             </div>
@@ -37,6 +48,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Qualification</th>
+                    <th>Subjects Taught</th>
                     <th>Contact</th>
                     <th>DOB</th>
                     <th>Joining Date</th>
@@ -47,6 +59,11 @@
                 <tr>
                     <td style="font-weight: 700;">{{ teacher.name }}</td>
                     <td>{{ teacher.qualification }}</td>
+                    <td>
+                        {% for sub in teacher.subjects %}
+                        <span style="background: rgba(79, 70, 229, 0.1); color: var(--primary-color); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 3px; border: 1px solid rgba(79, 70, 229, 0.2);">{{ sub.name }}</span>
+                        {% endfor %}
+                    </td>
                     <td>{{ teacher.phone }}</td>
                     <td>{{ teacher.dob }}</td>
                     <td>{{ teacher.join_date }}</td>

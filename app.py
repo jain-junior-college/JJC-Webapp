@@ -153,11 +153,19 @@ def manage_teachers():
             dob=request.form['dob'],
             join_date=request.form['join_date']
         )
+        # Capture selected subjects
+        subject_ids = request.form.getlist('subjects')
+        for sid in subject_ids:
+            subj = Subject.query.get(sid)
+            if subj:
+                teacher.subjects.append(subj)
+                
         db.session.add(teacher)
         db.session.commit()
-        flash('Teacher added successfully!')
+        flash('Teacher added successfully with assigned subjects!')
     teachers = Teacher.query.all()
-    return render_template('teachers/manage.html', teachers=teachers)
+    subjects = Subject.query.all()
+    return render_template('teachers/manage.html', teachers=teachers, subjects=subjects)
 
 @app.route('/subjects', methods=['GET', 'POST'])
 @login_required
@@ -169,7 +177,7 @@ def manage_subjects():
         )
         db.session.add(subject)
         db.session.commit()
-        flash('Subject added successfully!')
+        flash('Subject added successfully and linked to Stream!')
     subjects = Subject.query.all()
     streams = Stream.query.all()
     return render_template('subjects/manage.html', subjects=subjects, streams=streams)

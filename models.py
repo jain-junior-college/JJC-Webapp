@@ -15,6 +15,7 @@ class Stream(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
     students = db.relationship('Student', backref='stream', lazy=True)
+    subjects = db.relationship('Subject', backref='stream', lazy=True)
 
 class AcademicClass(db.Model):
     __tablename__ = 'academic_class'
@@ -27,7 +28,6 @@ class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     stream_id = db.Column(db.Integer, db.ForeignKey('stream.id'))
-    teachers = db.relationship('Teacher', secondary='teacher_subject', backref='subjects')
 
 class Teacher(db.Model):
     __tablename__ = 'teacher'
@@ -38,6 +38,7 @@ class Teacher(db.Model):
     qualification = db.Column(db.String(100))
     dob = db.Column(db.String(20))
     join_date = db.Column(db.String(20))
+    subjects = db.relationship('Subject', secondary='teacher_subject', backref='teachers')
 
 # Association Table for Teacher and Subject
 teacher_subject = db.Table('teacher_subject',
