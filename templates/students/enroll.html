@@ -109,19 +109,21 @@
         const classId = classSelect.value;
         
         if (streamId && classId) {
-            fetch(`/generate-student-id?stream_id=${streamId}&class_id=${classId}`)
+            // 1. Fetch Student ID
+            fetch(`/api/next-student-id?class_id=${classId}`)
                 .then(r => r.json())
                 .then(data => {
-                    studentIdInput.value = data.student_id;
-                });
+                    studentIdInput.value = data.next_id;
+                })
+                .catch(err => console.error("ID Generation Error:", err));
 
-            // Fetch Subjects for the selected stream
+            // 2. Fetch Subjects for the selected stream
             fetch(`/api/subjects/${streamId}`)
                 .then(r => r.json())
                 .then(subjects => {
                     subjectContainer.innerHTML = '';
-                    if (subjects.length === 0) {
-                        subjectContainer.innerHTML = '<p style="grid-column: span 3; color: #ef4444;">No subjects found for this stream in Subject Master.</p>';
+                    if (!subjects || subjects.length === 0) {
+                        subjectContainer.innerHTML = '<p style="grid-column: span 3; color: #f97316; font-weight: 600;">No subjects found for this stream. Please check Subject Master.</p>';
                         return;
                     }
                     subjects.forEach(s => {
@@ -129,25 +131,32 @@
                         div.style.display = 'flex';
                         div.style.alignItems = 'center';
                         div.style.gap = '0.5rem';
+                        div.style.background = 'white';
+                        div.style.padding = '0.5rem 1rem';
+                        div.style.borderRadius = '8px';
+                        div.style.border = '1px solid #e2e8f0';
                         
                         const input = document.createElement('input');
                         input.type = 'checkbox';
                         input.name = 'selected_subjects';
                         input.value = s.id;
+                        input.id = `sub_${s.id}`;
                         input.checked = s.is_compulsory;
                         
-                        // If compulsory, make it unchangeable
+                        // If compulsory, make it unchangeable but visible
                         if (s.is_compulsory) {
                             input.onclick = (e) => { e.preventDefault(); return false; };
-                            input.style.accentColor = '#059669';
+                            input.style.accentColor = '#166534';
                         }
                         
                         const label = document.createElement('label');
+                        label.htmlFor = `sub_${s.id}`;
                         label.style.fontSize = '0.85rem';
                         label.style.fontWeight = s.is_compulsory ? '700' : '500';
+                        label.style.cursor = s.is_compulsory ? 'default' : 'pointer';
                         label.innerHTML = `${s.name} ${s.is_compulsory ? '<i class="fas fa-lock" style="font-size: 0.7rem; color: #166534;" title="Compulsory"></i>' : ''}`;
                         
-                        // Hidden field for compulsory subjects to ensure they are sent in form
+                        // Hidden field for compulsory subjects to ensure they are sent in form even if disabled
                         if (s.is_compulsory) {
                             const hidden = document.createElement('input');
                             hidden.type = 'hidden';
@@ -160,6 +169,9 @@
                         div.appendChild(label);
                         subjectContainer.appendChild(div);
                     });
+                })
+                .catch(err => {
+                    subjectContainer.innerHTML = '<p style="grid-column: span 3; color: #ef4444;">Error linking to Subject Master.</p>';
                 });
         }
     }
