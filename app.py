@@ -215,6 +215,13 @@ def enroll():
             upload_result = cloudinary.uploader.upload(doc, folder="student_docs", resource_type="auto")
             new_student.document_url = upload_result['secure_url']
 
+        # Handle Subject Selection
+        selected_subject_ids = request.form.getlist('selected_subjects')
+        for sid in selected_subject_ids:
+            subj = Subject.query.get(sid)
+            if subj:
+                new_student.subjects.append(subj)
+
         db.session.add(new_student)
         db.session.commit()
         flash('Student enrolled successfully!')
@@ -334,16 +341,18 @@ def delete_teacher(id):
 @login_required
 def manage_subjects():
     if request.method == 'POST':
-        subject = Subject(
-            name=request.form['name'],
-            stream_id=request.form['stream_id']
+        is_compulsory = 'is_compulsory' in request.form
+        new_subject = Subject(
+            name=request.form.get('name'), 
+            stream_id=request.form.get('stream_id'),
+            is_compulsory=is_compulsory
         )
-        db.session.add(subject)
+        db.session.add(new_subject)
         db.session.commit()
-        flash('Subject added successfully and linked to Stream!')
-    subjects = Subject.query.all()
+        flash('Subject added successfully!')
     streams = Stream.query.all()
-    return render_template('subjects/manage.html', subjects=subjects, streams=streams)
+    subjects = Subject.query.all()
+    return render_template('subjects/manage.html', streams=streams, subjects=subjects)
 
 @app.route('/subjects/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -352,11 +361,12 @@ def edit_subject(id):
     if request.method == 'POST':
         subject.name = request.form.get('name')
         subject.stream_id = request.form.get('stream_id')
+        subject.is_compulsory = 'is_compulsory' in request.form
         db.session.commit()
-        flash('Subject updated successfully!')
+        flash('Subject updated!')
         return redirect(url_for('manage_subjects'))
     streams = Stream.query.all()
-    return render_template('subjects/edit.html', subject=subject, streams=streams)
+    return render_template('subjects/edit_subject.html', subject=subject, streams=streams)
 
 @app.route('/subjects/delete/<int:id>')
 @login_required
@@ -522,7 +532,16 @@ def delete_resource(id):
     flash('Resource removed from library.')
     return redirect(url_for('library_list'))
 
-# Fee Routes
+@app.route('/api/subjects/<int:stream_id>')
+def get_subjects_by_stream(stream_id):
+    subjects = Subject.query.filter_by(stream_id=stream_id).all()
+    return jsonify([{
+        'id': s.id,
+        'name': s.name,
+        'is_compulsory': s.is_compulsory
+    } for s in subjects])
+
+# Teacher Routes
 @app.route('/fees', methods=['GET', 'POST'])
 @login_required
 def collect_fees():

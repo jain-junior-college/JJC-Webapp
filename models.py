@@ -11,9 +11,14 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default='staff') # admin or staff
 
-# 2. Junction Table (Defined first to avoid relationship errors)
+# 2. Junction Tables
 teacher_subject = db.Table('teacher_subject',
     db.Column('teacher_id', db.Integer, db.ForeignKey('teacher.id'), primary_key=True),
+    db.Column('subject_id', db.Integer, db.ForeignKey('subject.id'), primary_key=True)
+)
+
+student_subject = db.Table('student_subject',
+    db.Column('student_id', db.Integer, db.ForeignKey('student.id'), primary_key=True),
     db.Column('subject_id', db.Integer, db.ForeignKey('subject.id'), primary_key=True)
 )
 
@@ -36,6 +41,7 @@ class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     stream_id = db.Column(db.Integer, db.ForeignKey('stream.id'))
+    is_compulsory = db.Column(db.Boolean, default=True)
 
 class Teacher(db.Model):
     __tablename__ = 'teacher'
@@ -70,6 +76,7 @@ class Student(db.Model):
     fees = db.relationship('Fee', backref='student', lazy=True)
     exams = db.relationship('Exam', backref='student', lazy=True)
     attendance = db.relationship('Attendance', backref='student', lazy=True)
+    subjects = db.relationship('Subject', secondary=student_subject, backref='students')
 
 class Attendance(db.Model):
     __tablename__ = 'attendance'
