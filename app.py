@@ -4,12 +4,22 @@ from flask_sqlalchemy import SQLAlchemy
 from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+import cloudinary
+import cloudinary.uploader
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 # Ensure upload folder exists
 os.makedirs(os.path.join(app.root_path, 'static/uploads'), exist_ok=True)
+
+# Cloudinary Configuration
+cloudinary.config(
+    cloud_name = "dcgwjfpr1",
+    api_key = "221175245642669",
+    api_secret = "g8x0B42ShixAAa-fgWiTJgEgQe4",
+    secure = True
+)
 
 # Database Configuration
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
@@ -194,18 +204,16 @@ def enroll():
             address=request.form.get('address', '')
         )
         
-        # Handle File Uploads
+        # Handle File Uploads via Cloudinary (Permanent Storage)
         photo = request.files.get('photo')
         if photo and photo.filename:
-            filename = f"photo_{assigned_id}_{photo.filename}"
-            photo.save(os.path.join(app.root_path, 'static/uploads', filename))
-            new_student.photo_url = f"uploads/{filename}"
+            upload_result = cloudinary.uploader.upload(photo, folder="student_photos")
+            new_student.photo_url = upload_result['secure_url']
             
         doc = request.files.get('document')
         if doc and doc.filename:
-            filename = f"doc_{assigned_id}_{doc.filename}"
-            doc.save(os.path.join(app.root_path, 'static/uploads', filename))
-            new_student.document_url = f"uploads/{filename}"
+            upload_result = cloudinary.uploader.upload(doc, folder="student_docs", resource_type="auto")
+            new_student.document_url = upload_result['secure_url']
 
         db.session.add(new_student)
         db.session.commit()

@@ -13,3 +13,4 @@ itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
 typing_extensions==4.15.0
+cloudinary==1.41.0
