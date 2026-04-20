@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block title %}Fee Receipt - {{ student.name }}{% endblock %}
+{% block header_title %}Official Payment Receipt{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 700px; margin: 0 auto; background: white; color: #1e293b;">
+    <!-- Receipt Header -->
+    <div style="border-bottom: 2px solid #f1f5f9; padding-bottom: 2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <h1 style="color: var(--primary-color); margin: 0; font-size: 1.8rem; font-weight: 800;">JAIN JUNIOR COLLEGE</h1>
+            <p style="margin: 0.5rem 0 0; color: #64748b; font-size: 0.9rem;">Education with Integrity</p>
+            <p style="margin: 0; color: #64748b; font-size: 0.8rem;">Receipt ID: #REC-{{ fee.id }}-{{ student.student_id[-3:] }}</p>
+        </div>
+        <div style="text-align: right;">
+            <span style="background: #dcfce7; color: #166534; padding: 0.5rem 1rem; border-radius: 50px; font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">
+                <i class="fas fa-check-circle"></i> Payment Confirmed
+            </span>
+            <p style="margin-top: 1rem; font-weight: 600;">Date: {{ fee.date.strftime('%d-%m-%Y') }}</p>
+        </div>
+    </div>
+
+    <!-- Student Detail & Photo -->
+    <div style="display: flex; gap: 2rem; background: #f8fafc; padding: 1.5rem; border-radius: 15px; margin-bottom: 2rem;">
+        <div style="width: 100px; height: 100px; border: 4px solid white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+            {% if student.photo_url %}
+            <img src="{{ student.photo_url }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+            <div style="width: 100%; height: 100%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                <i class="fas fa-user" style="font-size: 2rem;"></i>
+            </div>
+            {% endif %}
+        </div>
+        <div style="flex: 1;">
+            <h2 style="margin: 0; font-size: 1.4rem;">{{ student.name }}</h2>
+            <p style="margin: 0.2rem 0; color: #64748b; font-weight: 600;">ID: {{ student.student_id }}</p>
+            <p style="margin: 0; color: #64748b;">Class: {{ student.academic_class.name if student.academic_class else '' }} - {{ student.stream.name if student.stream else '' }}</p>
+        </div>
+    </div>
+
+    <!-- Payment Breakdown -->
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+        <thead>
+            <tr style="text-align: left; border-bottom: 1px solid #e2e8f0;">
+                <th style="padding: 1rem 0; color: #64748b;">Description</th>
+                <th style="padding: 1rem 0; text-align: right; color: #64748b;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding: 1.5rem 0; font-weight: 600;">Academic & Tuition Fees</td>
+                <td style="padding: 1.5rem 0; text-align: right; font-weight: 700; font-size: 1.2rem;">₹{{ "{:,.2f}".format(fee.amount_paid) }}</td>
+            </tr>
+            <tr style="border-top: 1px solid #e2e8f0;">
+                <td style="padding: 1rem 0; color: #64748b;">Payment Method: <strong>{{ fee.payment_method }}</strong></td>
+                <td></td>
+            </tr>
+            {% if fee.remarks %}
+            <tr>
+                <td colspan="2" style="font-size: 0.8rem; color: #94a3b8; font-style: italic; padding-top: 1rem;">Note: {{ fee.remarks }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- Footer -->
+    <div style="border-top: 2px dashed #e2e8f0; padding-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+        <div style="text-align: center; width: 200px;">
+            <div style="height: 50px;"></div>
+            <p style="border-top: 1px solid #1e293b; padding-top: 0.5rem; font-size: 0.8rem; font-weight: 700;">Authorized Signatory</p>
+        </div>
+        <div>
+            <button onclick="window.print()" class="btn btn-primary" id="printBtn">
+                <i class="fas fa-print"></i> Print Receipt
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .sidebar, .top-header, .btn, #printBtn, button { display: none !important; }
+    .main-content { padding: 0 !important; margin: 0 !important; }
+    .glass-card { box-shadow: none !important; border: 1px solid #eee !important; margin: 0 auto !important; }
+}
+</style>
+{% endblock %}

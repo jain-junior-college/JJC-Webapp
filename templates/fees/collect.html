@@ -58,5 +58,40 @@
             </ul>
         </div>
     </div>
+
+    <!-- Recent Payments History -->
+    <div class="glass-card" style="grid-column: span 2;">
+        <h3 style="margin-bottom: 1.5rem; font-weight: 700;">Recent Payments</h3>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Student</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fee in recent_fees %}
+                    <tr>
+                        <td>{{ fee.payment_date.strftime('%d-%b %H:%M') }}</td>
+                        <td style="font-weight: 600;">{{ fee.student.name }}</td>
+                        <td style="font-weight: 700; color: #166534;">₹{{ "{:,.2f}".format(fee.amount_paid) }}</td>
+                        <td>{{ fee.payment_method }}</td>
+                        <td>
+                            <a href="{{ url_for('fee_receipt', id=fee.id) }}" class="btn" style="background: rgba(79, 70, 229, 0.1); color: var(--primary-color); font-size: 0.8rem; text-decoration: none;">
+                                <i class="fas fa-print"></i> Reprint
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-secondary);">No recent payments recorded.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

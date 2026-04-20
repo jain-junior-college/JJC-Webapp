@@ -446,8 +446,18 @@ def collect_fees():
         db.session.add(fee)
         db.session.commit()
         flash('Fee collected successfully!')
+        return redirect(url_for('fee_receipt', id=fee.id))
+    
     students = Student.query.all()
-    return render_template('fees/collect.html', students=students)
+    recent_fees = Fee.query.order_by(Fee.payment_date.desc()).limit(10).all()
+    return render_template('fees/collect.html', students=students, recent_fees=recent_fees)
+
+@app.route('/fees/receipt/<int:id>')
+@login_required
+def fee_receipt(id):
+    fee = Fee.query.get_or_404(id)
+    student = Student.query.get(fee.student_id)
+    return render_template('fees/receipt.html', fee=fee, student=student)
 
 # Academic Routes
 @app.route('/academics', methods=['GET', 'POST'])
