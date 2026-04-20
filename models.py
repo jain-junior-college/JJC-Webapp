@@ -93,6 +93,11 @@ class Resource(db.Model):
     class_id = db.Column(db.Integer, db.ForeignKey('academic_class.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Relationships for templates
+    teacher = db.relationship('Teacher', backref='resources')
+    subject = db.relationship('Subject', backref='resources')
+    academic_class = db.relationship('AcademicClass', backref='resources')
+    
     # Permissions
     is_public = db.Column(db.Boolean, default=False)
 
