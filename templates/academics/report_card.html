@@ -4,11 +4,13 @@
 {% block header_title %}Student Report Card{% endblock %}
 
 {% block content %}
-<div class="glass-card" style="max-width: 900px; margin: 0 auto; background: white; padding: 4rem;">
+<div class="glass-card" style="max-width: 900px; margin: 0 auto; background: white; padding: 4rem; border: 1px solid #e2e8f0; color: #1e293b;">
     <!-- Report Header -->
-    <div style="text-align: center; border-bottom: 3px solid var(--primary-color); padding-bottom: 2rem; margin-bottom: 3rem;">
-        <h1 style="font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem; letter-spacing: -1px;">JAIN JUNIOR COLLEGE</h1>
-        <p style="color: var(--text-secondary); text-transform: uppercase; font-weight: 600; font-size: 0.8rem; letter-spacing: 2px;">Academic Performance Record</p>
+    <div style="text-align: center; border-bottom: 3px solid #1e3a8a; padding-bottom: 2rem; margin-bottom: 3rem;">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" style="width: 100px; height: 100px; margin-bottom: 1rem; object-fit: contain;">
+        <h1 style="font-weight: 800; color: #1e3a8a; margin: 0; letter-spacing: -1px; font-size: 2.5rem;">JAIN JUNIOR COLLEGE</h1>
+        <p style="color: #b45309; font-style: italic; font-weight: 700; font-size: 1.1rem; margin: 0.5rem 0;">Excellence in Education, Integrity in Character</p>
+        <p style="color: #64748b; text-transform: uppercase; font-weight: 600; font-size: 0.8rem; letter-spacing: 2px; margin-top: 1rem;">Official Academic Performance Record</p>
     </div>
 
     <!-- Student Info -->

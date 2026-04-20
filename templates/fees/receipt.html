@@ -4,13 +4,16 @@
 {% block header_title %}Official Payment Receipt{% endblock %}
 
 {% block content %}
-<div class="glass-card" style="max-width: 700px; margin: 0 auto; background: white; color: #1e293b;">
+<div class="glass-card" style="max-width: 700px; margin: 0 auto; background: white; color: #1e293b; border: 1px solid #e2e8f0;">
     <!-- Receipt Header -->
-    <div style="border-bottom: 2px solid #f1f5f9; padding-bottom: 2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-            <h1 style="color: var(--primary-color); margin: 0; font-size: 1.8rem; font-weight: 800;">JAIN JUNIOR COLLEGE</h1>
-            <p style="margin: 0.5rem 0 0; color: #64748b; font-size: 0.9rem;">Education with Integrity</p>
-            <p style="margin: 0; color: #64748b; font-size: 0.8rem;">Receipt ID: #REC-{{ fee.id }}-{{ student.student_id[-3:] }}</p>
+    <div style="border-bottom: 2px solid #f1f5f9; padding-bottom: 2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" style="width: 80px; height: 80px; object-fit: contain;">
+            <div>
+                <h1 style="color: #1e3a8a; margin: 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px;">JAIN JUNIOR COLLEGE</h1>
+                <p style="margin: 0.2rem 0 0; color: #b45309; font-size: 0.9rem; font-weight: 700; font-style: italic;">Excellence in Education, Integrity in Character</p>
+                <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.75rem;">Receipt ID: #REC-{{ fee.id }}-{{ student.student_id[-3:] }}</p>
+            </div>
         </div>
         <div style="text-align: right;">
             <span style="background: #dcfce7; color: #166534; padding: 0.5rem 1rem; border-radius: 50px; font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">
