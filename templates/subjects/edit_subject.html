@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Subject - {{ subject.name }}{% endblock %}
+{% block header_title %}Modify Subject Details{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 600px; margin: 0 auto;">
+    <h3 style="margin-bottom: 2rem; font-weight: 700;">Update Subject</h3>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label>Subject Name</label>
+            <input type="text" name="name" class="form-control" value="{{ subject.name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Link to Stream</label>
+            <select name="stream_id" class="form-control" required>
+                {% for stream in streams %}
+                <option value="{{ stream.id }}" {% if subject.stream_id == stream.id %}selected{% endif %}>{{ stream.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer; background: #f8fafc; padding: 1rem; border-radius: 10px; border: 1px solid #e2e8f0;">
+                <input type="checkbox" name="is_compulsory" {% if subject.is_compulsory %}checked{% endif %} style="width: 20px; height: 20px;">
+                <div>
+                    <span style="display: block; font-weight: 700;">Compulsory Subject?</span>
+                    <span style="font-size: 0.8rem; color: #64748b;">If checked, students cannot unselect this during enrollment.</span>
+                </div>
+            </label>
+        </div>
+
+        <div style="margin-top: 3rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="{{ url_for('manage_subjects') }}" class="btn">Cancel</a>
+            <button type="submit" class="btn btn-primary" style="padding: 1rem 3rem;">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
