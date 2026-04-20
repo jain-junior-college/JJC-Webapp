@@ -238,7 +238,7 @@ def get_next_student_id():
     class_obj = AcademicClass.query.get(class_id)
     class_name = class_obj.name if class_obj else "XX"
     year = datetime.utcnow().year
-    prefix = f"JJC{class_name}-{year}-"
+    prefix = f"JJC{class_name}{year}"
     count = Student.query.filter(Student.student_id.like(f"{prefix}%")).count()
     return {"next_id": f"{prefix}{str(count + 1).zfill(3)}"}
 
