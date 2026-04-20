@@ -69,6 +69,19 @@
                                     <span style="color: #dc2626; font-weight: 600;">Absent</span>
                                 </label>
                             </div>
+                            
+                            <!-- Early Leave Section -->
+                            <div style="margin-top: 1rem; border-top: 1px dashed rgba(0,0,0,0.05); padding-top: 0.5rem;">
+                                <details style="font-size: 0.8rem; background: rgba(0,0,0,0.02); padding: 0.5rem; border-radius: 5px;">
+                                    <summary style="cursor: pointer; color: #b45309; font-weight: 700;">
+                                        <i class="fas fa-running"></i> Student Left Early?
+                                    </summary>
+                                    <div style="margin-top: 0.5rem;">
+                                        <input type="text" name="exit_time_{{ student.id }}" placeholder="Time (e.g. 11:30 AM)" style="width: 100%; margin-bottom: 0.5rem; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
+                                        <input type="text" name="exit_reason_{{ student.id }}" placeholder="Reason (e.g. Medical)" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
+                                    </div>
+                                </details>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}

@@ -76,7 +76,25 @@ class Attendance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
-    status = db.Column(db.String(10), nullable=False)
+    status = db.Column(db.String(10), nullable=False) # Present, Absent, Late
+    exit_time = db.Column(db.String(20)) # Records if student left early
+    exit_reason = db.Column(db.String(255))
+    academic_year = db.Column(db.String(20))
+
+class Resource(db.Model):
+    __tablename__ = 'resource'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text)
+    file_url = db.Column(db.String(255), nullable=False)
+    resource_type = db.Column(db.String(50)) # PDF, Video, Animation
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'))
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'))
+    class_id = db.Column(db.Integer, db.ForeignKey('academic_class.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Permissions
+    is_public = db.Column(db.Boolean, default=False)
 
 class Fee(db.Model):
     id = db.Column(db.Integer, primary_key=True)

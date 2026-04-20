@@ -384,8 +384,16 @@ def mark_attendance():
                 existing = Attendance.query.filter_by(student_id=real_student_id, date=attendance_date).first()
                 if existing:
                     existing.status = status
+                    existing.exit_time = request.form.get(f'exit_time_{real_student_id}')
+                    existing.exit_reason = request.form.get(f'exit_reason_{real_student_id}')
                 else:
-                    new_att = Attendance(student_id=real_student_id, date=attendance_date, status=status)
+                    new_att = Attendance(
+                        student_id=real_student_id, 
+                        date=attendance_date, 
+                        status=status,
+                        exit_time=request.form.get(f'exit_time_{real_student_id}'),
+                        exit_reason=request.form.get(f'exit_reason_{real_student_id}')
+                    )
                     db.session.add(new_att)
         db.session.commit()
         flash('Attendance updated successfully!')
@@ -410,27 +418,109 @@ def attendance_report():
     report_type = request.args.get('type', 'daily')
     date_str = request.args.get('date', datetime.utcnow().strftime('%Y-%m-%d'))
     student_id = request.args.get('student_id')
+    class_id = request.args.get('class_id')
     
     attendance_date = datetime.strptime(date_str, '%Y-%m-%d').date()
     
     report_data = []
+    stats = {}
+    
     if report_type == 'daily':
         report_data = Attendance.query.filter_by(date=attendance_date).all()
-    elif report_type == 'student' and student_id:
-        report_data = Attendance.query.filter_by(student_id=student_id).order_by(Attendance.date.desc()).all()
+        # Calculate Class summary
+        if class_id:
+            total_students = Student.query.filter_by(class_id=class_id).count()
+            present_count = Attendance.query.filter_by(date=attendance_date, status='Present').join(Student).filter(Student.class_id == class_id).count()
+            stats['class_percentage'] = (present_count / total_students * 100) if total_students > 0 else 0
+            stats['present'] = present_count
+            stats['absent'] = total_students - present_count
+    
+    elif report_type == 'monthly' and student_id:
+        # Calculate monthly percentage
+        month = attendance_date.month
+        year = attendance_date.year
+        all_month_attendance = Attendance.query.filter(
+            db.extract('month', Attendance.date) == month,
+            db.extract('year', Attendance.date) == year,
+            Attendance.student_id == student_id
+        ).all()
         
+        days_present = sum(1 for a in all_month_attendance if a.status == 'Present')
+        total_days = len(all_month_attendance)
+        stats['monthly_percentage'] = (days_present / total_days * 100) if total_days > 0 else 0
+        report_data = all_month_attendance
+
     students = Student.query.all()
+    classes = AcademicClass.query.all()
     return render_template('attendance/report.html', 
-                         report_data=report_data, 
-                         report_type=report_type,
-                         students=students,
-                         date_str=date_str)
+                          report_data=report_data, 
+                          report_type=report_type,
+                          students=students,
+                          classes=classes,
+                          stats=stats,
+                          date_str=date_str)
+
+@app.route('/attendance/early-exit/<int:id>', methods=['POST'])
+@login_required
+def early_exit(id):
+    att = Attendance.query.get_or_404(id)
+    att.exit_time = request.form.get('exit_time')
+    att.exit_reason = request.form.get('exit_reason')
+    db.session.commit()
+    flash('Early exit recorded for student.')
+    return redirect(request.referrer or url_for('mark_attendance'))
 
 @app.route('/students')
 @login_required
 def student_list():
     students = Student.query.all()
     return render_template('students/list.html', students=students)
+
+# Digital Library Routes
+@app.route('/library')
+@login_required
+def library_list():
+    resources = Resource.query.order_by(Resource.created_at.desc()).all()
+    return render_template('library/list.html', resources=resources)
+
+@app.route('/library/upload', methods=['GET', 'POST'])
+@login_required
+def upload_resource():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        res_file = request.files.get('file')
+        
+        if res_file and res_file.filename:
+            # Upload to Cloudinary (Auto resource type for PDFs/Videos)
+            upload_result = cloudinary.uploader.upload(res_file, folder="college_library", resource_type="auto")
+            
+            new_res = Resource(
+                title=title,
+                description=request.form.get('description'),
+                file_url=upload_result['secure_url'],
+                resource_type=request.form.get('resource_type'),
+                class_id=request.form.get('class_id'),
+                subject_id=request.form.get('subject_id'),
+                teacher_id=request.form.get('teacher_id')
+            )
+            db.session.add(new_res)
+            db.session.commit()
+            flash('Educational resource added successfully to the digital library!')
+            return redirect(url_for('library_list'))
+            
+    classes = AcademicClass.query.all()
+    subjects = Subject.query.all()
+    teachers = Teacher.query.all()
+    return render_template('library/upload.html', classes=classes, subjects=subjects, teachers=teachers)
+
+@app.route('/library/delete/<int:id>')
+@login_required
+def delete_resource(id):
+    res = Resource.query.get_or_404(id)
+    db.session.delete(res)
+    db.session.commit()
+    flash('Resource removed from library.')
+    return redirect(url_for('library_list'))
 
 # Fee Routes
 @app.route('/fees', methods=['GET', 'POST'])
