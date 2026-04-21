@@ -250,7 +250,8 @@ def enroll():
                 new_student.document_url = upload_result['secure_url']
 
             # Handle Subject Selection
-            selected_subject_ids = request.form.getlist('selected_subjects')
+            # Use set() to remove duplicates (prevents UniqueViolation errors)
+            selected_subject_ids = set(request.form.getlist('selected_subjects'))
             for sid in selected_subject_ids:
                 subj = Subject.query.get(sid)
                 if subj:
@@ -258,10 +259,11 @@ def enroll():
 
             db.session.add(new_student)
             db.session.commit()
-            flash('Student enrolled successfully!')
+            flash('Student enrolled successfully!', 'success')
             return redirect(url_for('student_list'))
         except Exception as e:
             db.session.rollback()
+            # If development/debugging:
             return f"<div style='padding:2rem; border:2px solid red; font-family:sans-serif;'><h1>🚨 Enrollment System Diagnostic</h1><p>The system encountered this error:</p><code style='background:#fee2e2; padding:10px; display:block;'>{str(e)}</code><br><a href='/enroll'>Try Again</a></div>"
     
     streams = Stream.query.all()
