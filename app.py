@@ -211,54 +211,58 @@ def submit_enquiry():
 @login_required
 def enroll():
     if request.method == 'POST':
-        # Auto-generate Student ID if not provided
-        stream_id = request.form.get('stream_id')
-        class_id = request.form.get('class_id')
-        
-        assigned_id = request.form.get('student_id')
-        if not assigned_id or assigned_id == "":
-            class_obj = AcademicClass.query.get(class_id)
-            class_name = class_obj.name if class_obj else "XX"
-            year = datetime.utcnow().year
-            prefix = f"JJC{class_name}{year}"
-            count = Student.query.filter(Student.student_id.like(f"{prefix}%")).count()
-            assigned_id = f"{prefix}{str(count + 1).zfill(3)}"
-
-        new_student = Student(
-            student_id=assigned_id,
-            name=request.form.get('name', 'Unknown'),
-            dob=request.form.get('dob'),
-            gender=request.form.get('gender', 'Male'),
-            stream_id=stream_id,
-            class_id=class_id,
-            contact=request.form.get('contact', ''),
-            email=request.form.get('email', ''),
-            guardian_name=request.form.get('guardian_name', ''),
-            address=request.form.get('address', '')
-        )
-        
-        # Handle File Uploads via Cloudinary (Permanent Storage)
-        photo = request.files.get('photo')
-        if photo and photo.filename:
-            upload_result = cloudinary.uploader.upload(photo, folder="student_photos")
-            new_student.photo_url = upload_result['secure_url']
+        try:
+            # Auto-generate Student ID if not provided
+            stream_id = request.form.get('stream_id')
+            class_id = request.form.get('class_id')
             
-        doc = request.files.get('document')
-        if doc and doc.filename:
-            upload_result = cloudinary.uploader.upload(doc, folder="student_docs", resource_type="auto")
-            new_student.document_url = upload_result['secure_url']
+            assigned_id = request.form.get('student_id')
+            if not assigned_id or assigned_id == "":
+                class_obj = AcademicClass.query.get(class_id)
+                class_name = class_obj.name if class_obj else "XX"
+                year = datetime.utcnow().year
+                prefix = f"JJC{class_name}{year}"
+                count = Student.query.filter(Student.student_id.like(f"{prefix}%")).count()
+                assigned_id = f"{prefix}{str(count + 1).zfill(3)}"
 
-        # Handle Subject Selection
-        selected_subject_ids = request.form.getlist('selected_subjects')
-        for sid in selected_subject_ids:
-            subj = Subject.query.get(sid)
-            if subj:
-                new_student.subjects.append(subj)
+            new_student = Student(
+                student_id=assigned_id,
+                name=request.form.get('name', 'Unknown'),
+                dob=request.form.get('dob'),
+                gender=request.form.get('gender', 'Male'),
+                stream_id=stream_id,
+                class_id=class_id,
+                contact=request.form.get('contact', ''),
+                email=request.form.get('email', ''),
+                guardian_name=request.form.get('guardian_name', ''),
+                address=request.form.get('address', '')
+            )
+            
+            # Handle File Uploads via Cloudinary (Permanent Storage)
+            photo = request.files.get('photo')
+            if photo and photo.filename:
+                upload_result = cloudinary.uploader.upload(photo, folder="student_photos")
+                new_student.photo_url = upload_result['secure_url']
+                
+            doc = request.files.get('document')
+            if doc and doc.filename:
+                upload_result = cloudinary.uploader.upload(doc, folder="student_docs", resource_type="auto")
+                new_student.document_url = upload_result['secure_url']
 
-        db.session.add(new_student)
-        db.session.commit()
-        flash('Student enrolled successfully!')
-        return redirect(url_for('student_list'))
+            # Handle Subject Selection
+            selected_subject_ids = request.form.getlist('selected_subjects')
+            for sid in selected_subject_ids:
+                subj = Subject.query.get(sid)
+                if subj:
+                    new_student.subjects.append(subj)
+
+            db.session.add(new_student)
+            db.session.commit()
+            flash('Student enrolled successfully!')
+            return redirect(url_for('student_list'))
+        except Exception as e:
+            db.session.rollback()
+            return f"<div style='padding:2rem; border:2px solid red; font-family:sans-serif;'><h1>🚨 Enrollment System Diagnostic</h1><p>The system encountered this error:</p><code style='background:#fee2e2; padding:10px; display:block;'>{str(e)}</code><br><a href='/enroll'>Try Again</a></div>"
     
     streams = Stream.query.all()
     classes = AcademicClass.query.all()
