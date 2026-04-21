@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timezone
 import cloudinary
 import cloudinary.uploader
 
@@ -220,7 +220,7 @@ def enroll():
             if not assigned_id or assigned_id == "":
                 class_obj = AcademicClass.query.get(class_id)
                 class_name = class_obj.name if class_obj else "XX"
-                year = datetime.utcnow().year
+                year = datetime.now(timezone.utc).year
                 prefix = f"JJC{class_name}{year}"
                 count = Student.query.filter(Student.student_id.like(f"{prefix}%")).count()
                 assigned_id = f"{prefix}{str(count + 1).zfill(3)}"

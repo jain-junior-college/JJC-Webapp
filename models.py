@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, timezone
 
 db = SQLAlchemy()
 
@@ -74,7 +74,7 @@ class Student(db.Model):
     guardian_name = db.Column(db.String(100))
     photo_url = db.Column(db.String(255)) # Path to student photograph
     document_url = db.Column(db.String(255)) # Path to uploaded PDF document
-    admission_date = db.Column(db.DateTime, default=datetime.utcnow)
+    admission_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     fees = db.relationship('Fee', backref='student', lazy=True)
