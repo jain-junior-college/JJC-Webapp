@@ -34,8 +34,18 @@ class AcademicClass(db.Model):
     __tablename__ = 'academic_class'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
-    base_fees = db.Column(db.Float, default=0.0)
+    base_fees = db.Column(db.Float, default=0.0) # Fallback fee
     students = db.relationship('Student', backref='academic_class', lazy=True)
+
+class ClassStreamFee(db.Model):
+    __tablename__ = 'class_stream_fee'
+    id = db.Column(db.Integer, primary_key=True)
+    class_id = db.Column(db.Integer, db.ForeignKey('academic_class.id'), nullable=False)
+    stream_id = db.Column(db.Integer, db.ForeignKey('stream.id'), nullable=False)
+    base_fees = db.Column(db.Float, nullable=False, default=0.0)
+    
+    class_obj = db.relationship('AcademicClass', backref='stream_fees')
+    stream_obj = db.relationship('Stream', backref='class_fees')
 
 class Subject(db.Model):
     __tablename__ = 'subject'

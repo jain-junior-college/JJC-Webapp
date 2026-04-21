@@ -139,8 +139,11 @@
         const classId = classSelect.value;
         
         if (classId) {
-            // Fetch Base Fees for Class
-            fetch(`/api/class-fees/${classId}`)
+            // Fetch Base Fees for Class + Stream
+            let url = `/api/class-fees/${classId}`;
+            if (streamId) url += `?stream_id=${streamId}`;
+            
+            fetch(url)
                 .then(r => r.json())
                 .then(data => {
                     baseFeesInput.value = data.base_fees;

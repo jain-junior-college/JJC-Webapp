@@ -239,6 +239,43 @@ def submit_enquiry():
     return redirect(url_for('index', _anchor='contact'))
 
 # Enrollment Routes
+@app.route('/student/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_student(id):
+    student = Student.query.get_or_404(id)
+    if request.method == 'POST':
+        student.name = request.form['name']
+        student.contact = request.form['contact']
+        student.parent_contact = request.form['parent_contact']
+        student.email = request.form['email']
+        student.address = request.form['address']
+        
+        # Files
+        photo = request.files.get('photo')
+        if photo and photo.filename != '':
+            upload_result = cloudinary.uploader.upload(photo)
+            student.photo_url = upload_result['secure_url']
+            
+        doc = request.files.get('document')
+        if doc and doc.filename != '':
+            upload_result = cloudinary.uploader.upload(doc)
+            student.document_url = upload_result['secure_url']
+            
+        db.session.commit()
+        flash('Student details updated!')
+        return redirect(url_for('student_list'))
+        
+    return render_template('students/edit.html', student=student)
+
+@app.route('/student/delete/<int:id>', methods=['POST'])
+@login_required
+def delete_student(id):
+    student = Student.query.get_or_404(id)
+    db.session.delete(student)
+    db.session.commit()
+    flash('Student deleted successfully.')
+    return redirect(url_for('student_list'))
+
 @app.route('/enroll', methods=['GET', 'POST'])
 @login_required
 def enroll():
@@ -325,6 +362,21 @@ def get_next_student_id():
 def masters():
     if request.method == 'POST':
         master_type = request.form.get('type')
+        if master_type == 'fee_matrix':
+            cid = request.form.get('class_id')
+            sid = request.form.get('stream_id')
+            fees = float(request.form.get('base_fees', 0.0))
+            # Overwrite if exists, otherwise create
+            existing = ClassStreamFee.query.filter_by(class_id=cid, stream_id=sid).first()
+            if existing:
+                existing.base_fees = fees
+            else:
+                mapping = ClassStreamFee(class_id=cid, stream_id=sid, base_fees=fees)
+                db.session.add(mapping)
+            db.session.commit()
+            flash("Fee Matrix updated successfully!")
+            return redirect(url_for('masters'))
+            
         name = request.form.get('name')
         if master_type == 'stream':
             db.session.add(Stream(name=name))
@@ -338,10 +390,12 @@ def masters():
     try:
         streams = Stream.query.all()
         classes = AcademicClass.query.all()
+        fee_matrix = ClassStreamFee.query.all()
     except Exception:
         streams = []
         classes = []
-    return render_template('masters.html', streams=streams, classes=classes)
+        fee_matrix = []
+    return render_template('masters.html', streams=streams, classes=classes, fee_matrix=fee_matrix)
 
 @app.route('/masters/class/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -357,6 +411,15 @@ def edit_master_class(id):
 
 @app.route('/api/class-fees/<int:class_id>')
 def get_class_fees(class_id):
+    stream_id = request.args.get('stream_id')
+    
+    # Try matrix first
+    if stream_id:
+        matrix = ClassStreamFee.query.filter_by(class_id=class_id, stream_id=stream_id).first()
+        if matrix:
+            return jsonify({"base_fees": matrix.base_fees})
+
+    # Fallback to class default
     obj = AcademicClass.query.get(class_id)
     return jsonify({"base_fees": obj.base_fees if obj else 0.0})
 

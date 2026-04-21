@@ -60,4 +60,55 @@
         </table>
     </div>
 </div>
+
+<!-- Fee Matrix Master (Class + Stream Specific) -->
+<div class="glass-card" style="margin-top: 2rem;">
+    <h3 style="font-weight: 700; margin-bottom: 1.5rem;"><i class="fas fa-money-check-alt" style="color: var(--primary-color);"></i> Fee Matrix (Class + Stream Pricing)</h3>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Use this to set different fees for subjects like XI Science (30k) vs XI Commerce (29k).</p>
+    
+    <form method="POST" action="{{ url_for('masters') }}" style="display: grid; grid-template-columns: 1fr 1fr 1fr 100px; gap: 1rem; margin-bottom: 2rem;">
+        <input type="hidden" name="type" value="fee_matrix">
+        <select name="class_id" class="form-control" required>
+            <option value="">Select Class</option>
+            {% for c in classes %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="stream_id" class="form-control" required>
+            <option value="">Select Stream</option>
+            {% for s in streams %}
+            <option value="{{ s.id }}">{{ s.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="number" name="base_fees" class="form-control" placeholder="Fees (₹)" step="0.01" required>
+        <button type="submit" class="btn btn-primary">Set</button>
+    </form>
+    
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.8rem;">
+                <th style="padding: 0.5rem 0;">CLASS</th>
+                <th style="padding: 0.5rem 0;">STREAM</th>
+                <th style="padding: 0.5rem 0;">BASE FEES</th>
+                <th style="padding: 0.5rem 0; text-align: right;">ACTION</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in fee_matrix %}
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td style="padding: 1rem 0; font-weight: 600;">{{ f.class_obj.name }}</td>
+                <td style="padding: 1rem 0;">{{ f.stream_obj.name }}</td>
+                <td style="padding: 1rem 0; color: #166534; font-weight: 700;">&#8377; {{ "{:,.2f}".format(f.base_fees) }}</td>
+                <td style="padding: 1rem 0; text-align: right;">
+                    <form method="POST" action="{{ url_for('delete_master', mtype='fee_matrix', mid=f.id) }}" style="display: inline;">
+                        <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.4rem 0.8rem; font-size: 0.8rem; border: none; cursor: pointer; border-radius: 5px;"><i class="fas fa-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" style="color: var(--text-secondary); text-align: center; padding: 1.5rem;">No stream-specific fees set.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
