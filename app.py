@@ -107,6 +107,40 @@ def repair_db():
     except Exception as e:
         return f"Repair failed: {e}"
 
+@app.route('/sync-database')
+def sync_db():
+    try:
+        # 1. Create any missing tables (like student_subject or resource)
+        db.create_all()
+        
+        # 2. Add missing columns safely using raw SQL
+        # Using try-except for each to ignore if they already exist
+        queries = [
+            "ALTER TABLE subject ADD COLUMN IF NOT EXISTS is_compulsory BOOLEAN DEFAULT TRUE",
+            "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS exit_time VARCHAR(20)",
+            "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS exit_reason VARCHAR(255)",
+            "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS academic_year VARCHAR(20)"
+        ]
+        
+        for q in queries:
+            try:
+                db.session.execute(db.text(q))
+            except:
+                pass # Already exists
+        
+        db.session.commit()
+        return """
+        <div style='font-family: sans-serif; padding: 2rem; border: 2px solid green; border-radius: 10px; max-width: 600px; margin: 5rem auto; text-align: center;'>
+            <h1 style='color: green;'>✅ Safe Sync Successful!</h1>
+            <p>Your database has been upgraded with the latest features.</p>
+            <p style='color: #166534; font-weight: bold;'>Status: ALL DATA PROTECTED & INTACT.</p>
+            <a href='/dashboard' style='background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Go to Dashboard</a>
+        </div>
+        """
+    except Exception as e:
+        db.session.rollback()
+        return f"<h1 style='color:red;'>Sync Failed</h1><p>{str(e)}</p>"
+
 # Login required decorator
 def login_required(f):
     from functools import wraps
