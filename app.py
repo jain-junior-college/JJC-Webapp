@@ -58,9 +58,9 @@ def auto_init_db():
         db.session.rollback()
         print(f"Database init deferred or failed: {e}")
 
-# Run initialization once on startup
-with app.app_context():
-    auto_init_db()
+# Run initialization manually via /sync-database to avoid build-time crashes
+# with app.app_context():
+#     auto_init_db()
 
 @app.route('/repair-database')
 def repair_db():
@@ -269,8 +269,12 @@ def enroll():
             # If development/debugging:
             return f"<div style='padding:2rem; border:2px solid red; font-family:sans-serif;'><h1>🚨 Enrollment System Diagnostic</h1><p>The system encountered this error:</p><code style='background:#fee2e2; padding:10px; display:block;'>{str(e)}</code><br><a href='/enroll'>Try Again</a></div>"
     
-    streams = Stream.query.all()
-    classes = AcademicClass.query.all()
+    try:
+        streams = Stream.query.all()
+        classes = AcademicClass.query.all()
+    except Exception:
+        streams = []
+        classes = []
     return render_template('students/enroll.html', streams=streams, classes=classes)
 
 @app.route('/api/next-student-id')
@@ -299,8 +303,12 @@ def masters():
         flash(f"{master_type.title()} added successfully!")
         return redirect(url_for('masters'))
         
-    streams = Stream.query.all()
-    classes = AcademicClass.query.all()
+    try:
+        streams = Stream.query.all()
+        classes = AcademicClass.query.all()
+    except Exception:
+        streams = []
+        classes = []
     return render_template('masters.html', streams=streams, classes=classes)
 
 @app.route('/masters/class/edit/<int:id>', methods=['GET', 'POST'])
