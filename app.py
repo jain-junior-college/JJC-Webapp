@@ -50,6 +50,17 @@ if not IS_BUILD:
             cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS base_fees FLOAT DEFAULT 0.0;")
             cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS concession FLOAT DEFAULT 0.0;")
             cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS total_fees FLOAT DEFAULT 0.0;")
+            
+            # Create class_stream_fee table if missing
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS class_stream_fee (
+                    id SERIAL PRIMARY KEY,
+                    class_id INTEGER NOT NULL REFERENCES academic_class(id),
+                    stream_id INTEGER NOT NULL REFERENCES stream(id),
+                    base_fees FLOAT NOT NULL DEFAULT 0.0
+                );
+            """)
+            
             conn.commit()
             cur.close()
             conn.close()
