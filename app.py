@@ -29,7 +29,40 @@ if db_url.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Skip DB initialization during build phase on Render to prevent column mismatch crashes
+IS_BUILD = os.environ.get('RENDER') and not os.environ.get('DATABASE_URL')
+
+if not IS_BUILD:
+    # ---------------------------------------------------------
+# DATABASE EMERGENCY MIGRATION (Runs before SQLAlchemy starts)
+# ---------------------------------------------------------
+import psycopg2
+def emergency_migration():
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url: return
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    try:
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor()
+        # Add Columns if they are missing
+        cur.execute("ALTER TABLE academic_class ADD COLUMN IF NOT EXISTS base_fees FLOAT DEFAULT 0.0;")
+        cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS base_fees FLOAT DEFAULT 0.0;")
+        cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS concession FLOAT DEFAULT 0.0;")
+        cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS total_fees FLOAT DEFAULT 0.0;")
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("Emergency Migration: Success")
+    except Exception as e:
+        print(f"Emergency Migration: Deferred or skipped ({e})")
+
+emergency_migration()
+# ---------------------------------------------------------
+
 db.init_app(app)
+else:
+    print("Build phase detected: Skipping DB initialization.")
 
 # Database Auto-Initialization
 def auto_init_db():
