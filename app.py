@@ -232,6 +232,9 @@ def enroll():
                 gender=request.form.get('gender', 'Male'),
                 stream_id=stream_id,
                 class_id=class_id,
+                base_fees=float(request.form.get('base_fees', 0) or 0),
+                concession=float(request.form.get('concession', 0) or 0),
+                total_fees=float(request.form.get('total_fees', 0) or 0),
                 contact=request.form.get('contact', ''),
                 email=request.form.get('email', ''),
                 guardian_name=request.form.get('guardian_name', ''),
@@ -290,7 +293,8 @@ def masters():
         if master_type == 'stream':
             db.session.add(Stream(name=name))
         elif master_type == 'class':
-            db.session.add(AcademicClass(name=name))
+            base_fees = float(request.form.get('base_fees', 0) or 0)
+            db.session.add(AcademicClass(name=name, base_fees=base_fees))
         db.session.commit()
         flash(f"{master_type.title()} added successfully!")
         return redirect(url_for('masters'))
@@ -298,6 +302,23 @@ def masters():
     streams = Stream.query.all()
     classes = AcademicClass.query.all()
     return render_template('masters.html', streams=streams, classes=classes)
+
+@app.route('/masters/class/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_master_class(id):
+    obj = AcademicClass.query.get_or_404(id)
+    if request.method == 'POST':
+        obj.name = request.form['name']
+        obj.base_fees = float(request.form.get('base_fees', 0) or 0)
+        db.session.commit()
+        flash('Class updated successfully!')
+        return redirect(url_for('masters'))
+    return render_template('edit_master_class.html', obj=obj)
+
+@app.route('/api/class-fees/<int:class_id>')
+def get_class_fees(class_id):
+    obj = AcademicClass.query.get(class_id)
+    return jsonify({"base_fees": obj.base_fees if obj else 0.0})
 
 @app.route('/masters/delete/<string:mtype>/<int:mid>', methods=['POST'])
 @login_required

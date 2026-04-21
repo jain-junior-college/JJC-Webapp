@@ -79,6 +79,27 @@
                 </div>
             </div>
 
+            <!-- New Fee Section -->
+            <div class="form-group" style="grid-column: span 2; background: rgba(79, 70, 229, 0.03); padding: 1.5rem; border-radius: 15px; margin-top: 1rem; border: 1px dashed rgba(79, 70, 229, 0.2);">
+                <label style="font-weight: 700; color: var(--primary-color); display: block; margin-bottom: 1rem;">
+                    <i class="fas fa-file-invoice-dollar"></i> Fee Structure
+                </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label>Base Class Fees (₹)</label>
+                        <input type="number" name="base_fees" id="base_fees" class="form-control" readonly style="background: rgba(0,0,0,0.05); font-weight: 700; color: #1e293b;">
+                    </div>
+                    <div class="form-group">
+                        <label>Concession / Discount (₹)</label>
+                        <input type="number" name="concession" id="concession" class="form-control" value="0" min="0" oninput="calculateTotal()">
+                    </div>
+                    <div class="form-group">
+                        <label>Net Payable Fees (₹)</label>
+                        <input type="number" name="total_fees" id="total_fees" class="form-control" readonly style="background: rgba(22, 101, 52, 0.05); color: #166534; font-weight: 800; font-size: 1.1rem;">
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label>Upload Photo</label>
                 <input type="file" name="photo" class="form-control" accept="image/*">
@@ -103,11 +124,30 @@
     const classSelect = document.querySelector('select[name="class_id"]');
     const studentIdInput = document.querySelector('input[name="student_id"]');
     const subjectContainer = document.getElementById('subject-container');
+    const baseFeesInput = document.getElementById('base_fees');
+    const concessionInput = document.getElementById('concession');
+    const totalFeesInput = document.getElementById('total_fees');
+
+    function calculateTotal() {
+        const base = parseFloat(baseFeesInput.value) || 0;
+        const conc = parseFloat(concessionInput.value) || 0;
+        totalFeesInput.value = (base - conc).toFixed(2);
+    }
 
     function updateStudentId() {
         const streamId = streamSelect.value;
         const classId = classSelect.value;
         
+        if (classId) {
+            // Fetch Base Fees for Class
+            fetch(`/api/class-fees/${classId}`)
+                .then(r => r.json())
+                .then(data => {
+                    baseFeesInput.value = data.base_fees;
+                    calculateTotal();
+                });
+        }
+
         if (streamId && classId) {
             // 1. Fetch Student ID
             fetch(`/api/next-student-id?class_id=${classId}`)

@@ -34,6 +34,7 @@ class AcademicClass(db.Model):
     __tablename__ = 'academic_class'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
+    base_fees = db.Column(db.Float, default=0.0)
     students = db.relationship('Student', backref='academic_class', lazy=True)
 
 class Subject(db.Model):
@@ -64,6 +65,9 @@ class Student(db.Model):
     student_class = db.Column(db.String(50)) 
     stream_id = db.Column(db.Integer, db.ForeignKey('stream.id'))
     class_id = db.Column(db.Integer, db.ForeignKey('academic_class.id'))
+    base_fees = db.Column(db.Float, default=0.0)
+    concession = db.Column(db.Float, default=0.0)
+    total_fees = db.Column(db.Float, default=0.0)
     contact = db.Column(db.String(20))
     email = db.Column(db.String(100))
     address = db.Column(db.Text)
