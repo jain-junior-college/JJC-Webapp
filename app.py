@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee
+from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee, ScheduledTest, TestMark
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
 import cloudinary
@@ -58,6 +58,30 @@ if not IS_BUILD:
                     class_id INTEGER NOT NULL REFERENCES academic_class(id),
                     stream_id INTEGER NOT NULL REFERENCES stream(id),
                     base_fees FLOAT NOT NULL DEFAULT 0.0
+                );
+            """)
+            
+            # Create scheduled_test table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS scheduled_test (
+                    id SERIAL PRIMARY KEY,
+                    class_id INTEGER NOT NULL REFERENCES academic_class(id),
+                    stream_id INTEGER NOT NULL REFERENCES stream(id),
+                    subject_id INTEGER NOT NULL REFERENCES subject(id),
+                    exam_type VARCHAR(50) NOT NULL,
+                    test_date DATE NOT NULL,
+                    total_marks FLOAT DEFAULT 25.0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+
+            # Create test_mark table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS test_mark (
+                    id SERIAL PRIMARY KEY,
+                    test_id INTEGER NOT NULL REFERENCES scheduled_test(id) ON DELETE CASCADE,
+                    student_id INTEGER NOT NULL REFERENCES student(id),
+                    marks_obtained FLOAT NOT NULL
                 );
             """)
             
@@ -790,8 +814,70 @@ def academic_entry():
 @login_required
 def report_card(student_id):
     student = Student.query.get_or_404(student_id)
+    # Filter Prelims if class is XI
     exams = Exam.query.filter_by(student_id=student_id).all()
-    return render_template('academics/report_card.html', student=student, exams=exams)
+    # Logic to filter based on UI requirement or just display
+    
+    # Also fetch from new TestMark
+    test_marks = TestMark.query.filter_by(student_id=student_id).all()
+    
+    return render_template('academics/report_card.html', student=student, exams=exams, test_marks=test_marks)
+
+# --- Test Scheduler Module ---
+
+@app.route('/academics/tests')
+@login_required
+def test_list():
+    tests = ScheduledTest.query.order_by(ScheduledTest.test_date.desc()).all()
+    return render_template('academics/test_list.html', tests=tests)
+
+@app.route('/academics/tests/schedule', methods=['GET', 'POST'])
+@login_required
+def schedule_test():
+    if request.method == 'POST':
+        test = ScheduledTest(
+            class_id=request.form['class_id'],
+            stream_id=request.form['stream_id'],
+            subject_id=request.form['subject_id'],
+            exam_type=request.form['exam_type'],
+            test_date=datetime.strptime(request.form['date'], '%Y-%m-%d').date(),
+            total_marks=float(request.form['total_marks'])
+        )
+        db.session.add(test)
+        db.session.commit()
+        flash('Test scheduled successfully!')
+        return redirect(url_for('test_list'))
+    
+    classes = AcademicClass.query.all()
+    streams = Stream.query.all()
+    subjects = Subject.query.all()
+    return render_template('academics/schedule_test.html', classes=classes, streams=streams, subjects=subjects)
+
+@app.route('/academics/tests/record/<int:test_id>', methods=['GET', 'POST'])
+@login_required
+def record_test_marks(test_id):
+    test = ScheduledTest.query.get_or_404(test_id)
+    students = Student.query.filter_by(class_id=test.class_id, stream_id=test.stream_id).all()
+    
+    if request.method == 'POST':
+        # Bulk mark entry
+        for student in students:
+            marks = request.form.get(f'marks_{student.id}')
+            if marks:
+                # Update existing or create new
+                existing = TestMark.query.filter_by(test_id=test_id, student_id=student.id).first()
+                if existing:
+                    existing.marks_obtained = float(marks)
+                else:
+                    new_mark = TestMark(test_id=test_id, student_id=student.id, marks_obtained=float(marks))
+                    db.session.add(new_mark)
+        db.session.commit()
+        flash('Marks recorded for the entire class!')
+        return redirect(url_for('test_list'))
+    
+    # Pre-fetch existing marks for input population
+    existing_marks = {m.student_id: m.marks_obtained for m in test.marks}
+    return render_template('academics/record_marks.html', test=test, students=students, existing_marks=existing_marks)
 
 if __name__ == '__main__':
     # Running on 0.0.0.0 for LAN deployment

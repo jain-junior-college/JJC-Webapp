@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+
+{% block title %}Schedule New Test{% endblock %}
+{% block header_title %}Academic Scheduler{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+    <h3 style="font-weight: 700; margin-bottom: 2rem;"><i class="fas fa-calendar-plus" style="color: var(--primary-color);"></i> Plan a New Examination</h3>
+    
+    <form method="POST">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group">
+                <label>Target Class</label>
+                <select name="class_id" id="class_id" class="form-control" required onchange="updateExamTypes()">
+                    <option value="">Select Class</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Stream</label>
+                <select name="stream_id" id="stream_id" class="form-control" required>
+                    <option value="">Select Stream</option>
+                    {% for s in streams %}
+                    <option value="{{ s.id }}">{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Subject</label>
+                <select name="subject_id" class="form-control" required>
+                    <option value="">Select Subject</option>
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}">{{ s.name }} ({{ s.stream.name if s.stream else '' }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Exam Type</label>
+                <select name="exam_type" id="exam_type" class="form-control" required>
+                    <option value="Unit Test - I">Unit Test - I</option>
+                    <option value="Mid-term Examination">Mid-term Examination</option>
+                    <option value="Unit Test - II">Unit Test - II</option>
+                    <option value="Final Examination">Final Examination</option>
+                    <!-- Special XII types will be added via JS -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Test Date</label>
+                <input type="date" name="date" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label>Total Marks</label>
+                <input type="number" name="total_marks" class="form-control" value="25.0" step="0.5" required>
+            </div>
+        </div>
+
+        <div style="margin-top: 3rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="{{ url_for('test_list') }}" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-secondary); text-decoration: none;">Cancel</a>
+            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2.5rem;">
+                <i class="fas fa-check"></i> Schedule Test
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function updateExamTypes() {
+        const classSelect = document.getElementById('class_id');
+        const examSelect = document.getElementById('exam_type');
+        const selectedClassName = classSelect.options[classSelect.selectedIndex].text;
+        
+        // Default options
+        const defaultOptions = [
+            "Unit Test - I",
+            "Mid-term Examination",
+            "Unit Test - II",
+            "Final Examination"
+        ];
+        
+        // Clear and rebuild
+        examSelect.innerHTML = '';
+        defaultOptions.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt;
+            option.text = opt;
+            examSelect.appendChild(option);
+        });
+        
+        // Add prelims if XII
+        if (selectedClassName.includes('XII')) {
+            const prelim1 = document.createElement('option');
+            prelim1.value = "Prelim - 1";
+            prelim1.text = "Prelim - 1";
+            examSelect.appendChild(prelim1);
+            
+            const prelim2 = document.createElement('option');
+            prelim2.value = "Prelim - 2";
+            prelim2.text = "Prelim - 2";
+            examSelect.appendChild(prelim2);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+{% block title %}Scheduled Tests{% endblock %}
+{% block header_title %}Test Command Center{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h3 style="font-weight: 700;">Upcoming & Recent Tests</h3>
+        <a href="{{ url_for('schedule_test') }}" class="btn btn-primary" style="text-decoration: none;">
+            <i class="fas fa-calendar-plus"></i> Schedule New Test
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="text-align: left; border-bottom: 2px solid var(--border-color); color: var(--text-secondary);">
+                    <th style="padding: 1rem;">Date</th>
+                    <th style="padding: 1rem;">Class/Stream</th>
+                    <th style="padding: 1rem;">Subject</th>
+                    <th style="padding: 1rem;">Exam Type</th>
+                    <th style="padding: 1rem;">Marks</th>
+                    <th style="padding: 1rem; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in tests %}
+                <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                    <td style="padding: 1.2rem 1rem; font-weight: 600;">{{ test.test_date.strftime('%d-%m-%Y') }}</td>
+                    <td style="padding: 1.2rem 1rem;">
+                        <span style="background: rgba(79, 70, 229, 0.1); color: var(--primary-color); padding: 0.2rem 0.6rem; border-radius: 5px; font-size: 0.8rem; font-weight: 600;">{{ test.academic_class.name }}</span>
+                        <span style="color: var(--text-secondary); font-size: 0.8rem;">{{ test.stream.name }}</span>
+                    </td>
+                    <td style="padding: 1.2rem 1rem; font-weight: 700; color: #1e293b;">{{ test.subject_obj.name }}</td>
+                    <td style="padding: 1.2rem 1rem;">
+                        <span style="border: 1px solid #e2e8f0; padding: 0.2rem 0.6rem; border-radius: 50px; font-size: 0.75rem;">{{ test.exam_type }}</span>
+                    </td>
+                    <td style="padding: 1.2rem 1rem; font-weight: 700; color: var(--text-secondary);">/ {{ test.total_marks }}</td>
+                    <td style="padding: 1.2rem 1rem; text-align: right;">
+                        <a href="{{ url_for('record_test_marks', test_id=test.id) }}" class="btn" style="background: rgba(16, 185, 129, 0.1); color: #059669; padding: 0.5rem 1rem; font-size: 0.8rem; text-decoration: none; border-radius: 5px;">
+                            <i class="fas fa-edit"></i> Record Marks
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                        <i class="fas fa-calendar-alt" style="font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 1rem;"></i>
+                        No tests scheduled yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

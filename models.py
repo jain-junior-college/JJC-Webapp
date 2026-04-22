@@ -130,14 +130,32 @@ class Fee(db.Model):
     payment_method = db.Column(db.String(50))
     remarks = db.Column(db.String(200))
 
-class Exam(db.Model):
+class ScheduledTest(db.Model):
+    __tablename__ = 'scheduled_test'
     id = db.Column(db.Integer, primary_key=True)
+    class_id = db.Column(db.Integer, db.ForeignKey('academic_class.id'), nullable=False)
+    stream_id = db.Column(db.Integer, db.ForeignKey('stream.id'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    exam_type = db.Column(db.String(50), nullable=False) # Unit Test, Prelim 1, etc.
+    test_date = db.Column(db.Date, nullable=False)
+    total_marks = db.Column(db.Float, default=25.0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    academic_class = db.relationship('AcademicClass', backref='tests')
+    stream = db.relationship('Stream', backref='tests')
+    subject_obj = db.relationship('Subject', backref='tests')
+    marks = db.relationship('TestMark', backref='test', cascade="all, delete-orphan")
+
+class TestMark(db.Model):
+    __tablename__ = 'test_mark'
+    id = db.Column(db.Integer, primary_key=True)
+    test_id = db.Column(db.Integer, db.ForeignKey('scheduled_test.id'), nullable=False)
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
-    subject = db.Column(db.String(100), nullable=False)
     marks_obtained = db.Column(db.Float, nullable=False)
-    total_marks = db.Column(db.Float, default=100.0)
-    exam_type = db.Column(db.String(50))
-    exam_date = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    student = db.relationship('Student', backref='test_marks')
+
+class Exam(db.Model):
 
 class Enquiry(db.Model):
     id = db.Column(db.Integer, primary_key=True)

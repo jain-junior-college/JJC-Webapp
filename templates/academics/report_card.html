@@ -1,111 +1,135 @@
 {% extends "layout.html" %}
 
 {% block title %}Report Card - {{ student.name }}{% endblock %}
-{% block header_title %}Student Report Card{% endblock %}
+{% block header_title %}Academic Report Card{% endblock %}
 
 {% block content %}
-<div class="glass-card" style="max-width: 900px; margin: 0 auto; background: white; padding: 4rem; border: 1px solid #e2e8f0; color: #1e293b;">
-    <!-- Report Header -->
-    <div style="text-align: center; border-bottom: 3px solid #1e3a8a; padding-bottom: 2rem; margin-bottom: 3rem;">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" style="width: 100px; height: 100px; margin-bottom: 1rem; object-fit: contain;">
-        <h1 style="font-weight: 800; color: #1e3a8a; margin: 0; letter-spacing: -1px; font-size: 2.5rem;">JAIN JUNIOR COLLEGE</h1>
-        <p style="color: #b45309; font-style: italic; font-weight: 700; font-size: 1.1rem; margin: 0.5rem 0;">Excellence in Education, Integrity in Character</p>
-        <p style="color: #64748b; text-transform: uppercase; font-weight: 600; font-size: 0.8rem; letter-spacing: 2px; margin-top: 1rem;">Official Academic Performance Record</p>
-    </div>
-
-    <!-- Student Info -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-bottom: 4rem;">
-        <div>
-            <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Student Name</p>
-            <h4 style="font-size: 1.25rem; font-weight: 700;">{{ student.name }}</h4>
-        </div>
-        <div style="text-align: right;">
-            <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Student ID</p>
-            <h4 style="font-size: 1.25rem; font-weight: 700; color: var(--primary-color);">{{ student.student_id }}</h4>
-        </div>
-        <div>
-            <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Class / Stream</p>
-            <p style="font-weight: 600;">{{ student.student_class }}</p>
-        </div>
-        <div style="text-align: right;">
-            <p style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Academic Year</p>
-            <p style="font-weight: 600;">2024 - 2025</p>
-        </div>
-    </div>
-
-    <!-- Marks Table -->
-    <div class="table-container" style="margin-bottom: 4rem;">
-        <table style="border: 1px solid rgba(0,0,0,0.05);">
-            <thead style="background: rgba(0,0,0,0.02);">
-                <tr>
-                    <th>Subject</th>
-                    <th>Exam Type</th>
-                    <th>Marks Obtained</th>
-                    <th>Total Marks</th>
-                    <th>Percentage</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% set ns = namespace(total_obt=0, total_max=0) %}
-                {% for exam in exams %}
-                {% set ns.total_obt = ns.total_obt + exam.marks_obtained %}
-                {% set ns.total_max = ns.total_max + exam.total_marks %}
-                <tr>
-                    <td style="font-weight: 600;">{{ exam.subject }}</td>
-                    <td>{{ exam.exam_type }}</td>
-                    <td style="font-weight: 700;">{{ exam.marks_obtained }}</td>
-                    <td>{{ exam.total_marks }}</td>
-                    <td>
-                        {% if exam.total_marks > 0 %}
-                        {{ "{:.1f}%".format((exam.marks_obtained / exam.total_marks) * 100) }}
-                        {% else %}
-                        N/A
-                        {% endif %}
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No academic records found for this student.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-            {% if exams %}
-            <tfoot style="background: rgba(79, 70, 229, 0.05); font-weight: 700;">
-                <tr>
-                    <td colspan="2">TOTAL AGGREGATE</td>
-                    <td>{{ ns.total_obt }}</td>
-                    <td>{{ ns.total_max }}</td>
-                    <td style="color: var(--primary-color);">
-                        {% if ns.total_max > 0 %}
-                        {{ "{:.2f}%".format((ns.total_obt / ns.total_max) * 100) }}
-                        {% else %}
-                        0%
-                        {% endif %}
-                    </td>
-                </tr>
-            </tfoot>
-            {% endif %}
-        </table>
-    </div>
-
-    <!-- Footer Signatures -->
-    <div style="display: flex; justify-content: space-between; margin-top: 6rem;">
-        <div style="text-align: center; width: 200px;">
-            <div style="border-top: 1px solid #000; padding-top: 0.5rem;">
-                <p style="font-size: 0.8rem; font-weight: 600;">Class Teacher</p>
+<div class="glass-card" style="max-width: 900px; margin: 0 auto; background: white; color: #0f172a; padding: 0; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+    
+    <!-- Report Header with Logo -->
+    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 3rem; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 15px 15px 0 0;">
+        <div style="display: flex; align-items: center; gap: 2rem;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" style="width: 100px; height: 100px; background: white; border-radius: 15px; padding: 10px;">
+            <div>
+                <h1 style="margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;">JAIN JUNIOR COLLEGE</h1>
+                <p style="margin: 0.3rem 0; color: #cbd5e1; font-weight: 600; font-size: 1.1rem; font-style: italic;">Where Knowledge Meets Character</p>
+                <div style="margin-top: 1rem; font-size: 0.85rem; display: flex; gap: 1.5rem; opacity: 0.9;">
+                    <span><i class="fas fa-map-marker-alt"></i> Main Campus Road</span>
+                    <span><i class="fas fa-certificate"></i> Govt. Recognized Jr. College</span>
+                </div>
             </div>
         </div>
-        <div style="text-align: center; width: 200px;">
-            <div style="border-top: 1px solid #000; padding-top: 0.5rem;">
-                <p style="font-size: 0.8rem; font-weight: 600;">Principal</p>
+        <div style="text-align: right;">
+            <h4 style="margin: 0; opacity: 0.8; font-weight: 400;">ACADEMIC RECENT</h4>
+            <h2 style="margin: 0; font-weight: 800;">2025 - 2026</h2>
+        </div>
+    </div>
+
+    <div style="padding: 2.5rem;">
+        <!-- Student Identity -->
+        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 2rem; margin-bottom: 2.5rem;">
+            <div style="display: flex; gap: 1.5rem; align-items: center;">
+                <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid #e2e8f0;">
+                    {% if student.photo_url %}
+                    <img src="{{ student.photo_url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                    <div style="width: 100%; height: 100%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: #94a3b8;"><i class="fas fa-user-graduate"></i></div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h2 style="margin: 0; font-size: 1.6rem;">{{ student.name }}</h2>
+                    <p style="margin: 0.2rem 0; color: #64748b; font-weight: 700;">ID: {{ student.student_id }}</p>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <h3 style="margin: 0; color: #b45309;">{{ student.academic_class.name }}</h3>
+                <p style="margin: 0; color: #64748b; font-weight: 600;">Stream: {{ student.stream.name }}</p>
             </div>
         </div>
+
+        <!-- Academic Performance Table -->
+        <h4 style="font-weight: 800; color: #1e3a8a; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-award"></i> EXAMINATION SUMMARY
+        </h4>
+        <div class="table-container" style="border: 1px solid #f1f5f9; border-radius: 12px; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8fafc; color: #64748b; text-align: left; font-size: 0.85rem;">
+                        <th style="padding: 1.2rem;">SUBJECT</th>
+                        <th style="padding: 1.2rem;">EXAM TYPE</th>
+                        <th style="padding: 1.2rem;">DATE</th>
+                        <th style="padding: 1.2rem; text-align: right;">MARKS</th>
+                        <th style="padding: 1.2rem; text-align: right;">MAX</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- New Test System Marks -->
+                    {% for tm in test_marks %}
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 1.2rem; font-weight: 700; color: #1e293b;">{{ tm.test.subject_obj.name }}</td>
+                        <td style="padding: 1.2rem;">{{ tm.test.exam_type }}</td>
+                        <td style="padding: 1.2rem; color: #64748b; font-size: 0.9rem;">{{ tm.test.test_date.strftime('%d-%m-%Y') }}</td>
+                        <td style="padding: 1.2rem; text-align: right; font-weight: 800; color: #166534;">{{ tm.marks_obtained }}</td>
+                        <td style="padding: 1.2rem; text-align: right; color: #94a3b8; font-weight: 600;">{{ tm.test.total_marks }}</td>
+                    </tr>
+                    {% endfor %}
+
+                    <!-- Legacy Exam Systems Marks -->
+                    {% for exam in exams %}
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 1.2rem; font-weight: 700; color: #1e293b;">{{ exam.subject }}</td>
+                        <td style="padding: 1.2rem;">{{ exam.exam_type }}</td>
+                        <td style="padding: 1.2rem; color: #64748b; font-size: 0.9rem;">—</td>
+                        <td style="padding: 1.2rem; text-align: right; font-weight: 800; color: #166534;">{{ exam.marks_obtained }}</td>
+                        <td style="padding: 1.2rem; text-align: right; color: #94a3b8; font-weight: 600;">{{ exam.total_marks }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if not test_marks and not exams %}
+        <div style="text-align: center; padding: 4rem; color: #94a3b8;">
+            <i class="fas fa-file-invoice" style="font-size: 3rem; opacity: 0.2; display: block; margin-bottom: 1rem;"></i>
+            Academic records are being processed.
+        </div>
+        {% endif %}
+
+        <!-- Footer Signatures -->
+        <div style="margin-top: 5rem; display: flex; justify-content: space-between; border-top: 1px dashed #e2e8f0; padding-top: 3rem;">
+            <div style="text-align: center; width: 220px;">
+                <div style="border-bottom: 2px solid #1e293b; height: 60px;"></div>
+                <p style="margin-top: 0.5rem; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">Class Teacher</p>
+            </div>
+            <div style="text-align: center; width: 220px;">
+                <!-- Principal Stamp Area -->
+                <div style="border: 2px solid #1e3a8a; display: inline-block; padding: 10px 20px; color: #1e3a8a; font-weight: 800; transform: rotate(-5deg); border-radius: 10px; margin-bottom: 10px; opacity: 0.6;">
+                    OFFICIAL SEAL
+                </div>
+                <p style="margin-top: 0.5rem; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">Principal</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Action -->
+    <div style="padding: 2rem; background: #f8fafc; text-align: center; border-radius: 0 0 15px 15px;">
+        <button onclick="window.print()" class="btn btn-primary" id="printBtn" style="padding: 1rem 3rem; border-radius: 50px;">
+            <i class="fas fa-print"></i> Download / Print Official Report Card
+        </button>
     </div>
 </div>
 
-<div style="text-align: center; margin-top: 2rem;">
-    <button onclick="window.print()" class="btn btn-primary">
-        <i class="fas fa-print"></i> Print Report Card
-    </button>
-</div>
+<style>
+@media print {
+    .sidebar, .top-header, .btn, #printBtn, button { display: none !important; }
+    .main-content { padding: 0 !important; margin: 0 !important; }
+    .glass-card { 
+        box-shadow: none !important; 
+        border: none !important; 
+        margin: 0 !important; 
+        width: 100% !important;
+        max-width: none !important;
+    }
+}
+</style>
 {% endblock %}

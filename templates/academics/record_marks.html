@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block title %}Record Marks - {{ test.subject_obj.name }}{% endblock %}
+{% block header_title %}Bulk Marks Entry{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1.5rem;">
+        <div>
+            <h2 style="margin: 0; color: #1e3a8a;">{{ test.subject_obj.name }} - {{ test.exam_type }}</h2>
+            <p style="margin: 0.3rem 0; color: var(--text-secondary);">
+                <i class="fas fa-layer-group"></i> {{ test.academic_class.name }} ({{ test.stream.name }}) | 
+                <i class="fas fa-calendar-day"></i> {{ test.test_date.strftime('%d %b %Y') }}
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <p style="margin: 0; font-size: 0.8rem; color: var(--text-secondary);">MAX MARKS</p>
+            <h1 style="margin: 0; color: var(--primary-color);">{{ test.total_marks }}</h1>
+        </div>
+    </div>
+
+    <form method="POST">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="text-align: left; background: #f8fafc; color: #64748b; font-size: 0.85rem;">
+                    <th style="padding: 1rem;">ROLL NO / ID</th>
+                    <th style="padding: 1rem;">STUDENT NAME</th>
+                    <th style="padding: 1rem; width: 150px;">MARKS OBTAINED</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" onmouseover="this.style.background='#fcfdff'" onmouseout="this.style.background='white'">
+                    <td style="padding: 1.2rem 1rem; font-family: monospace; font-weight: 700; color: var(--primary-color);">{{ student.student_id }}</td>
+                    <td style="padding: 1.2rem 1rem; font-weight: 600;">{{ student.name }}</td>
+                    <td style="padding: 1.2rem 1rem;">
+                        <input type="number" 
+                               name="marks_{{ student.id }}" 
+                               class="form-control" 
+                               placeholder="0.0" 
+                               step="0.1" 
+                               max="{{ test.total_marks }}"
+                               value="{{ existing_marks.get(student.id, '') }}"
+                               style="background: white; border: 1.5px solid #cbd5e1; text-align: center; font-weight: 800; font-size: 1.1rem; color: #0f172a;">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="margin-top: 3rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="{{ url_for('test_list') }}" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-secondary); text-decoration: none; padding: 12px 25px;">Back to Scheduler</a>
+            <button type="submit" class="btn btn-primary" style="padding: 1rem 4rem; font-size: 1.1rem; border-radius: 50px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);">
+                <i class="fas fa-cloud-upload-alt"></i> Save All Marks
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
