@@ -39,6 +39,32 @@
             </div>
 
             <div class="form-group">
+                <label>Academic Class</label>
+                <select name="class_id" id="class_id" class="form-control" required>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}" {% if student.class_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Stream</label>
+                <select name="stream_id" id="stream_id" class="form-control" required>
+                    {% for s in streams %}
+                    <option value="{{ s.id }}" {% if student.stream_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Subject Selection -->
+            <div style="grid-column: span 2; background: rgba(0,0,0,0.02); padding: 1.5rem; border-radius: 12px;">
+                <label style="display: block; margin-bottom: 1rem; font-weight: 700; color: var(--primary-color);">Update Subjects</label>
+                <div id="subject-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <!-- Loading current subjects or dynamic ones -->
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label>Update Photograph</label>
                 <input type="file" name="photo" class="form-control" accept="image/*">
                 <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">Current: <a href="{{ student.photo_url }}" target="_blank">View Photo</a></p>
@@ -61,4 +87,59 @@
         </div>
     </form>
 </div>
+
+<script>
+    const streamSelect = document.getElementById('stream_id');
+    const classSelect = document.getElementById('class_id');
+    const subjectContainer = document.getElementById('subject-container');
+    const currentSubjectIds = {{ current_subject_ids | tojson }};
+
+    function fetchSubjects() {
+        const streamId = streamSelect.value;
+        if (!streamId) return;
+
+        fetch(`/api/subjects/${streamId}`)
+            .then(r => r.json())
+            .then(subjects => {
+                subjectContainer.innerHTML = '';
+                subjects.forEach(s => {
+                    const isChecked = currentSubjectIds.includes(s.id) || s.is_compulsory;
+                    
+                    const div = document.createElement('div');
+                    div.style.display = 'flex';
+                    div.style.alignItems = 'center';
+                    div.style.gap = '0.5rem';
+                    div.style.padding = '0.5rem';
+                    div.style.background = 'white';
+                    div.style.borderRadius = '8px';
+                    div.style.border = '1px solid #e2e8f0';
+
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.name = 'selected_subjects';
+                    input.value = s.id;
+                    input.id = `sub_${s.id}`;
+                    input.checked = isChecked;
+
+                    if (s.is_compulsory) {
+                        input.onclick = (e) => { e.preventDefault(); return false; };
+                    }
+
+                    const label = document.createElement('label');
+                    label.htmlFor = `sub_${s.id}`;
+                    label.style.fontSize = '0.85rem';
+                    label.style.fontWeight = s.is_compulsory ? 'Bold' : 'Normal';
+                    label.innerHTML = `${s.name} ${s.is_compulsory ? '<i class="fas fa-lock" style="font-size: 0.7rem;"></i>' : ''}`;
+
+                    div.appendChild(input);
+                    div.appendChild(label);
+                    subjectContainer.appendChild(div);
+                });
+            });
+    }
+
+    streamSelect.addEventListener('change', fetchSubjects);
+    // Load initial subjects
+    fetchSubjects();
+</script>
 {% endblock %}

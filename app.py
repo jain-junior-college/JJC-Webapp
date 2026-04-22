@@ -260,7 +260,17 @@ def edit_student(id):
         student.parent_contact = request.form['parent_contact']
         student.email = request.form['email']
         student.address = request.form['address']
+        student.class_id = request.form['class_id']
+        student.stream_id = request.form['stream_id']
         
+        # Handle Subjects
+        selected_subject_ids = set(request.form.getlist('selected_subjects'))
+        student.subjects = [] # Clear current
+        for sid in selected_subject_ids:
+            subj = Subject.query.get(sid)
+            if subj:
+                student.subjects.append(subj)
+
         # Files
         photo = request.files.get('photo')
         if photo and photo.filename != '':
@@ -276,7 +286,11 @@ def edit_student(id):
         flash('Student details updated!')
         return redirect(url_for('student_list'))
         
-    return render_template('students/edit.html', student=student)
+    streams = Stream.query.all()
+    classes = AcademicClass.query.all()
+    # Get IDs of current subjects for pre-checking
+    current_subject_ids = [s.id for s in student.subjects]
+    return render_template('students/edit.html', student=student, streams=streams, classes=classes, current_subject_ids=current_subject_ids)
 
 @app.route('/student/delete/<int:id>', methods=['POST'])
 @login_required
