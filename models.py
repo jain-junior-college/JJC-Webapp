@@ -156,6 +156,13 @@ class TestMark(db.Model):
     student = db.relationship('Student', backref='test_marks')
 
 class Exam(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    subject = db.Column(db.String(100), nullable=False)
+    marks_obtained = db.Column(db.Float, nullable=False)
+    total_marks = db.Column(db.Float, default=100.0)
+    exam_type = db.Column(db.String(50))
+    exam_date = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Enquiry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
