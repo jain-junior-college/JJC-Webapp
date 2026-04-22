@@ -371,42 +371,48 @@ def get_next_student_id():
 @app.route('/masters', methods=['GET', 'POST'])
 @login_required
 def masters():
-    if request.method == 'POST':
-        master_type = request.form.get('type')
-        if master_type == 'fee_matrix':
-            cid = request.form.get('class_id')
-            sid = request.form.get('stream_id')
-            fees = float(request.form.get('base_fees', 0.0))
-            # Overwrite if exists, otherwise create
-            existing = ClassStreamFee.query.filter_by(class_id=cid, stream_id=sid).first()
-            if existing:
-                existing.base_fees = fees
-            else:
-                mapping = ClassStreamFee(class_id=cid, stream_id=sid, base_fees=fees)
-                db.session.add(mapping)
+    try:
+        if request.method == 'POST':
+            master_type = request.form.get('type')
+            if master_type == 'fee_matrix':
+                cid = request.form.get('class_id')
+                sid = request.form.get('stream_id')
+                fees = float(request.form.get('base_fees', 0.0))
+                # Overwrite if exists, otherwise create
+                existing = ClassStreamFee.query.filter_by(class_id=cid, stream_id=sid).first()
+                if existing:
+                    existing.base_fees = fees
+                else:
+                    mapping = ClassStreamFee(class_id=cid, stream_id=sid, base_fees=fees)
+                    db.session.add(mapping)
+                db.session.commit()
+                flash("Fee Matrix updated successfully!")
+                return redirect(url_for('masters'))
+                
+            name = request.form.get('name')
+            if master_type == 'stream':
+                db.session.add(Stream(name=name))
+            elif master_type == 'class':
+                base_fees = float(request.form.get('base_fees', 0) or 0)
+                db.session.add(AcademicClass(name=name, base_fees=base_fees))
             db.session.commit()
-            flash("Fee Matrix updated successfully!")
+            flash(f"{master_type.title()} added successfully!")
             return redirect(url_for('masters'))
             
-        name = request.form.get('name')
-        if master_type == 'stream':
-            db.session.add(Stream(name=name))
-        elif master_type == 'class':
-            base_fees = float(request.form.get('base_fees', 0) or 0)
-            db.session.add(AcademicClass(name=name, base_fees=base_fees))
-        db.session.commit()
-        flash(f"{master_type.title()} added successfully!")
-        return redirect(url_for('masters'))
-        
-    try:
-        streams = Stream.query.all()
-        classes = AcademicClass.query.all()
-        fee_matrix = ClassStreamFee.query.all()
-    except Exception:
-        streams = []
-        classes = []
-        fee_matrix = []
-    return render_template('masters.html', streams=streams, classes=classes, fee_matrix=fee_matrix)
+        try:
+            streams = Stream.query.all()
+            classes = AcademicClass.query.all()
+            fee_matrix = ClassStreamFee.query.all()
+        except Exception as e:
+            # Fallback to allow page to load even if matrix fails
+            streams = Stream.query.all()
+            classes = AcademicClass.query.all()
+            fee_matrix = []
+            flash(f"Fee Matrix error: {str(e)}", "warning")
+            
+        return render_template('masters.html', streams=streams, classes=classes, fee_matrix=fee_matrix)
+    except Exception as e:
+        return f"<div style='padding:2rem; border:2px solid red; font-family:sans-serif;'><h1>🚨 Masters System Diagnostic</h1><p>The system encountered this error:</p><code style='background:#fee2e2; padding:10px; display:block;'>{str(e)}</code><br><a href='/masters'>Try Again</a> | <a href='/sync-database'>Force Database Sync</a></div>"
 
 @app.route('/masters/class/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
