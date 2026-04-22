@@ -409,6 +409,17 @@ def masters():
         
     return render_template('masters.html', streams=streams, classes=classes, fee_matrix=fee_matrix)
 
+@app.route('/masters/fee-matrix/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_fee_matrix(id):
+    fee = ClassStreamFee.query.get_or_404(id)
+    if request.method == 'POST':
+        fee.base_fees = float(request.form.get('base_fees', 0.0))
+        db.session.commit()
+        flash("Fees updated successfully!")
+        return redirect(url_for('masters'))
+    return render_template('edit_fee_matrix.html', fee=fee)
+
 @app.route('/masters/class/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_master_class(id):
