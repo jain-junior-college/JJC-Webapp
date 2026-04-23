@@ -87,10 +87,10 @@
 
         <!-- Search Filters -->
         <div style="background: #f8fafc; padding: 1rem; border-radius: 10px; margin-bottom: 2rem; border: 1px solid #e2e8f0;">
-            <form method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; align-items: flex-end;">
+            <form id="filterForm" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; align-items: flex-end;">
                 <div>
                     <label style="font-size: 0.7rem; font-weight: 800; color: #64748b;">Filter Class</label>
-                    <select name="f_class" class="form-control" style="font-size: 0.8rem; height: 38px;">
+                    <select name="f_class" class="form-control" style="font-size: 0.8rem; height: 38px;" onchange="this.form.submit()">
                         <option value="">All Classes</option>
                         {% for c in classes %}
                         <option value="{{ c.id }}" {% if f_class == c.id %}selected{% endif %}>{{ c.name }}</option>
@@ -99,7 +99,7 @@
                 </div>
                 <div>
                     <label style="font-size: 0.7rem; font-weight: 800; color: #64748b;">Filter Day</label>
-                    <select name="f_day" class="form-control" style="font-size: 0.8rem; height: 38px;">
+                    <select name="f_day" class="form-control" style="font-size: 0.8rem; height: 38px;" onchange="this.form.submit()">
                         <option value="">All Days</option>
                         {% for d in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
                         <option value="{{ d }}" {% if f_day == d %}selected{% endif %}>{{ d }}</option>
@@ -108,7 +108,7 @@
                 </div>
                 <div>
                     <label style="font-size: 0.7rem; font-weight: 800; color: #64748b;">Filter Subject</label>
-                    <select name="f_subject" class="form-control" style="font-size: 0.8rem; height: 38px;">
+                    <select name="f_subject" class="form-control" style="font-size: 0.8rem; height: 38px;" onchange="this.form.submit()">
                         <option value="">All Subjects</option>
                         {% for s in subjects %}
                         <option value="{{ s.id }}" {% if f_subject == s.id %}selected{% endif %}>{{ s.name }}</option>
@@ -116,8 +116,7 @@
                     </select>
                 </div>
                 <div style="display: flex; gap: 0.5rem;">
-                    <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 1rem; font-size: 0.8rem;"><i class="fas fa-filter"></i> Search</button>
-                    <a href="{{ url_for('timetable_manage') }}" class="btn" style="height: 38px; padding: 0 1rem; font-size: 0.8rem; background: #e2e8f0; color: #475569; text-decoration: none; display: flex; align-items: center;"><i class="fas fa-undo"></i> Reset</a>
+                    <a href="{{ url_for('timetable_manage') }}" class="btn" style="height: 38px; padding: 0 1rem; font-size: 0.8rem; background: #e2e8f0; color: #475569; text-decoration: none; display: flex; align-items: center;"><i class="fas fa-undo"></i> Reset Filters</a>
                 </div>
             </form>
         </div>
