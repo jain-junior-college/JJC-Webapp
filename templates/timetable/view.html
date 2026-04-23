@@ -34,13 +34,17 @@
 </div>
 
 {% if entries %}
-<div class="glass-card" style="padding: 0; overflow: hidden;">
+    <div id="printableGrid" class="glass-card" style="padding: 0; overflow: hidden;">
     <div style="background: #f8fafc; padding: 2rem; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin: 0; font-weight: 800; color: #1e3a8a;">Master Weekly Grid</h3>
-        <button onclick="window.print()" class="btn" style="background: white; border: 1px solid #cbd5e1; font-size: 0.8rem;"><i class="fas fa-print"></i> Print PDF</button>
+        <div style="display: flex; gap: 0.5rem;" class="no-print">
+            <a href="{{ url_for('timetable_export_csv', class_id=selected_class, stream_id=selected_stream) }}" class="btn" style="background: #166534; color: white; text-decoration: none; font-size: 0.8rem;"><i class="fas fa-file-excel"></i> Export Excel</a>
+            <a href="{{ url_for('timetable_manage') }}" class="btn" style="background: #1e3a8a; color: white; text-decoration: none; font-size: 0.8rem;"><i class="fas fa-tools"></i> Timetable Builder</a>
+            <button onclick="window.print()" class="btn" style="background: white; border: 1px solid #cbd5e1; font-size: 0.8rem;"><i class="fas fa-print"></i> Print PDF</button>
+        </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(6, 1fr); background: white;">
+    <div class="timetable-grid" style="display: grid; grid-template-columns: repeat(6, 1fr); background: white;">
         {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
         <div style="border-right: 1px solid #f1f5f9; min-height: 500px;">
             <div style="padding: 1rem; text-align: center; background: #f1f5f9; font-weight: 800; color: #1e3a8a; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
@@ -49,7 +53,7 @@
             
             <div style="padding: 1rem;">
                 {% for entry in entries if entry.day == day %}
-                <div style="background: rgba(79, 70, 229, 0.05); border-left: 4px solid var(--primary-color); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div class="timetable-slot" style="background: rgba(79, 70, 229, 0.05); border-left: 4px solid var(--primary-color); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
                     <div style="font-size: 0.7rem; font-weight: 800; color: var(--primary-color);">{{ entry.start_time | format_time_12hr }} - {{ entry.end_time | format_time_12hr }}</div>
                     <div style="font-weight: 800; color: #0f172a; margin: 0.3rem 0; font-size: 0.9rem;">{{ entry.subject.name }}</div>
                     <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;"><i class="fas fa-user-tie"></i> {{ entry.teacher.name }}</div>
@@ -70,9 +74,35 @@
 
 <style>
 @media print {
-    .sidebar, header, .glass-card:first-child, .btn { display: none !important; }
+    @page {
+        size: A4 landscape;
+        margin: 1cm;
+    }
+    body * { visibility: hidden; }
+    #printableGrid, #printableGrid * { visibility: visible; }
+    #printableGrid { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%; 
+        border: none !important;
+        box-shadow: none !important;
+        background: white !important;
+    }
     .main-content { padding: 0 !important; margin: 0 !important; }
-    .glass-card { box-shadow: none !important; border: none !important; }
+    .sidebar, .btn, header, .glass-card:first-child, .no-print { display: none !important; }
+    
+    /* Ensure the 6-column grid fits */
+    .timetable-grid {
+        grid-template-columns: repeat(6, 1fr) !important;
+        gap: 0 !important;
+    }
+    .timetable-slot {
+        padding: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    h3 { font-size: 1.2rem !important; }
 }
 </style>
 {% endblock %}

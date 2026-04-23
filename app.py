@@ -1016,6 +1016,35 @@ def delete_timetable_entry(id):
     flash('Slot removed!')
     return redirect(url_for('timetable_manage'))
 
+@app.route('/timetable/export/csv')
+@login_required
+def timetable_export_csv():
+    class_id = request.args.get('class_id')
+    stream_id = request.args.get('stream_id')
+    
+    if not class_id or not stream_id:
+        flash("Please filter by Class and Stream first to export!")
+        return redirect(url_for('timetable_view'))
+        
+    entries = TimetableEntry.query.filter_by(class_id=class_id, stream_id=stream_id).order_by(TimetableEntry.day, TimetableEntry.start_time).all()
+    
+    import io, csv
+    from flask import Response
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow(['Day', 'Time', 'Subject', 'Teacher', 'Class'])
+    
+    for e in entries:
+        t_range = f"{format_time_12hr(e.start_time)} - {format_time_12hr(e.end_time)}"
+        writer.writerow([e.day, t_range, e.subject.name, e.teacher.name, e.academic_class.name])
+        
+    response = Response(output.getvalue(), mimetype='text/csv')
+    response.headers.set("Content-Disposition", "attachment", filename=f"timetable_export.csv")
+    return response
+
 @app.route('/timetable/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_timetable_entry(id):
