@@ -38,6 +38,7 @@
     <div style="background: #f8fafc; padding: 2rem; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin: 0; font-weight: 800; color: #1e3a8a;">Master Weekly Grid</h3>
         <div style="display: flex; gap: 0.5rem;" class="no-print">
+            <a href="{{ url_for('timetable_delete_all', class_id=selected_class, stream_id=selected_stream) }}" class="btn" style="background: #ef4444; color: white; text-decoration: none; font-size: 0.8rem;" onclick="return confirm('⚠️ DANGER: This will erase the ENTIRE schedule for this class. Are you absolutely sure?')"><i class="fas fa-trash-alt"></i> Clear Schedule</a>
             <a href="{{ url_for('timetable_export_csv', class_id=selected_class, stream_id=selected_stream) }}" class="btn" style="background: #166534; color: white; text-decoration: none; font-size: 0.8rem;"><i class="fas fa-file-excel"></i> Export Excel</a>
             <a href="{{ url_for('timetable_manage') }}" class="btn" style="background: #1e3a8a; color: white; text-decoration: none; font-size: 0.8rem;"><i class="fas fa-tools"></i> Timetable Builder</a>
             <button onclick="window.print()" class="btn" style="background: white; border: 1px solid #cbd5e1; font-size: 0.8rem;"><i class="fas fa-print"></i> Print PDF</button>

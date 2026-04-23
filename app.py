@@ -1045,6 +1045,22 @@ def timetable_export_csv():
     response.headers.set("Content-Disposition", "attachment", filename=f"timetable_export.csv")
     return response
 
+@app.route('/timetable/delete-all')
+@login_required
+def timetable_delete_all():
+    class_id = request.args.get('class_id')
+    stream_id = request.args.get('stream_id')
+    
+    if not class_id or not stream_id:
+        flash("Invalid request.")
+        return redirect(url_for('timetable_view'))
+        
+    TimetableEntry.query.filter_by(class_id=class_id, stream_id=stream_id).delete()
+    db.session.commit()
+    
+    flash("Schedule for the selected class has been cleared!")
+    return redirect(url_for('timetable_view'))
+
 @app.route('/timetable/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_timetable_entry(id):
