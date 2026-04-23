@@ -997,7 +997,20 @@ def timetable_manage():
     if f_day:
         query = query.filter_by(day=f_day)
         
-    entries = query.order_by(TimetableEntry.day, TimetableEntry.start_time).all()
+    from sqlalchemy import case
+    day_order = case(
+        {
+            'Monday': 1,
+            'Tuesday': 2,
+            'Wednesday': 3,
+            'Thursday': 4,
+            'Friday': 5,
+            'Saturday': 6
+        },
+        value=TimetableEntry.day
+    )
+    
+    entries = query.order_by(day_order, TimetableEntry.start_time).all()
     
     classes = AcademicClass.query.all()
     streams = Stream.query.all()
