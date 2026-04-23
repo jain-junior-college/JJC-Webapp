@@ -86,6 +86,7 @@
                     <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase;">ID</th>
                     <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase; text-align: center;">Status</th>
                     <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase;">Early Exit Details</th>
+                    <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase; text-align: right;" class="no-print">Parent Notify</th>
                 </tr>
             </thead>
             <tbody>
@@ -109,6 +110,18 @@
                         <span style="color: #e2e8f0;">-</span>
                         {% endif %}
                     </td>
+                    <td style="padding: 15px; text-align: right;" class="no-print">
+                        {% if log.status == 'Absent' and log.student.parent_contact %}
+                        {% set msg = "Dear Parent, this is to inform you that your child " ~ log.student.name ~ " is marked ABSENT today (" ~ date_str ~ ") at Jain Junior College. - Admin JJC" %}
+                        <a href="https://wa.me/{{ log.student.parent_contact }}?text={{ msg | urlencode }}" target="_blank" class="btn" style="background: #25D366; color: white; padding: 0.4rem 0.8rem; font-size: 0.75rem; border-radius: 5px; text-decoration: none;">
+                            <i class="fab fa-whatsapp"></i> Notify
+                        </a>
+                        {% elif log.status == 'Present' %}
+                        <span style="color: #94a3b8; font-size: 0.7rem;">Validated</span>
+                        {% else %}
+                        <span style="color: #ef4444; font-size: 0.7rem;">No Parent No.</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -127,7 +140,13 @@
         </div>
     </div>
 
-    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+    <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;" class="no-print">
+        {% if stats.class_percentage is defined %}
+        {% set summary_msg = "Attendance Summary for " ~ date_str ~ ": Total Students: " ~ (stats.present + stats.absent) ~ " | Present: " ~ stats.present ~ " | Absent: " ~ stats.absent ~ " | Attend. Rate: " ~ "{:.1f}%".format(stats.class_percentage) %}
+        <a href="https://wa.me/?text={{ summary_msg | urlencode }}" target="_blank" class="btn" style="background: #25D366; color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 5px; font-weight: 700;">
+            <i class="fab fa-whatsapp"></i> Share Summary
+        </a>
+        {% endif %}
         <button onclick="window.print()" class="btn btn-primary" style="padding: 1rem 3rem;">
             <i class="fas fa-print"></i> Print Official Report
         </button>
@@ -139,7 +158,7 @@
     body * { visibility: hidden; }
     #printableReport, #printableReport * { visibility: visible; }
     #printableReport { position: absolute; left: 0; top: 0; width: 100%; }
-    .sidebar, .btn, header, .glass-card:not(#printableReport) { display: none !important; }
+    .sidebar, .btn, header, .glass-card:not(#printableReport), .no-print { display: none !important; }
 }
 </style>
 {% endblock %}
