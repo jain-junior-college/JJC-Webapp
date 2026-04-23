@@ -86,11 +86,11 @@
         </div>
 
         <!-- Search Filters -->
-        <div style="background: #f8fafc; padding: 1rem; border-radius: 10px; margin-bottom: 2rem; border: 1px solid #e2e8f0;">
-            <form id="filterForm" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; align-items: flex-end;">
+        <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #e2e8f0;">
+            <form id="filterForm" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; align-items: flex-end;">
                 <div>
-                    <label style="font-size: 0.7rem; font-weight: 800; color: #64748b;">Filter Class</label>
-                    <select name="f_class" class="form-control" style="font-size: 0.8rem; height: 38px;" onchange="this.form.submit()">
+                    <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 0.5rem; display: block;">Filter Class</label>
+                    <select name="f_class" class="form-control" style="font-size: 0.9rem; height: 45px; padding: 0 1rem; border-radius: 8px;" onchange="this.form.submit()">
                         <option value="">All Classes</option>
                         {% for c in classes %}
                         <option value="{{ c.id }}" {% if f_class == c.id %}selected{% endif %}>{{ c.name }}</option>
@@ -98,8 +98,8 @@
                     </select>
                 </div>
                 <div>
-                    <label style="font-size: 0.7rem; font-weight: 800; color: #64748b;">Filter Day</label>
-                    <select name="f_day" class="form-control" style="font-size: 0.8rem; height: 38px;" onchange="this.form.submit()">
+                    <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 0.5rem; display: block;">Filter Day</label>
+                    <select name="f_day" class="form-control" style="font-size: 0.9rem; height: 45px; padding: 0 1rem; border-radius: 8px;" onchange="this.form.submit()">
                         <option value="">All Days</option>
                         {% for d in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
                         <option value="{{ d }}" {% if f_day == d %}selected{% endif %}>{{ d }}</option>
@@ -107,8 +107,8 @@
                     </select>
                 </div>
                 <div>
-                    <label style="font-size: 0.7rem; font-weight: 800; color: #64748b;">Filter Subject</label>
-                    <select name="f_subject" class="form-control" style="font-size: 0.8rem; height: 38px;" onchange="this.form.submit()">
+                    <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 0.5rem; display: block;">Filter Subject</label>
+                    <select name="f_subject" class="form-control" style="font-size: 0.9rem; height: 45px; padding: 0 1rem; border-radius: 8px;" onchange="this.form.submit()">
                         <option value="">All Subjects</option>
                         {% for s in subjects %}
                         <option value="{{ s.id }}" {% if f_subject == s.id %}selected{% endif %}>{{ s.name }}</option>
