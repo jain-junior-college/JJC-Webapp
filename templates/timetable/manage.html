@@ -38,11 +38,11 @@
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div class="form-group">
-                    <label>Start Time</label>
+                    <label>Start Time <small style="color: var(--text-secondary); font-weight: normal;">(24h: 09:30)</small></label>
                     <input type="time" name="start_time" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label>End Time</label>
+                    <label>End Time <small style="color: var(--text-secondary); font-weight: normal;">(24h: 13:20)</small></label>
                     <input type="time" name="end_time" class="form-control" required>
                 </div>
             </div>
@@ -55,14 +55,14 @@
             </div>
             <div class="form-group">
                 <label>Subject</label>
-                <select name="subject_id" id="subject_select" class="form-control" required onchange="autoAssignTeacher()">
+                <select name="subject_id" id="subject_select" class="form-control" required onchange="handleSubjectChange()">
                     <option value="">Select Subject</option>
                     {% for s in subjects %}
                     <option value="{{ s.id }}">{{ s.name }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="teacher_container">
                 <label>Assigned Teacher (Automatic)</label>
                 <select name="teacher_id" id="teacher_select" class="form-control" required>
                     <option value="">Select Teacher</option>
@@ -160,6 +160,23 @@
 </div>
 
 <script>
+async function handleSubjectChange() {
+    const select = document.getElementById('subject_select');
+    const selectedText = select.options[select.selectedIndex].text;
+    const teacherContainer = document.getElementById('teacher_container');
+    const teacherSelect = document.getElementById('teacher_select');
+
+    if (selectedText === 'Break') {
+        teacherContainer.style.display = 'none';
+        teacherSelect.required = false;
+        teacherSelect.value = "";
+    } else {
+        teacherContainer.style.display = 'block';
+        teacherSelect.required = true;
+        autoAssignTeacher();
+    }
+}
+
 async function autoAssignTeacher() {
     const subjectId = document.getElementById('subject_select').value;
     if (!subjectId) return;

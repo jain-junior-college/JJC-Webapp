@@ -140,6 +140,11 @@ def format_time_12hr(time_str):
 def auto_init_db():
     try:
         db.create_all()
+        # Seed Break subject first
+        if not Subject.query.filter_by(name='Break').first():
+            db.session.add(Subject(name='Break'))
+            db.session.commit()
+            
         # Seed default data
         if not Stream.query.first():
             for s in ['Science', 'Commerce', 'Arts']:

@@ -171,7 +171,7 @@ class TimetableEntry(db.Model):
     class_id = db.Column(db.Integer, db.ForeignKey('academic_class.id'), nullable=False)
     stream_id = db.Column(db.Integer, db.ForeignKey('stream.id'), nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
-    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=True)
     day = db.Column(db.String(20), nullable=False) # Monday, Tuesday...
     start_time = db.Column(db.String(10), nullable=False) # 09:00
     end_time = db.Column(db.String(10), nullable=False) # 10:00
@@ -179,7 +179,7 @@ class TimetableEntry(db.Model):
     academic_class = db.relationship('AcademicClass', backref='timetable_slots')
     stream = db.relationship('Stream', backref='timetable_slots')
     subject = db.relationship('Subject', backref='timetable_slots')
-    teacher = db.relationship('Teacher', backref='timetable_slots')
+    teacher = db.relationship('Teacher', backref='timetable_slots', foreign_keys=[teacher_id])
 
 class Enquiry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
