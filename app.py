@@ -984,13 +984,28 @@ def timetable_manage():
         flash('Timetable updated!')
         return redirect(url_for('timetable_manage'))
         
+    # Filtering logic for active slots
+    f_class = request.args.get('f_class')
+    f_subject = request.args.get('f_subject')
+    f_day = request.args.get('f_day')
+    
+    query = TimetableEntry.query
+    if f_class:
+        query = query.filter_by(class_id=f_class)
+    if f_subject:
+        query = query.filter_by(subject_id=f_subject)
+    if f_day:
+        query = query.filter_by(day=f_day)
+        
+    entries = query.order_by(TimetableEntry.day, TimetableEntry.start_time).all()
+    
     classes = AcademicClass.query.all()
     streams = Stream.query.all()
     subjects = Subject.query.all()
     teachers = Teacher.query.all()
-    entries = TimetableEntry.query.order_by(TimetableEntry.day, TimetableEntry.start_time).all()
     
-    return render_template('timetable/manage.html', entries=entries, classes=classes, streams=streams, subjects=subjects, teachers=teachers)
+    return render_template('timetable/manage.html', entries=entries, classes=classes, streams=streams, subjects=subjects, teachers=teachers, 
+                           f_class=int(f_class) if f_class else None, f_subject=int(f_subject) if f_subject else None, f_day=f_day)
 
 @app.route('/timetable/delete/<int:id>')
 @login_required
