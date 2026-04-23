@@ -100,7 +100,10 @@
                             <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ entry.teacher.name }}</div>
                         </td>
                         <td>
-                            <a href="{{ url_for('delete_timetable_entry', id=entry.id) }}" style="color: #ef4444;" onclick="return confirm('Remove this slot?')">
+                            <a href="{{ url_for('edit_timetable_entry', id=entry.id) }}" style="color: var(--primary-color); margin-right: 1rem;" title="Edit Slot">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('delete_timetable_entry', id=entry.id) }}" style="color: #ef4444;" onclick="return confirm('Remove this slot?')" title="Delete Slot">
                                 <i class="fas fa-trash-alt"></i>
                             </a>
                         </td>

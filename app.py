@@ -983,6 +983,28 @@ def delete_timetable_entry(id):
     flash('Slot removed!')
     return redirect(url_for('timetable_manage'))
 
+@app.route('/timetable/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_timetable_entry(id):
+    entry = TimetableEntry.query.get_or_404(id)
+    if request.method == 'POST':
+        entry.class_id = request.form['class_id']
+        entry.stream_id = request.form['stream_id']
+        entry.day = request.form['day']
+        entry.start_time = request.form['start_time']
+        entry.end_time = request.form['end_time']
+        entry.subject_id = request.form['subject_id']
+        entry.teacher_id = request.form['teacher_id']
+        db.session.commit()
+        flash('Timetable slot updated!')
+        return redirect(url_for('timetable_manage'))
+        
+    classes = AcademicClass.query.all()
+    streams = Stream.query.all()
+    subjects = Subject.query.all()
+    teachers = Teacher.query.all()
+    return render_template('timetable/edit.html', entry=entry, classes=classes, streams=streams, subjects=subjects, teachers=teachers)
+
 @app.route('/api/get-subject-teacher/<int:subject_id>')
 @login_required
 def get_subject_teacher(subject_id):

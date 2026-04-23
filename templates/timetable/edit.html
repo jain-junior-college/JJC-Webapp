@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Timetable Slot{% endblock %}
+{% block header_title %}Edit Slot{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 600px; margin: 0 auto;">
+    <h3 style="font-weight: 700; margin-bottom: 2rem;">Modify Timetable Slot</h3>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label>Class</label>
+            <select name="class_id" class="form-control" required>
+                {% for c in classes %}
+                <option value="{{ c.id }}" {% if entry.class_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Stream</label>
+            <select name="stream_id" class="form-control" required>
+                {% for s in streams %}
+                <option value="{{ s.id }}" {% if entry.stream_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Day</label>
+            <select name="day" class="form-control" required>
+                {% for d in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
+                <option value="{{ d }}" {% if entry.day == d %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label>Start Time</label>
+                <input type="time" name="start_time" class="form-control" value="{{ entry.start_time }}" required>
+            </div>
+            <div class="form-group">
+                <label>End Time</label>
+                <input type="time" name="end_time" class="form-control" value="{{ entry.end_time }}" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Subject</label>
+            <select name="subject_id" id="subject_select" class="form-control" required onchange="autoAssignTeacher()">
+                {% for s in subjects %}
+                <option value="{{ s.id }}" {% if entry.subject_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Assigned Teacher</label>
+            <select name="teacher_id" id="teacher_select" class="form-control" required>
+                {% for t in teachers %}
+                <option value="{{ t.id }}" {% if entry.teacher_id == t.id %}selected{% endif %}>{{ t.name }}</option>
+                {% endfor %}
+            </select>
+            <p id="assignment_status" style="font-size: 0.7rem; margin-top: 0.3rem; color: var(--primary-color);"></p>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="{{ url_for('timetable_manage') }}" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-secondary); text-decoration: none;">Cancel</a>
+            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2.5rem;">
+                <i class="fas fa-save"></i> Update Slot
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+async function autoAssignTeacher() {
+    const subjectId = document.getElementById('subject_select').value;
+    if (!subjectId) return;
+    
+    const statusLabel = document.getElementById('assignment_status');
+    statusLabel.innerText = "Finding teacher...";
+    
+    try {
+        const response = await fetch(`/api/get-subject-teacher/${subjectId}`);
+        const data = await response.json();
+        
+        if (data.id) {
+            document.getElementById('teacher_select').value = data.id;
+            statusLabel.innerText = "✓ Automatically assigned "1 + data.name;
+        } else {
+            statusLabel.innerText = "⚠ No preferred teacher found for this subject.";
+        }
+    } catch (e) {
+        statusLabel.innerText = "⚠ Error in auto-assignment.";
+    }
+}
+</script>
+{% endblock %}
