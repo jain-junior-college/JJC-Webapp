@@ -24,9 +24,12 @@
                 {% endfor %}
             </select>
         </div>
-        <button type="submit" class="btn btn-primary" style="padding: 0 2rem; height: 48px;">
+        <button type="submit" class="btn btn-primary" style="padding: 0 2rem; height: 48px; margin-right: 0.5rem;">
             <i class="fas fa-search"></i> Show Schedule
         </button>
+        <a href="{{ url_for('timetable_manage') }}" class="btn" style="background: #1e3a8a; color: white; text-decoration: none; height: 48px; padding: 0 1.5rem; display: flex; align-items: center; border-radius: 8px;">
+            <i class="fas fa-tools"></i> Timetable Builder
+        </a>
     </form>
 </div>
 
@@ -34,10 +37,7 @@
 <div class="glass-card" style="padding: 0; overflow: hidden;">
     <div style="background: #f8fafc; padding: 2rem; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin: 0; font-weight: 800; color: #1e3a8a;">Master Weekly Grid</h3>
-        <div style="display: flex; gap: 0.5rem;">
-            <a href="{{ url_for('timetable_manage') }}" class="btn" style="background: #1e3a8a; color: white; text-decoration: none; font-size: 0.8rem;"><i class="fas fa-edit"></i> Manage Timetable</a>
-            <button onclick="window.print()" class="btn" style="background: white; border: 1px solid #cbd5e1; font-size: 0.8rem;"><i class="fas fa-print"></i> Print PDF</button>
-        </div>
+        <button onclick="window.print()" class="btn" style="background: white; border: 1px solid #cbd5e1; font-size: 0.8rem;"><i class="fas fa-print"></i> Print PDF</button>
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(6, 1fr); background: white;">
