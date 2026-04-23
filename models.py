@@ -165,6 +165,22 @@ class Exam(db.Model):
     exam_type = db.Column(db.String(50))
     exam_date = db.Column(db.DateTime, default=datetime.utcnow)
 
+class TimetableEntry(db.Model):
+    __tablename__ = 'timetable'
+    id = db.Column(db.Integer, primary_key=True)
+    class_id = db.Column(db.Integer, db.ForeignKey('academic_class.id'), nullable=False)
+    stream_id = db.Column(db.Integer, db.ForeignKey('stream.id'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
+    day = db.Column(db.String(20), nullable=False) # Monday, Tuesday...
+    start_time = db.Column(db.String(10), nullable=False) # 09:00
+    end_time = db.Column(db.String(10), nullable=False) # 10:00
+    
+    academic_class = db.relationship('AcademicClass', backref='timetable_slots')
+    stream = db.relationship('Stream', backref='timetable_slots')
+    subject = db.relationship('Subject', backref='timetable_slots')
+    teacher = db.relationship('Teacher', backref='timetable_slots')
+
 class Enquiry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)

@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block title %}College Timetable{% endblock %}
+{% block header_title %}Academic Schedule{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="margin-bottom: 2rem;">
+    <form method="GET" style="display: flex; gap: 1.5rem; align-items: flex-end;">
+        <div style="flex: 1;">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);">Filter Class</label>
+            <select name="class_id" class="form-control" required>
+                <option value="">Select Class</option>
+                {% for c in classes %}
+                <option value="{{ c.id }}" {% if selected_class == c.id %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="flex: 1;">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);">Select Stream</label>
+            <select name="stream_id" class="form-control" required>
+                <option value="">Select Stream</option>
+                {% for s in streams %}
+                <option value="{{ s.id }}" {% if selected_stream == s.id %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="padding: 0 2rem; height: 48px;">
+            <i class="fas fa-search"></i> Show Schedule
+        </button>
+    </form>
+</div>
+
+{% if entries %}
+<div class="glass-card" style="padding: 0; overflow: hidden;">
+    <div style="background: #f8fafc; padding: 2rem; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; font-weight: 800; color: #1e3a8a;">Master Weekly Grid</h3>
+        <button onclick="window.print()" class="btn" style="background: white; border: 1px solid #cbd5e1; font-size: 0.8rem;"><i class="fas fa-print"></i> Print PDF</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); background: white;">
+        {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
+        <div style="border-right: 1px solid #f1f5f9; min-height: 500px;">
+            <div style="padding: 1rem; text-align: center; background: #f1f5f9; font-weight: 800; color: #1e3a8a; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
+                {{ day }}
+            </div>
+            
+            <div style="padding: 1rem;">
+                {% for entry in entries if entry.day == day %}
+                <div style="background: rgba(79, 70, 229, 0.05); border-left: 4px solid var(--primary-color); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                    <div style="font-size: 0.7rem; font-weight: 800; color: var(--primary-color);">{{ entry.start_time }} - {{ entry.end_time }}</div>
+                    <div style="font-weight: 800; color: #0f172a; margin: 0.3rem 0; font-size: 0.9rem;">{{ entry.subject.name }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;"><i class="fas fa-user-tie"></i> {{ entry.teacher.name }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="glass-card" style="text-align: center; padding: 5rem; color: var(--text-secondary);">
+    <i class="fas fa-calendar-alt" style="font-size: 4rem; opacity: 0.1; display: block; margin-bottom: 1.5rem;"></i>
+    <h3>Generate Timetable</h3>
+    <p>Please select a Class and Stream above to view the schedule.</p>
+</div>
+{% endif %}
+
+<style>
+@media print {
+    .sidebar, header, .glass-card:first-child, .btn { display: none !important; }
+    .main-content { padding: 0 !important; margin: 0 !important; }
+    .glass-card { box-shadow: none !important; border: none !important; }
+}
+</style>
+{% endblock %}

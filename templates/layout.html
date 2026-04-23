@@ -34,6 +34,7 @@
             <li><a href="{{ url_for('collect_fees') }}" class="{% if request.endpoint == 'collect_fees' %}active{% endif %}"><i class="fas fa-receipt"></i> Fee Mgmt</a></li>
             <li><a href="{{ url_for('academic_entry') }}" class="{% if request.endpoint == 'academic_entry' %}active{% endif %}"><i class="fas fa-book"></i> Academics</a></li>
             <li><a href="{{ url_for('test_list') }}" class="{% if request.endpoint == 'test_list' %}active{% endif %}"><i class="fas fa-calendar-alt"></i> Test Scheduler</a></li>
+            <li><a href="{{ url_for('timetable_view') }}" class="{% if request.endpoint == 'timetable_view' %}active{% endif %}"><i class="fas fa-clock"></i> Timetable</a></li>
             <li><a href="{{ url_for('library_list') }}" class="{% if request.endpoint == 'library_list' %}active{% endif %}"><i class="fas fa-book-reader"></i> Digital Library</a></li>
             <li><a href="{{ url_for('manage_subjects') }}" class="{% if request.endpoint == 'manage_subjects' %}active{% endif %}"><i class="fas fa-book-open"></i> Subject Master</a></li>
             <li><a href="{{ url_for('mark_attendance') }}" class="{% if request.endpoint == 'mark_attendance' %}active{% endif %}"><i class="fas fa-calendar-check"></i> Attendance</a></li>

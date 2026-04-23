@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+
+{% block title %}Manage Timetable{% endblock %}
+{% block header_title %}Timetable Builder{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem;">
+    <!-- Add Slot Form -->
+    <div class="glass-card">
+        <h3 style="font-weight: 700; margin-bottom: 2rem;">Add New Slot</h3>
+        <form method="POST">
+            <div class="form-group">
+                <label>Class</label>
+                <select name="class_id" class="form-control" required>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Stream</label>
+                <select name="stream_id" class="form-control" required>
+                    {% for s in streams %}
+                    <option value="{{ s.id }}">{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Day</label>
+                <select name="day" class="form-control" required>
+                    <option>Monday</option>
+                    <option>Tuesday</option>
+                    <option>Wednesday</option>
+                    <option>Thursday</option>
+                    <option>Friday</option>
+                    <option>Saturday</option>
+                </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Start Time</label>
+                    <input type="time" name="start_time" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>End Time</label>
+                    <input type="time" name="end_time" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Subject</label>
+                <select name="subject_id" id="subject_select" class="form-control" required onchange="autoAssignTeacher()">
+                    <option value="">Select Subject</option>
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}">{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Assigned Teacher (Automatic)</label>
+                <select name="teacher_id" id="teacher_select" class="form-control" required>
+                    <option value="">Select Teacher</option>
+                    {% for t in teachers %}
+                    <option value="{{ t.id }}">{{ t.name }}</option>
+                    {% endfor %}
+                </select>
+                <p id="assignment_status" style="font-size: 0.7rem; margin-top: 0.3rem; color: var(--primary-color);"></p>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                <i class="fas fa-plus"></i> Add to Timetable
+            </button>
+        </form>
+    </div>
+
+    <!-- Current Table Entries -->
+    <div class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h3 style="font-weight: 700;">Active Slots</h3>
+            <a href="{{ url_for('timetable_view') }}" class="btn" style="background: rgba(0,0,0,0.05); text-decoration: none; font-size: 0.8rem;">View Live Grid</a>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr style="text-align: left; font-size: 0.85rem; color: var(--text-secondary);">
+                        <th>Day/Time</th>
+                        <th>Class</th>
+                        <th>Subject/Teacher</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 1rem 0;">
+                            <div style="font-weight: 700; color: var(--primary-color);">{{ entry.day }}</div>
+                            <div style="font-size: 0.8rem;">{{ entry.start_time }} - {{ entry.end_time }}</div>
+                        </td>
+                        <td>{{ entry.academic_class.name }}</td>
+                        <td>
+                            <div style="font-weight: 700;">{{ entry.subject.name }}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ entry.teacher.name }}</div>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('delete_timetable_entry', id=entry.id) }}" style="color: #ef4444;" onclick="return confirm('Remove this slot?')">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+async function autoAssignTeacher() {
+    const subjectId = document.getElementById('subject_select').value;
+    if (!subjectId) return;
+    
+    const statusLabel = document.getElementById('assignment_status');
+    statusLabel.innerText = "Finding teacher...";
+    
+    try {
+        const response = await fetch(`/api/get-subject-teacher/${subjectId}`);
+        const data = await response.json();
+        
+        if (data.id) {
+            document.getElementById('teacher_select').value = data.id;
+            statusLabel.innerText = "✓ Automatically assigned " + data.name;
+        } else {
+            statusLabel.innerText = "⚠ No preferred teacher found for this subject.";
+        }
+    } catch (e) {
+        statusLabel.innerText = "⚠ Error in auto-assignment.";
+    }
+}
+</script>
+{% endblock %}

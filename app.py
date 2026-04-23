@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee, ScheduledTest, TestMark
+from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee, ScheduledTest, TestMark, TimetableEntry
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
 import cloudinary
@@ -83,6 +83,20 @@ if not IS_BUILD:
                     test_id INTEGER NOT NULL REFERENCES scheduled_test(id) ON DELETE CASCADE,
                     student_id INTEGER NOT NULL REFERENCES student(id),
                     marks_obtained FLOAT NOT NULL
+                );
+            """)
+
+            # Create timetable table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS timetable (
+                    id SERIAL PRIMARY KEY,
+                    class_id INTEGER NOT NULL REFERENCES academic_class(id),
+                    stream_id INTEGER NOT NULL REFERENCES stream(id),
+                    subject_id INTEGER NOT NULL REFERENCES subject(id),
+                    teacher_id INTEGER NOT NULL REFERENCES teacher(id),
+                    day VARCHAR(20) NOT NULL,
+                    start_time VARCHAR(10) NOT NULL,
+                    end_time VARCHAR(10) NOT NULL
                 );
             """)
             
@@ -906,6 +920,67 @@ def test_analysis(test_id):
     sorted_marks = sorted(marks, key=lambda x: x.marks_obtained, reverse=True)
     
     return render_template('academics/test_analysis.html', test=test, stats=stats, sorted_marks=sorted_marks)
+
+# --- Timetable Module ---
+
+@app.route('/timetable')
+@login_required
+def timetable_view():
+    classes = AcademicClass.query.all()
+    streams = Stream.query.all()
+    class_id = request.args.get('class_id')
+    stream_id = request.args.get('stream_id')
+    
+    entries = []
+    if class_id and stream_id:
+        entries = TimetableEntry.query.filter_by(class_id=class_id, stream_id=stream_id).all()
+        
+    return render_template('timetable/view.html', entries=entries, classes=classes, streams=streams, selected_class=int(class_id) if class_id else None, selected_stream=int(stream_id) if stream_id else None)
+
+@app.route('/timetable/manage', methods=['GET', 'POST'])
+@login_required
+def timetable_manage():
+    if request.method == 'POST':
+        entry = TimetableEntry(
+            class_id=request.form['class_id'],
+            stream_id=request.form['stream_id'],
+            day=request.form['day'],
+            start_time=request.form['start_time'],
+            end_time=request.form['end_time'],
+            subject_id=request.form['subject_id'],
+            teacher_id=request.form['teacher_id']
+        )
+        db.session.add(entry)
+        db.session.commit()
+        flash('Timetable slot added!')
+        return redirect(url_for('timetable_manage'))
+        
+    classes = AcademicClass.query.all()
+    streams = Stream.query.all()
+    subjects = Subject.query.all()
+    teachers = Teacher.query.all()
+    entries = TimetableEntry.query.order_by(TimetableEntry.day, TimetableEntry.start_time).all()
+    
+    return render_template('timetable/manage.html', entries=entries, classes=classes, streams=streams, subjects=subjects, teachers=teachers)
+
+@app.route('/timetable/delete/<int:id>')
+@login_required
+def delete_timetable_entry(id):
+    entry = TimetableEntry.query.get_or_404(id)
+    db.session.delete(entry)
+    db.session.commit()
+    flash('Slot removed!')
+    return redirect(url_for('timetable_manage'))
+
+@app.route('/api/get-subject-teacher/<int:subject_id>')
+@login_required
+def get_subject_teacher(subject_id):
+    subject = Subject.query.get_or_404(subject_id)
+    # Get the first teacher associated with this subject
+    teacher = subject.teachers[0] if subject.teachers else None
+    if teacher:
+        return jsonify({'id': teacher.id, 'name': teacher.name})
+    return jsonify({'id': None, 'name': 'Not Assigned'})
 
 if __name__ == '__main__':
     # Running on 0.0.0.0 for LAN deployment
