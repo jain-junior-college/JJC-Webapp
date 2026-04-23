@@ -75,6 +75,17 @@ if not IS_BUILD:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
+            
+            # EMERGENCY PATCH: Add passing_marks to existing table if missing
+            cur.execute("""
+                DO $$ 
+                BEGIN 
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                                   WHERE table_name='scheduled_test' AND column_name='passing_marks') THEN
+                        ALTER TABLE scheduled_test ADD COLUMN passing_marks FLOAT DEFAULT 9.0;
+                    END IF;
+                END $$;
+            """)
 
             # Create test_mark table
             cur.execute("""
