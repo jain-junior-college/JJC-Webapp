@@ -71,6 +71,7 @@ if not IS_BUILD:
                     exam_type VARCHAR(50) NOT NULL,
                     test_date DATE NOT NULL,
                     total_marks FLOAT DEFAULT 25.0,
+                    passing_marks FLOAT DEFAULT 9.0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
@@ -841,7 +842,8 @@ def schedule_test():
             subject_id=request.form['subject_id'],
             exam_type=request.form['exam_type'],
             test_date=datetime.strptime(request.form['date'], '%Y-%m-%d').date(),
-            total_marks=float(request.form['total_marks'])
+            total_marks=float(request.form['total_marks']),
+            passing_marks=float(request.form['passing_marks'])
         )
         db.session.add(test)
         db.session.commit()
@@ -878,6 +880,32 @@ def record_test_marks(test_id):
     # Pre-fetch existing marks for input population
     existing_marks = {m.student_id: m.marks_obtained for m in test.marks}
     return render_template('academics/record_marks.html', test=test, students=students, existing_marks=existing_marks)
+
+@app.route('/academics/tests/analysis/<int:test_id>')
+@login_required
+def test_analysis(test_id):
+    test = ScheduledTest.query.get_or_404(test_id)
+    marks = test.marks
+    
+    if not marks:
+        flash("No marks recorded for this test yet! Please record marks first.")
+        return redirect(url_for('test_list'))
+        
+    stats = {}
+    stats['total_appeared'] = len(marks)
+    stats['passed'] = sum(1 for m in marks if m.marks_obtained >= test.passing_marks)
+    stats['failed'] = stats['total_appeared'] - stats['passed']
+    stats['pass_percentage'] = (stats['passed'] / stats['total_appeared'] * 100) if stats['total_appeared'] > 0 else 0
+    
+    obtained_marks = [m.marks_obtained for m in marks]
+    stats['max_marks'] = max(obtained_marks) if obtained_marks else 0
+    stats['min_marks'] = min(obtained_marks) if obtained_marks else 0
+    stats['avg_marks'] = (sum(obtained_marks) / len(obtained_marks)) if obtained_marks else 0
+    
+    # Sort students by marks desc
+    sorted_marks = sorted(marks, key=lambda x: x.marks_obtained, reverse=True)
+    
+    return render_template('academics/test_analysis.html', test=test, stats=stats, sorted_marks=sorted_marks)
 
 if __name__ == '__main__':
     # Running on 0.0.0.0 for LAN deployment

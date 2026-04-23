@@ -139,6 +139,7 @@ class ScheduledTest(db.Model):
     exam_type = db.Column(db.String(50), nullable=False) # Unit Test, Prelim 1, etc.
     test_date = db.Column(db.Date, nullable=False)
     total_marks = db.Column(db.Float, default=25.0)
+    passing_marks = db.Column(db.Float, default=9.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     academic_class = db.relationship('AcademicClass', backref='tests')
