@@ -50,7 +50,7 @@
             <div style="padding: 1rem;">
                 {% for entry in entries if entry.day == day %}
                 <div style="background: rgba(79, 70, 229, 0.05); border-left: 4px solid var(--primary-color); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                    <div style="font-size: 0.7rem; font-weight: 800; color: var(--primary-color);">{{ entry.start_time }} - {{ entry.end_time }}</div>
+                    <div style="font-size: 0.7rem; font-weight: 800; color: var(--primary-color);">{{ entry.start_time | format_time_12hr }} - {{ entry.end_time | format_time_12hr }}</div>
                     <div style="font-weight: 800; color: #0f172a; margin: 0.3rem 0; font-size: 0.9rem;">{{ entry.subject.name }}</div>
                     <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;"><i class="fas fa-user-tie"></i> {{ entry.teacher.name }}</div>
                 </div>

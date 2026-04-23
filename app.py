@@ -121,6 +121,18 @@ if not IS_BUILD:
     emergency_migration()
     # ---------------------------------------------------------
     db.init_app(app)
+
+# --- Custom Filters ---
+@app.template_filter('format_time_12hr')
+def format_time_12hr(time_str):
+    if not time_str: return ""
+    try:
+        # Time strings are in HH:MM format from <input type="time">
+        t = datetime.strptime(time_str, "%H:%M")
+        return t.strftime("%I:%M %p").lstrip('0')
+    except:
+        return time_str
+
 else:
     print("Build phase detected: Skipping DB initialization.")
 
@@ -944,7 +956,8 @@ def timetable_view():
     
     entries = []
     if class_id and stream_id:
-        entries = TimetableEntry.query.filter_by(class_id=class_id, stream_id=stream_id).all()
+        # Sort by start_time string
+        entries = TimetableEntry.query.filter_by(class_id=class_id, stream_id=stream_id).order_by(TimetableEntry.start_time).all()
         
     return render_template('timetable/view.html', entries=entries, classes=classes, streams=streams, selected_class=int(class_id) if class_id else None, selected_stream=int(stream_id) if stream_id else None)
 
@@ -952,18 +965,23 @@ def timetable_view():
 @login_required
 def timetable_manage():
     if request.method == 'POST':
-        entry = TimetableEntry(
-            class_id=request.form['class_id'],
-            stream_id=request.form['stream_id'],
-            day=request.form['day'],
-            start_time=request.form['start_time'],
-            end_time=request.form['end_time'],
-            subject_id=request.form['subject_id'],
-            teacher_id=request.form['teacher_id']
-        )
-        db.session.add(entry)
+        days_to_apply = [request.form['day']]
+        if 'apply_to_all' in request.form:
+            days_to_apply = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+            
+        for day in days_to_apply:
+            entry = TimetableEntry(
+                class_id=request.form['class_id'],
+                stream_id=request.form['stream_id'],
+                day=day,
+                start_time=request.form['start_time'],
+                end_time=request.form['end_time'],
+                subject_id=request.form['subject_id'],
+                teacher_id=request.form['teacher_id']
+            )
+            db.session.add(entry)
         db.session.commit()
-        flash('Timetable slot added!')
+        flash('Timetable updated!')
         return redirect(url_for('timetable_manage'))
         
     classes = AcademicClass.query.all()
