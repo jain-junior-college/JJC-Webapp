@@ -121,6 +121,8 @@ if not IS_BUILD:
     emergency_migration()
     # ---------------------------------------------------------
     db.init_app(app)
+else:
+    print("Build phase detected: Skipping DB initialization.")
 
 # --- Custom Filters ---
 @app.template_filter('format_time_12hr')
@@ -133,8 +135,6 @@ def format_time_12hr(time_str):
     except:
         return time_str
 
-else:
-    print("Build phase detected: Skipping DB initialization.")
 
 # Database Auto-Initialization
 def auto_init_db():
