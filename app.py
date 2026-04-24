@@ -1019,6 +1019,12 @@ def timetable_manage():
     
     classes = AcademicClass.query.all()
     streams = Stream.query.all()
+    
+    # Self-healing: Ensure 'Break' subject always exists
+    if not Subject.query.filter_by(name='Break').first():
+        db.session.add(Subject(name='Break'))
+        db.session.commit()
+        
     subjects = Subject.query.all()
     teachers = Teacher.query.all()
     
