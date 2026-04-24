@@ -232,7 +232,8 @@ def sync_db():
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS exit_time VARCHAR(20)",
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS exit_reason VARCHAR(255)",
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS academic_year VARCHAR(20)",
-            "ALTER TABLE timetable ALTER COLUMN teacher_id DROP NOT NULL"
+            "ALTER TABLE timetable ALTER COLUMN teacher_id DROP NOT NULL",
+            "ALTER TABLE student ADD COLUMN installments_allowed INTEGER DEFAULT 1"
         ]
         
         for q in queries:
@@ -332,6 +333,7 @@ def edit_student(id):
         student.address = request.form['address']
         student.class_id = request.form['class_id']
         student.stream_id = request.form['stream_id']
+        student.installments_allowed = int(request.form.get('installments_allowed', 1))
         
         # Handle Subjects
         selected_subject_ids = set(request.form.getlist('selected_subjects'))
@@ -402,7 +404,8 @@ def enroll():
                 contact=request.form.get('contact', ''),
                 email=request.form.get('email', ''),
                 guardian_name=request.form.get('guardian_name', ''),
-                address=request.form.get('address', '')
+                address=request.form.get('address', ''),
+                installments_allowed=int(request.form.get('installments_allowed', 1))
             )
             
             # Handle File Uploads via Cloudinary (Permanent Storage)
@@ -836,7 +839,26 @@ def collect_fees():
 def fee_receipt(id):
     fee = Fee.query.get_or_404(id)
     student = Student.query.get(fee.student_id)
-    return render_template('fees/receipt.html', fee=fee, student=student)
+    # Calculate totals
+    total_paid = sum(f.amount_paid for f in student.fees)
+    balance = student.total_fees - total_paid
+    return render_template('fees/receipt.html', fee=fee, student=student, total_paid=total_paid, balance=balance)
+
+@app.route('/fees/report')
+@login_required
+def fee_report():
+    students = Student.query.all()
+    student_data = []
+    for s in students:
+        total_paid = sum(f.amount_paid for f in s.fees)
+        balance = s.total_fees - total_paid
+        student_data.append({
+            'student': s,
+            'total_paid': total_paid,
+            'balance': balance,
+            'installments': s.installments_allowed
+        })
+    return render_template('fees/report.html', student_data=student_data)
 
 # Academic Routes
 @app.route('/academics', methods=['GET', 'POST'])

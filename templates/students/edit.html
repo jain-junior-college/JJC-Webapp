@@ -38,6 +38,11 @@
                 <textarea name="address" class="form-control" rows="3">{{ student.address }}</textarea>
             </div>
 
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Number of Installments Allowed</label>
+                <input type="number" name="installments_allowed" class="form-control" value="{{ student.installments_allowed or 1 }}" min="1" max="12">
+            </div>
+
             <div class="form-group">
                 <label>Academic Class</label>
                 <select name="class_id" id="class_id" class="form-control" required>
