@@ -60,7 +60,7 @@
                         {% if entry.subject.name == 'Break' %}<i class="fas fa-utensils"></i>{% endif %} {{ entry.subject.name }}
                     </div>
                     {% if entry.subject.name != 'Break' %}
-                    <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;"><i class="fas fa-user-tie"></i> {{ entry.teacher.name }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;"><i class="fas fa-user-tie"></i> {{ entry.teacher.name if entry.teacher else 'Not Assigned' }}</div>
                     {% endif %}
                 </div>
                 {% endfor %}

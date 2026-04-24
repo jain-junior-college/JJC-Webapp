@@ -104,12 +104,14 @@ if not IS_BUILD:
                     class_id INTEGER NOT NULL REFERENCES academic_class(id),
                     stream_id INTEGER NOT NULL REFERENCES stream(id),
                     subject_id INTEGER NOT NULL REFERENCES subject(id),
-                    teacher_id INTEGER NOT NULL REFERENCES teacher(id),
+                    teacher_id INTEGER REFERENCES teacher(id),
                     day VARCHAR(20) NOT NULL,
                     start_time VARCHAR(10) NOT NULL,
                     end_time VARCHAR(10) NOT NULL
                 );
             """)
+            # Fix existing table if it was created with NOT NULL
+            cur.execute("ALTER TABLE timetable ALTER COLUMN teacher_id DROP NOT NULL;")
             
             conn.commit()
             cur.close()
@@ -229,7 +231,8 @@ def sync_db():
             "ALTER TABLE subject ADD COLUMN IF NOT EXISTS is_compulsory BOOLEAN DEFAULT TRUE",
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS exit_time VARCHAR(20)",
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS exit_reason VARCHAR(255)",
-            "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS academic_year VARCHAR(20)"
+            "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS academic_year VARCHAR(20)",
+            "ALTER TABLE timetable ALTER COLUMN teacher_id DROP NOT NULL"
         ]
         
         for q in queries:
@@ -1066,7 +1069,8 @@ def timetable_export_csv():
     
     for e in entries:
         t_range = f"{format_time_12hr(e.start_time)} - {format_time_12hr(e.end_time)}"
-        writer.writerow([e.day, t_range, e.subject.name, e.teacher.name, e.academic_class.name])
+        teacher_name = e.teacher.name if e.teacher else ("Break" if e.subject.name == "Break" else "Not Assigned")
+        writer.writerow([e.day, t_range, e.subject.name, teacher_name, e.academic_class.name])
         
     response = Response(output.getvalue(), mimetype='text/csv')
     response.headers.set("Content-Disposition", "attachment", filename=f"timetable_export.csv")
