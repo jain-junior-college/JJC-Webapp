@@ -756,12 +756,8 @@ def early_exit(id):
 @app.route('/students')
 @login_required
 def student_list():
-    try:
-        students = Student.query.all()
-        return render_template('students/list.html', students=students)
-    except Exception as e:
-        import traceback
-        return f"<pre>{traceback.format_exc()}</pre>", 500
+    students = Student.query.all()
+    return render_template('students/list.html', students=students)
 
 # Digital Library Routes
 @app.route('/library')
