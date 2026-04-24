@@ -43,7 +43,7 @@
             <div>
                 <h1 style="color: #1e3a8a; margin: 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px;">JAIN JUNIOR COLLEGE</h1>
                 <p style="margin: 0.2rem 0 0; color: #b45309; font-size: 0.9rem; font-weight: 700; font-style: italic;">Excellence in Education, Integrity in Character</p>
-                <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.8rem; font-weight: 600;">Academic Timetable</p>
+                <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.8rem; font-weight: 600;">Academic Timetable | <span id="academicYearStr"></span></p>
             </div>
         </div>
     </div>
@@ -160,4 +160,20 @@
     .timetable-slot i { font-size: 0.6rem !important; }
 }
 </style>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const d = new Date();
+    let year = d.getFullYear();
+    let nextYear = (year + 1).toString().slice(-2);
+    // If before April, it's the previous academic year
+    if (d.getMonth() < 3) {
+        year = year - 1;
+        nextYear = (year + 1).toString().slice(-2);
+    }
+    const yearElem = document.getElementById("academicYearStr");
+    if (yearElem) {
+        yearElem.innerText = `Academic Year ${year}-${nextYear}`;
+    }
+});
+</script>
 {% endblock %}
