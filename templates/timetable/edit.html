@@ -37,12 +37,12 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="form-group">
-                <label>Start Time <small style="color: var(--text-secondary); font-weight: normal;">(24h: 09:30)</small></label>
-                <input type="time" name="start_time" class="form-control" value="{{ entry.start_time }}" required>
+                <label>Start Time <small style="color: var(--text-secondary); font-weight: normal;">(AM/PM)</small></label>
+                <input type="text" name="start_time" class="form-control timepicker" value="{{ entry.start_time }}" required>
             </div>
             <div class="form-group">
-                <label>End Time <small style="color: var(--text-secondary); font-weight: normal;">(24h: 13:20)</small></label>
-                <input type="time" name="end_time" class="form-control" value="{{ entry.end_time }}" required>
+                <label>End Time <small style="color: var(--text-secondary); font-weight: normal;">(AM/PM)</small></label>
+                <input type="text" name="end_time" class="form-control timepicker" value="{{ entry.end_time }}" required>
             </div>
         </div>
 
@@ -74,9 +74,19 @@
     </form>
 </div>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
 window.onload = function() {
     handleSubjectChange();
+    flatpickr(".timepicker", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        altInput: true,
+        altFormat: "h:i K",
+        minuteIncrement: 5
+    });
 };
 
 async function handleSubjectChange() {
