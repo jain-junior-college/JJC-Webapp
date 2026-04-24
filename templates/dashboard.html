@@ -39,7 +39,7 @@
                         <td style="font-weight: 600;">{{ student.student_id }}</td>
                         <td>{{ student.name }}</td>
                         <td>{{ student.academic_class.name if student.academic_class else 'N/A' }}</td>
-                        <td style="color: var(--text-secondary);">{{ student.admission_date.strftime('%Y-%m-%d') }}</td>
+                        <td style="color: var(--text-secondary);">{{ student.admission_date.strftime('%Y-%m-%d') if student.admission_date else 'N/A' }}</td>
                     </tr>
                     {% else %}
                     <tr>
