@@ -35,7 +35,20 @@
 
 {% if entries %}
     <div id="printableGrid" class="glass-card" style="padding: 0; overflow: hidden;">
-    <div style="background: #f8fafc; padding: 2rem; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+    
+    <!-- Print Official Header -->
+    <div class="print-header" style="display: none; padding: 2rem 2rem 0 2rem;">
+        <div style="display: flex; align-items: center; gap: 1.5rem; border-bottom: 2px solid #1e3a8a; padding-bottom: 1.5rem;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" style="width: 80px; height: 80px; object-fit: contain;">
+            <div>
+                <h1 style="color: #1e3a8a; margin: 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px;">JAIN JUNIOR COLLEGE</h1>
+                <p style="margin: 0.2rem 0 0; color: #b45309; font-size: 0.9rem; font-weight: 700; font-style: italic;">Excellence in Education, Integrity in Character</p>
+                <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.8rem; font-weight: 600;">Academic Timetable</p>
+            </div>
+        </div>
+    </div>
+
+    <div style="background: #f8fafc; padding: 2rem; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;" class="screen-header">
         <h3 style="margin: 0; font-weight: 800; color: #1e3a8a;">Master Weekly Grid</h3>
         <div style="display: flex; gap: 0.5rem;" class="no-print">
             <a href="{{ url_for('timetable_delete_all', class_id=selected_class, stream_id=selected_stream) }}" class="btn" style="background: #ef4444; color: white; text-decoration: none; font-size: 0.8rem;" onclick="return confirm('⚠️ DANGER: This will erase the ENTIRE schedule for this class. Are you absolutely sure?')"><i class="fas fa-trash-alt"></i> Clear Schedule</a>
@@ -95,7 +108,8 @@
         background: white !important;
     }
     .main-content { padding: 0 !important; margin: 0 !important; }
-    .sidebar, .btn, header, .glass-card:first-child, .no-print { display: none !important; }
+    .sidebar, .btn, header, .glass-card:first-child, .no-print, .screen-header { display: none !important; }
+    .print-header { display: block !important; }
     
     /* Ensure the 6-column grid fits */
     .timetable-grid {
