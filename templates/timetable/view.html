@@ -94,7 +94,7 @@
 @media print {
     @page {
         size: A4 landscape;
-        margin: 1cm;
+        margin: 0.5cm;
     }
     body * { visibility: hidden; }
     #printableGrid, #printableGrid * { visibility: visible; }
@@ -109,19 +109,55 @@
     }
     .main-content { padding: 0 !important; margin: 0 !important; }
     .sidebar, .btn, header, .glass-card:first-child, .no-print, .screen-header { display: none !important; }
-    .print-header { display: block !important; }
+    
+    /* Compact header for print */
+    .print-header { 
+        display: block !important; 
+        padding: 0 0 0.5rem 0 !important; 
+    }
+    .print-header > div {
+        padding-bottom: 0.5rem !important;
+        gap: 0.5rem !important;
+        border-bottom-width: 1px !important;
+    }
+    .print-header img {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    .print-header h1 { font-size: 1.2rem !important; margin: 0 !important; }
+    .print-header p { font-size: 0.7rem !important; margin: 0 !important; }
     
     /* Ensure the 6-column grid fits */
     .timetable-grid {
         grid-template-columns: repeat(6, 1fr) !important;
         gap: 0 !important;
     }
-    .timetable-slot {
-        padding: 0.5rem !important;
-        margin-bottom: 0.5rem !important;
-        border: 1px solid #e2e8f0 !important;
+    .timetable-grid > div { min-height: auto !important; }
+    
+    /* Compact day headers */
+    .timetable-grid > div > div:first-child { 
+        padding: 0.3rem !important; 
+        font-size: 0.65rem !important; 
     }
-    h3 { font-size: 1.2rem !important; }
+    
+    /* Compact slots to fit many on one page */
+    .timetable-grid > div > div:last-child {
+        padding: 0.2rem !important;
+    }
+    .timetable-slot {
+        padding: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+        border: 1px solid #e2e8f0 !important;
+        border-left-width: 4px !important;
+        border-radius: 4px !important;
+    }
+    
+    /* Compact text inside slots */
+    .timetable-slot div { line-height: 1.1 !important; }
+    .timetable-slot div:nth-child(1) { font-size: 0.55rem !important; } /* Time */
+    .timetable-slot div:nth-child(2) { font-size: 0.75rem !important; margin: 0.1rem 0 !important; } /* Subject */
+    .timetable-slot div:nth-child(3) { font-size: 0.6rem !important; } /* Teacher */
+    .timetable-slot i { font-size: 0.6rem !important; }
 }
 </style>
 {% endblock %}
