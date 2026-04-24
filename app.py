@@ -973,6 +973,9 @@ def timetable_manage():
         days_to_apply = [request.form['day']]
         if 'apply_to_all' in request.form:
             days_to_apply = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        # Handle empty teacher_id for Breaks
+        raw_teacher_id = request.form.get('teacher_id')
+        teacher_id = int(raw_teacher_id) if raw_teacher_id and raw_teacher_id.strip() else None
             
         for day in days_to_apply:
             entry = TimetableEntry(
@@ -982,7 +985,7 @@ def timetable_manage():
                 start_time=request.form['start_time'],
                 end_time=request.form['end_time'],
                 subject_id=request.form['subject_id'],
-                teacher_id=request.form['teacher_id']
+                teacher_id=teacher_id
             )
             db.session.add(entry)
         db.session.commit()
@@ -1096,7 +1099,10 @@ def edit_timetable_entry(id):
         entry.start_time = request.form['start_time']
         entry.end_time = request.form['end_time']
         entry.subject_id = request.form['subject_id']
-        entry.teacher_id = request.form['teacher_id']
+        # Handle empty teacher_id for Breaks
+        raw_teacher_id = request.form.get('teacher_id')
+        entry.teacher_id = int(raw_teacher_id) if raw_teacher_id and raw_teacher_id.strip() else None
+        
         db.session.commit()
         flash('Timetable slot updated!')
         return redirect(url_for('timetable_manage'))
