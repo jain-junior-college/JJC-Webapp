@@ -241,10 +241,10 @@ def sync_db():
         for q in queries:
             try:
                 db.session.execute(db.text(q))
-            except:
-                pass # Already exists
-        
-        db.session.commit()
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                print(f"Skipped query: {e}")
         return """
         <div style='font-family: sans-serif; padding: 2rem; border: 2px solid green; border-radius: 10px; max-width: 600px; margin: 5rem auto; text-align: center;'>
             <h1 style='color: green;'>✅ Safe Sync Successful!</h1>
