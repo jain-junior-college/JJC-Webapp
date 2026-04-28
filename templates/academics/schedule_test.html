@@ -1,14 +1,14 @@
 {% extends "layout.html" %}
 
-{% block title %}Schedule New Test{% endblock %}
+{% block title %}Schedule Exam Timetable{% endblock %}
 {% block header_title %}Academic Scheduler{% endblock %}
 
 {% block content %}
-<div class="glass-card" style="max-width: 800px; margin: 0 auto;">
-    <h3 style="font-weight: 700; margin-bottom: 2rem;"><i class="fas fa-calendar-plus" style="color: var(--primary-color);"></i> Plan a New Examination</h3>
+<div class="glass-card" style="max-width: 900px; margin: 0 auto;">
+    <h3 style="font-weight: 700; margin-bottom: 2rem;"><i class="fas fa-calendar-alt" style="color: var(--primary-color);"></i> Schedule Exam Timetable</h3>
     
     <form method="POST">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #e2e8f0;">
             <div class="form-group">
                 <label>Target Class</label>
                 <select name="class_id" id="class_id" class="form-control" required onchange="updateExamTypes()">
@@ -21,20 +21,10 @@
 
             <div class="form-group">
                 <label>Stream</label>
-                <select name="stream_id" id="stream_id" class="form-control" required>
+                <select name="stream_id" id="stream_id" class="form-control" required onchange="fetchSubjects()">
                     <option value="">Select Stream</option>
                     {% for s in streams %}
                     <option value="{{ s.id }}">{{ s.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Subject</label>
-                <select name="subject_id" class="form-control" required>
-                    <option value="">Select Subject</option>
-                    {% for s in subjects %}
-                    <option value="{{ s.id }}">{{ s.name }} ({{ s.stream.name if s.stream else '' }})</option>
                     {% endfor %}
                 </select>
             </div>
@@ -46,53 +36,53 @@
                     <option value="Mid-term Examination">Mid-term Examination</option>
                     <option value="Unit Test - II">Unit Test - II</option>
                     <option value="Final Examination">Final Examination</option>
-                    <!-- Special XII types will be added via JS -->
                 </select>
-            </div>
-
-            <div class="form-group">
-                <label>Test Date</label>
-                <input type="date" name="date" class="form-control" required>
-            </div>
-
-            <div class="form-group">
-                <label>Total Marks</label>
-                <input type="number" name="total_marks" id="total_marks" class="form-control" value="25.0" step="0.5" required oninput="suggestPassing()">
-            </div>
-
-            <div class="form-group">
-                <label>Passing Marks</label>
-                <input type="number" name="passing_marks" id="passing_marks" class="form-control" value="9.0" step="0.5" required>
-                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.3rem;">Auto-suggested at ~35-40%</p>
             </div>
         </div>
 
-        <div style="margin-top: 3rem; display: flex; gap: 1rem; justify-content: flex-end;">
+        <h4 style="font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Exam Schedule</h4>
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem;">Select subjects and assign dates to create the full timetable for this exam.</p>
+
+        <div class="table-container" style="margin-bottom: 1.5rem;">
+            <table style="width: 100%;" id="schedule_table">
+                <thead>
+                    <tr style="text-align: left;">
+                        <th style="padding: 1rem;">Subject</th>
+                        <th style="padding: 1rem;">Test Date</th>
+                        <th style="padding: 1rem; width: 120px;">Total Marks</th>
+                        <th style="padding: 1rem; width: 120px;">Passing</th>
+                        <th style="padding: 1rem; width: 50px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="schedule_body">
+                    <!-- Rows will be added here -->
+                </tbody>
+            </table>
+            
+            <div style="padding: 1rem; text-align: center; border-top: 1px dashed #cbd5e1; background: #f8fafc;">
+                <button type="button" class="btn" onclick="addRow()" style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 600; font-size: 0.9rem;">
+                    <i class="fas fa-plus"></i> Add Subject to Schedule
+                </button>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
             <a href="{{ url_for('test_list') }}" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-secondary); text-decoration: none;">Cancel</a>
             <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2.5rem;">
-                <i class="fas fa-check"></i> Schedule Test
+                <i class="fas fa-save"></i> Publish Timetable
             </button>
         </div>
     </form>
 </div>
 
 <script>
-    function suggestPassing() {
-        const total = document.getElementById('total_marks').value;
-        const passingInput = document.getElementById('passing_marks');
-        if (total) {
-            // Suggest 35% rounded to nearest 0.5
-            const suggested = Math.ceil((total * 0.35) * 2) / 2;
-            passingInput.value = suggested;
-        }
-    }
+    let availableSubjects = [];
 
     function updateExamTypes() {
         const classSelect = document.getElementById('class_id');
         const examSelect = document.getElementById('exam_type');
         const selectedClassName = classSelect.options[classSelect.selectedIndex].text;
         
-        // Default options
         const defaultOptions = [
             "Unit Test - I",
             "Mid-term Examination",
@@ -100,7 +90,6 @@
             "Final Examination"
         ];
         
-        // Clear and rebuild
         examSelect.innerHTML = '';
         defaultOptions.forEach(opt => {
             const option = document.createElement('option');
@@ -109,7 +98,6 @@
             examSelect.appendChild(option);
         });
         
-        // Add prelims if XII
         if (selectedClassName.includes('XII')) {
             const prelim1 = document.createElement('option');
             prelim1.value = "Prelim - 1";
@@ -121,6 +109,75 @@
             prelim2.text = "Prelim - 2";
             examSelect.appendChild(prelim2);
         }
+    }
+
+    function fetchSubjects() {
+        const streamId = document.getElementById('stream_id').value;
+        if (!streamId) {
+            availableSubjects = [];
+            document.getElementById('schedule_body').innerHTML = '';
+            return;
+        }
+
+        fetch(`/api/subjects/${streamId}`)
+            .then(r => r.json())
+            .then(subjects => {
+                availableSubjects = subjects;
+                document.getElementById('schedule_body').innerHTML = '';
+                // Auto-add rows for compulsory subjects to speed up data entry
+                subjects.forEach(s => {
+                    if (s.is_compulsory) {
+                        addRow(s.id);
+                    }
+                });
+                if (document.getElementById('schedule_body').children.length === 0) {
+                    addRow(); // add at least one blank row
+                }
+            })
+            .catch(err => console.error("Error fetching subjects:", err));
+    }
+
+    function suggestPassing(inputElem) {
+        const row = inputElem.closest('tr');
+        const total = parseFloat(inputElem.value);
+        const passingInput = row.querySelector('.passing-input');
+        if (!isNaN(total)) {
+            // Suggest 35% rounded to nearest 0.5
+            const suggested = Math.ceil((total * 0.35) * 2) / 2;
+            passingInput.value = suggested;
+        }
+    }
+
+    function addRow(preselectSubjectId = null) {
+        const tbody = document.getElementById('schedule_body');
+        const tr = document.createElement('tr');
+        
+        let subjectOptions = '<option value="">Select Subject</option>';
+        availableSubjects.forEach(s => {
+            const selected = (preselectSubjectId === s.id) ? 'selected' : '';
+            subjectOptions += `<option value="${s.id}" ${selected}>${s.name}</option>`;
+        });
+
+        tr.innerHTML = `
+            <td style="padding: 0.5rem 1rem;">
+                <select name="subject_id[]" class="form-control" required style="margin-bottom: 0;">
+                    ${subjectOptions}
+                </select>
+            </td>
+            <td style="padding: 0.5rem 1rem;">
+                <input type="date" name="date[]" class="form-control" required style="margin-bottom: 0;">
+            </td>
+            <td style="padding: 0.5rem 1rem;">
+                <input type="number" name="total_marks[]" class="form-control total-input" value="25.0" step="0.5" required style="margin-bottom: 0;" oninput="suggestPassing(this)">
+            </td>
+            <td style="padding: 0.5rem 1rem;">
+                <input type="number" name="passing_marks[]" class="form-control passing-input" value="9.0" step="0.5" required style="margin-bottom: 0;">
+            </td>
+            <td style="padding: 0.5rem 1rem; text-align: center;">
+                <button type="button" class="btn" onclick="this.closest('tr').remove()" style="padding: 0.5rem; color: #ef4444; background: transparent;"><i class="fas fa-times"></i></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
     }
 </script>
 {% endblock %}

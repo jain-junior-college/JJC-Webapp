@@ -919,18 +919,30 @@ def test_list():
 @login_required
 def schedule_test():
     if request.method == 'POST':
-        test = ScheduledTest(
-            class_id=request.form['class_id'],
-            stream_id=request.form['stream_id'],
-            subject_id=request.form['subject_id'],
-            exam_type=request.form['exam_type'],
-            test_date=datetime.strptime(request.form['date'], '%Y-%m-%d').date(),
-            total_marks=float(request.form['total_marks']),
-            passing_marks=float(request.form['passing_marks'])
-        )
-        db.session.add(test)
+        class_id = request.form.get('class_id')
+        stream_id = request.form.get('stream_id')
+        exam_type = request.form.get('exam_type')
+        
+        subject_ids = request.form.getlist('subject_id[]')
+        dates = request.form.getlist('date[]')
+        total_marks = request.form.getlist('total_marks[]')
+        passing_marks = request.form.getlist('passing_marks[]')
+        
+        for i in range(len(subject_ids)):
+            if subject_ids[i] and dates[i]:
+                test = ScheduledTest(
+                    class_id=class_id,
+                    stream_id=stream_id,
+                    subject_id=subject_ids[i],
+                    exam_type=exam_type,
+                    test_date=datetime.strptime(dates[i], '%Y-%m-%d').date(),
+                    total_marks=float(total_marks[i]) if total_marks[i] else 25.0,
+                    passing_marks=float(passing_marks[i]) if passing_marks[i] else 9.0
+                )
+                db.session.add(test)
+                
         db.session.commit()
-        flash('Test scheduled successfully!')
+        flash('Exam timetable scheduled successfully!', 'success')
         return redirect(url_for('test_list'))
     
     classes = AcademicClass.query.all()
