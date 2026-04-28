@@ -368,9 +368,25 @@ def edit_student(id):
 @login_required
 def delete_student(id):
     student = Student.query.get_or_404(id)
-    db.session.delete(student)
-    db.session.commit()
-    flash('Student deleted successfully.')
+    try:
+        # Clear many-to-many relationships
+        student.subjects = []
+        
+        # Delete dependent records manually to avoid Foreign Key constraint errors
+        Fee.query.filter_by(student_id=id).delete()
+        Exam.query.filter_by(student_id=id).delete()
+        Attendance.query.filter_by(student_id=id).delete()
+        TestMark.query.filter_by(student_id=id).delete()
+        
+        db.session.delete(student)
+        db.session.commit()
+        flash('Student and all associated records deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        print(traceback.format_exc())
+        flash(f'An error occurred while deleting the student. Please try again.', 'error')
+        
     return redirect(url_for('student_list'))
 
 @app.route('/enroll', methods=['GET', 'POST'])
