@@ -4,53 +4,74 @@
 {% block header_title %}Test Command Center{% endblock %}
 
 {% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h3 style="font-weight: 700; color: #1e3a8a;"><i class="fas fa-layer-group"></i> Exam Timetables</h3>
+    <a href="{{ url_for('schedule_test') }}" class="btn btn-primary" style="text-decoration: none;">
+        <i class="fas fa-calendar-plus"></i> Schedule New Test
+    </a>
+</div>
+
+{% if not grouped_tests %}
 <div class="glass-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h3 style="font-weight: 700;">Upcoming & Recent Tests</h3>
-        <a href="{{ url_for('schedule_test') }}" class="btn btn-primary" style="text-decoration: none;">
-            <i class="fas fa-calendar-plus"></i> Schedule New Test
-        </a>
+    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+        <i class="fas fa-calendar-alt" style="font-size: 3rem; opacity: 0.2; display: block; margin-bottom: 1rem;"></i>
+        No tests scheduled yet.
+    </div>
+</div>
+{% endif %}
+
+{% for (class_name, stream_name, exam_type), group_tests in grouped_tests.items() %}
+<div class="glass-card printable-card" id="exam_{{ loop.index }}" style="margin-bottom: 2.5rem;">
+    
+    <!-- Print Official Header -->
+    <div class="print-header" style="display: none; padding: 2rem 2rem 0 2rem;">
+        <div style="display: flex; align-items: center; gap: 1.5rem; border-bottom: 2px solid #1e3a8a; padding-bottom: 1.5rem;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" style="width: 80px; height: 80px; object-fit: contain;">
+            <div>
+                <h1 style="color: #1e3a8a; margin: 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px;">JAIN JUNIOR COLLEGE</h1>
+                <p style="margin: 0.2rem 0 0; color: #b45309; font-size: 0.9rem; font-weight: 700; font-style: italic;">Excellence in Education, Integrity in Character</p>
+                <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.8rem; font-weight: 600;">{{ exam_type }} Timetable | {{ class_name }} {{ stream_name }} | <span class="academicYearStr"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;" class="screen-header">
+        <div>
+            <h4 style="font-weight: 800; margin: 0; color: #1e293b; font-size: 1.2rem;">{{ exam_type }}</h4>
+            <p style="margin: 0.2rem 0 0 0; font-size: 0.9rem; color: #64748b; font-weight: 600;">{{ class_name }} &bull; {{ stream_name }}</p>
+        </div>
+        <div class="no-print" style="display: flex; gap: 0.5rem;">
+            <button onclick="printExam('exam_{{ loop.index }}', 'portrait')" class="btn" style="background: white; border: 1px solid #cbd5e1; color: #475569; font-size: 0.8rem;"><i class="fas fa-print"></i> Portrait</button>
+            <button onclick="printExam('exam_{{ loop.index }}', 'landscape')" class="btn" style="background: white; border: 1px solid #cbd5e1; color: #475569; font-size: 0.8rem;"><i class="fas fa-print"></i> Landscape</button>
+        </div>
     </div>
 
     <div class="table-container">
-        <table style="width: 100%; border-collapse: collapse;">
+        <table style="width: 100%; border-collapse: collapse;" class="exam-table">
             <thead>
-                <tr style="text-align: left; border-bottom: 2px solid var(--border-color); color: var(--text-secondary);">
+                <tr style="text-align: left; background: #f8fafc; border-bottom: 2px solid var(--border-color); color: var(--text-secondary);">
                     <th style="padding: 1rem;">Date</th>
-                    <th style="padding: 1rem;">Class/Stream</th>
+                    <th style="padding: 1rem;">Day</th>
                     <th style="padding: 1rem;">Subject</th>
-                    <th style="padding: 1rem;">Exam Type</th>
-                    <th style="padding: 1rem;">Marks</th>
-                    <th style="padding: 1rem; text-align: right;">Action</th>
+                    <th style="padding: 1rem;">Total Marks</th>
+                    <th style="padding: 1rem; text-align: right;" class="no-print">Action</th>
                 </tr>
             </thead>
             <tbody>
-                {% for test in tests %}
+                {% for test in group_tests %}
                 <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                    <td style="padding: 1.2rem 1rem; font-weight: 600;">{{ test.test_date.strftime('%d-%m-%Y') }}</td>
-                    <td style="padding: 1.2rem 1rem;">
-                        <span style="background: rgba(79, 70, 229, 0.1); color: var(--primary-color); padding: 0.2rem 0.6rem; border-radius: 5px; font-size: 0.8rem; font-weight: 600;">{{ test.academic_class.name }}</span>
-                        <span style="color: var(--text-secondary); font-size: 0.8rem;">{{ test.stream.name }}</span>
-                    </td>
-                    <td style="padding: 1.2rem 1rem; font-weight: 700; color: #1e293b;">{{ test.subject_obj.name }}</td>
-                    <td style="padding: 1.2rem 1rem;">
-                        <span style="border: 1px solid #e2e8f0; padding: 0.2rem 0.6rem; border-radius: 50px; font-size: 0.75rem;">{{ test.exam_type }}</span>
-                    </td>
-                    <td style="padding: 1.2rem 1rem; font-weight: 700; color: var(--text-secondary);">/ {{ test.total_marks }}</td>
-                    <td style="padding: 1.2rem 1rem; text-align: right;">
-                        <a href="{{ url_for('test_analysis', test_id=test.id) }}" class="btn" title="View Analysis" style="background: rgba(79, 70, 229, 0.1); color: var(--primary-color); padding: 0.5rem 1rem; font-size: 0.8rem; text-decoration: none; border-radius: 5px; margin-right: 0.5rem;">
-                            <i class="fas fa-chart-pie"></i> Analysis
+                    <td style="padding: 1rem; font-weight: 700; color: #334155;">{{ test.test_date.strftime('%d-%m-%Y') }}</td>
+                    <td style="padding: 1rem; color: #64748b; font-weight: 500;">{{ test.test_date.strftime('%A') }}</td>
+                    <td style="padding: 1rem; font-weight: 700; color: var(--primary-color);">{{ test.subject_obj.name }}</td>
+                    <td style="padding: 1rem; font-weight: 600; color: #64748b;">{{ test.total_marks }}</td>
+                    <td style="padding: 1rem; text-align: right;" class="no-print">
+                        <a href="{{ url_for('test_analysis', test_id=test.id) }}" class="btn" title="View Analysis" style="background: rgba(79, 70, 229, 0.1); color: var(--primary-color); padding: 0.4rem 0.8rem; font-size: 0.8rem; text-decoration: none; border-radius: 5px; margin-right: 0.3rem;">
+                            <i class="fas fa-chart-pie"></i>
                         </a>
-                        <a href="{{ url_for('record_test_marks', test_id=test.id) }}" class="btn" title="Edit Marks" style="background: rgba(16, 185, 129, 0.1); color: #059669; padding: 0.5rem 1rem; font-size: 0.8rem; text-decoration: none; border-radius: 5px;">
-                            <i class="fas fa-edit"></i> Record
+                        <a href="{{ url_for('record_test_marks', test_id=test.id) }}" class="btn" title="Edit Marks" style="background: rgba(16, 185, 129, 0.1); color: #059669; padding: 0.4rem 0.8rem; font-size: 0.8rem; text-decoration: none; border-radius: 5px;">
+                            <i class="fas fa-edit"></i>
                         </a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-                        <i class="fas fa-calendar-alt" style="font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 1rem;"></i>
-                        No tests scheduled yet.
                     </td>
                 </tr>
                 {% endfor %}
@@ -58,4 +79,80 @@
         </table>
     </div>
 </div>
+{% endfor %}
+
+<style>
+/* Base print style */
+@media print {
+    body * { visibility: hidden; }
+    .print-active, .print-active * { visibility: visible; }
+    .print-active {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border: none !important;
+        box-shadow: none !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .main-content { padding: 0 !important; margin: 0 !important; }
+    .sidebar, .screen-header, .no-print { display: none !important; }
+    .print-header { display: block !important; }
+    
+    .exam-table th, .exam-table td {
+        border: 1px solid #cbd5e1 !important;
+        padding: 0.75rem !important;
+        font-size: 14pt !important;
+        color: black !important;
+    }
+    .exam-table th { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
+    
+    /* Dynamic orientation classes injected via JS before print */
+    @page { margin: 1.5cm; }
+}
+
+/* Print landscape specific class */
+body.print-landscape @page { size: A4 landscape; }
+/* Print portrait specific class */
+body.print-portrait @page { size: A4 portrait; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Set dynamic academic year
+    const d = new Date();
+    let year = d.getFullYear();
+    let nextYear = (year + 1).toString().slice(-2);
+    if (d.getMonth() < 3) {
+        year = year - 1;
+        nextYear = (year + 1).toString().slice(-2);
+    }
+    document.querySelectorAll(".academicYearStr").forEach(el => {
+        el.innerText = `Academic Year ${year}-${nextYear}`;
+    });
+});
+
+function printExam(examCardId, orientation) {
+    // Reset any previous print classes
+    document.body.classList.remove('print-landscape', 'print-portrait');
+    document.querySelectorAll('.printable-card').forEach(card => card.classList.remove('print-active'));
+    
+    // Set the requested orientation class on body
+    document.body.classList.add('print-' + orientation);
+    
+    // Activate the specific exam card for printing
+    document.getElementById(examCardId).classList.add('print-active');
+    
+    // Trigger print
+    window.print();
+    
+    // Clean up after print dialog is closed
+    setTimeout(() => {
+        document.body.classList.remove('print-landscape', 'print-portrait');
+        document.getElementById(examCardId).classList.remove('print-active');
+    }, 500);
+}
+</script>
 {% endblock %}

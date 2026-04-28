@@ -912,8 +912,17 @@ def report_card(student_id):
 @app.route('/academics/tests')
 @login_required
 def test_list():
-    tests = ScheduledTest.query.order_by(ScheduledTest.test_date.desc()).all()
-    return render_template('academics/test_list.html', tests=tests)
+    tests = ScheduledTest.query.order_by(ScheduledTest.test_date.asc()).all()
+    
+    # Group tests by (class, stream, exam_type)
+    grouped_tests = {}
+    for t in tests:
+        key = (t.academic_class.name, t.stream.name, t.exam_type)
+        if key not in grouped_tests:
+            grouped_tests[key] = []
+        grouped_tests[key].append(t)
+        
+    return render_template('academics/test_list.html', grouped_tests=grouped_tests, tests=tests)
 
 @app.route('/academics/tests/schedule', methods=['GET', 'POST'])
 @login_required
