@@ -84,6 +84,7 @@ class Student(db.Model):
     guardian_name = db.Column(db.String(100)) # Deprecated, keep for old data
     caste = db.Column(db.String(50))
     mothers_name = db.Column(db.String(100))
+    age_at_enrollment = db.Column(db.String(50))
     installments_allowed = db.Column(db.Integer, default=1)
     photo_url = db.Column(db.String(255)) # Path to student photograph
     document_url = db.Column(db.String(255)) # Path to uploaded PDF document

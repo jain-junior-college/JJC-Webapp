@@ -235,7 +235,8 @@ def sync_db():
             "ALTER TABLE timetable ALTER COLUMN teacher_id DROP NOT NULL",
             "ALTER TABLE student ADD COLUMN installments_allowed INTEGER DEFAULT 1",
             "ALTER TABLE student ADD COLUMN caste VARCHAR(50)",
-            "ALTER TABLE student ADD COLUMN mothers_name VARCHAR(100)"
+            "ALTER TABLE student ADD COLUMN mothers_name VARCHAR(100)",
+            "ALTER TABLE student ADD COLUMN age_at_enrollment VARCHAR(50)"
         ]
         
         for q in queries:
@@ -323,6 +324,28 @@ def submit_enquiry():
     return redirect(url_for('index', _anchor='contact'))
 
 # Enrollment Routes
+def calculate_age_string(dob_str):
+    if not dob_str:
+        return ""
+    try:
+        dob_date = datetime.strptime(dob_str, '%Y-%m-%d').date()
+        today = datetime.now().date()
+        years = today.year - dob_date.year
+        months = today.month - dob_date.month
+        
+        if months < 0 or (months == 0 and today.day < dob_date.day):
+            years -= 1
+            months += 12
+            
+        if today.day < dob_date.day:
+            months -= 1
+            if months < 0:
+                months = 11
+                
+        return f"{years} years, {months} months"
+    except Exception:
+        return ""
+
 @app.route('/student/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_student(id):
@@ -338,6 +361,7 @@ def edit_student(id):
         student.stream_id = request.form['stream_id']
         student.caste = request.form.get('caste', '')
         student.mothers_name = request.form.get('mothers_name', '')
+        student.age_at_enrollment = calculate_age_string(student.dob)
         student.installments_allowed = int(request.form.get('installments_allowed', 1))
         
         # Handle Subjects
@@ -426,6 +450,7 @@ def enroll():
                 email=request.form.get('email', ''),
                 caste=request.form.get('caste', ''),
                 mothers_name=request.form.get('mothers_name', ''),
+                age_at_enrollment=calculate_age_string(request.form.get('dob')),
                 address=request.form.get('address', ''),
                 installments_allowed=int(request.form.get('installments_allowed', 1))
             )
