@@ -233,7 +233,9 @@ def sync_db():
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS exit_reason VARCHAR(255)",
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS academic_year VARCHAR(20)",
             "ALTER TABLE timetable ALTER COLUMN teacher_id DROP NOT NULL",
-            "ALTER TABLE student ADD COLUMN installments_allowed INTEGER DEFAULT 1"
+            "ALTER TABLE student ADD COLUMN installments_allowed INTEGER DEFAULT 1",
+            "ALTER TABLE student ADD COLUMN caste VARCHAR(50)",
+            "ALTER TABLE student ADD COLUMN mothers_name VARCHAR(100)"
         ]
         
         for q in queries:
@@ -327,12 +329,15 @@ def edit_student(id):
     student = Student.query.get_or_404(id)
     if request.method == 'POST':
         student.name = request.form['name']
+        student.dob = request.form.get('dob')
+        student.gender = request.form.get('gender')
         student.contact = request.form['contact']
-        student.parent_contact = request.form['parent_contact']
         student.email = request.form['email']
         student.address = request.form['address']
         student.class_id = request.form['class_id']
         student.stream_id = request.form['stream_id']
+        student.caste = request.form.get('caste', '')
+        student.mothers_name = request.form.get('mothers_name', '')
         student.installments_allowed = int(request.form.get('installments_allowed', 1))
         
         # Handle Subjects
@@ -419,7 +424,8 @@ def enroll():
                 total_fees=float(request.form.get('total_fees', 0) or 0),
                 contact=request.form.get('contact', ''),
                 email=request.form.get('email', ''),
-                guardian_name=request.form.get('guardian_name', ''),
+                caste=request.form.get('caste', ''),
+                mothers_name=request.form.get('mothers_name', ''),
                 address=request.form.get('address', ''),
                 installments_allowed=int(request.form.get('installments_allowed', 1))
             )

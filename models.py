@@ -81,7 +81,9 @@ class Student(db.Model):
     contact = db.Column(db.String(20))
     email = db.Column(db.String(100))
     address = db.Column(db.Text)
-    guardian_name = db.Column(db.String(100))
+    guardian_name = db.Column(db.String(100)) # Deprecated, keep for old data
+    caste = db.Column(db.String(50))
+    mothers_name = db.Column(db.String(100))
     installments_allowed = db.Column(db.Integer, default=1)
     photo_url = db.Column(db.String(255)) # Path to student photograph
     document_url = db.Column(db.String(255)) # Path to uploaded PDF document
