@@ -50,7 +50,7 @@
 
             <div class="form-group">
                 <label>Test Date</label>
-                <input type="date" name="date" class="form-control" value="{{ test.test_date }}" required>
+                <input type="date" name="date" class="form-control" value="{{ test.test_date.strftime('%Y-%m-%d') }}" required>
             </div>
 
             <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
