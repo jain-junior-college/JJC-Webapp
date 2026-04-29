@@ -11,7 +11,7 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #e2e8f0;">
             <div class="form-group">
                 <label>Target Class</label>
-                <select name="class_id" id="class_id" class="form-control" required onchange="updateExamTypes()">
+                <select name="class_id" id="class_id" class="form-control" required onchange="handleClassChange()">
                     <option value="">Select Class</option>
                     {% for c in classes %}
                     <option value="{{ c.id }}">{{ c.name }}</option>
@@ -36,6 +36,8 @@
                     <option value="Mid-term Examination">Mid-term Examination</option>
                     <option value="Unit Test - II">Unit Test - II</option>
                     <option value="Final Examination">Final Examination</option>
+                    <option value="Prelim - 1">Prelim - 1</option>
+                    <option value="Prelim - 2">Prelim - 2</option>
                 </select>
             </div>
         </div>
@@ -78,6 +80,37 @@
 </div>
 
 <script>
+    function handleClassChange() {
+        const classSelect = document.getElementById('class_id');
+        const examSelect = document.getElementById('exam_type');
+        if (!classSelect || !examSelect) return;
+
+        const className = classSelect.options[classSelect.selectedIndex].text;
+        const currentVal = examSelect.value;
+        
+        const prelimOptions = ["Prelim - 1", "Prelim - 2"];
+        const isXI = className.includes("XI") && !className.includes("XII");
+
+        for (let i = 0; i < examSelect.options.length; i++) {
+            const opt = examSelect.options[i];
+            if (prelimOptions.includes(opt.value)) {
+                if (isXI) {
+                    opt.disabled = true;
+                    opt.style.display = 'none';
+                    if (currentVal === opt.value) {
+                        examSelect.value = "Unit Test - I";
+                    }
+                } else {
+                    opt.disabled = false;
+                    opt.style.display = 'block';
+                }
+            }
+        }
+    }
+
+    // Run on load
+    document.addEventListener('DOMContentLoaded', handleClassChange);
+
     let availableSubjects = [];
 
     function updateExamTypes() {
