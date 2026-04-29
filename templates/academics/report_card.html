@@ -21,7 +21,7 @@
         </div>
         <div style="text-align: right;">
             <h4 style="margin: 0; opacity: 0.8; font-weight: 400;">ACADEMIC RECENT</h4>
-            <h2 style="margin: 0; font-weight: 800;">2025 - 2026</h2>
+            <h2 style="margin: 0; font-weight: 800;" class="academicYearStr">2026 - 2027</h2>
         </div>
     </div>
 
@@ -137,4 +137,23 @@
     }
 }
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const d = new Date();
+    let year = d.getFullYear();
+    let nextYear = (year + 1);
+    
+    // If before June (0-4), we are still in the previous year's cycle
+    if (d.getMonth() < 5) {
+        year = year - 1;
+        nextYear = year + 1;
+    }
+    
+    const yearStr = `${year} - ${nextYear}`;
+    document.querySelectorAll(".academicYearStr").forEach(el => {
+        el.innerText = yearStr;
+    });
+});
+</script>
 {% endblock %}

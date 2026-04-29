@@ -144,13 +144,17 @@ document.addEventListener("DOMContentLoaded", function() {
     // Set dynamic academic year
     const d = new Date();
     let year = d.getFullYear();
-    let nextYear = (year + 1).toString().slice(-2);
-    if (d.getMonth() < 3) {
+    let nextYear = (year + 1);
+    
+    // If before June (0-4), we are still in the previous year's cycle
+    if (d.getMonth() < 5) {
         year = year - 1;
-        nextYear = (year + 1).toString().slice(-2);
+        nextYear = year + 1;
     }
+    
+    const yearStr = `${year} - ${nextYear.toString().slice(-2)}`;
     document.querySelectorAll(".academicYearStr").forEach(el => {
-        el.innerText = `Academic Year ${year}-${nextYear}`;
+        el.innerText = `Academic Year ${yearStr}`;
     });
 });
 
