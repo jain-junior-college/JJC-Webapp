@@ -1036,9 +1036,10 @@ def edit_scheduled_test(test_id):
         
     classes = AcademicClass.query.all()
     streams = Stream.query.all()
+    teachers = Teacher.query.order_by(Teacher.name).all()
     # Fetch subjects for the current stream
     subjects = Subject.query.filter_by(stream_id=test.stream_id).all()
-    return render_template('academics/edit_test.html', test=test, classes=classes, streams=streams, subjects=subjects)
+    return render_template('academics/edit_test.html', test=test, classes=classes, streams=streams, subjects=subjects, teachers=teachers)
 
 @app.route('/academics/tests/record/<int:test_id>', methods=['GET', 'POST'])
 @login_required

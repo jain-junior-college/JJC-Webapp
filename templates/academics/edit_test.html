@@ -89,7 +89,7 @@
                     <div class="supervision-row" style="display: grid; grid-template-columns: 1fr 100px 100px 50px; gap: 1rem; margin-bottom: 1rem; align-items: flex-end; background: #f8fafc; padding: 1rem; border-radius: 10px; border: 1px solid #e2e8f0;">
                         <div class="form-group" style="margin: 0;">
                             <label style="font-size: 0.75rem;">Supervisor Name</label>
-                            <input type="text" name="supervisor_name[]" class="form-control" value="{{ sup.supervisor_name }}" required style="margin: 0;">
+                            <input type="text" name="supervisor_name[]" class="form-control" value="{{ sup.supervisor_name }}" required style="margin: 0;" list="teacherList">
                         </div>
                         <div class="form-group" style="margin: 0;">
                             <label style="font-size: 0.75rem;">Start</label>
@@ -107,7 +107,7 @@
                     <div class="supervision-row" style="display: grid; grid-template-columns: 1fr 100px 100px 50px; gap: 1rem; margin-bottom: 1rem; align-items: flex-end; background: #f8fafc; padding: 1rem; border-radius: 10px; border: 1px solid #e2e8f0;">
                         <div class="form-group" style="margin: 0;">
                             <label style="font-size: 0.75rem;">Supervisor Name</label>
-                            <input type="text" name="supervisor_name[]" class="form-control" placeholder="Name" style="margin: 0;">
+                            <input type="text" name="supervisor_name[]" class="form-control" placeholder="Name" style="margin: 0;" list="teacherList">
                         </div>
                         <div class="form-group" style="margin: 0;">
                             <label style="font-size: 0.75rem;">Start</label>
@@ -122,6 +122,12 @@
                 {% endif %}
             </div>
         </div>
+
+        <datalist id="teacherList">
+            {% for t in teachers %}
+            <option value="{{ t.name }}">
+            {% endfor %}
+        </datalist>
 
         <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 2rem;">
             <a href="{{ url_for('test_list') }}" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-secondary); text-decoration: none; padding: 10px 20px;">Cancel</a>
@@ -150,7 +156,7 @@
         div.innerHTML = `
             <div class="form-group" style="margin: 0;">
                 <label style="font-size: 0.75rem;">Supervisor Name</label>
-                <input type="text" name="supervisor_name[]" class="form-control" required style="margin: 0;">
+                <input type="text" name="supervisor_name[]" class="form-control" required style="margin: 0;" list="teacherList">
             </div>
             <div class="form-group" style="margin: 0;">
                 <label style="font-size: 0.75rem;">Start</label>
