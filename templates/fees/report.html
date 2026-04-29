@@ -61,7 +61,7 @@
 @media print {
     @page {
         size: A4 portrait;
-        margin: 1cm;
+        margin: 0;
     }
     body * { visibility: hidden; }
     .glass-card, .glass-card * { visibility: visible; }
@@ -73,8 +73,9 @@
         border: none !important;
         box-shadow: none !important;
         background: white !important;
-        padding: 0 !important;
+        padding: 1.5cm !important;
         margin: 0 !important;
+        box-sizing: border-box;
     }
     .sidebar, .top-header, .btn, header, .no-print, .screen-header { display: none !important; }
     .main-content { padding: 0 !important; margin: 0 !important; }

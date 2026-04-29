@@ -155,9 +155,20 @@
 
 <style>
 @media print {
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
     body * { visibility: hidden; }
     #printableReport, #printableReport * { visibility: visible; }
-    #printableReport { position: absolute; left: 0; top: 0; width: 100%; }
+    #printableReport { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%; 
+        padding: 1.5cm !important;
+        box-sizing: border-box;
+    }
     .sidebar, .btn, header, .glass-card:not(#printableReport), .no-print { display: none !important; }
 }
 </style>
