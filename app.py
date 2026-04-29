@@ -993,6 +993,30 @@ def schedule_test():
     subjects = Subject.query.all()
     return render_template('academics/schedule_test.html', classes=classes, streams=streams, subjects=subjects)
 
+@app.route('/academics/tests/edit/<int:test_id>', methods=['GET', 'POST'])
+@login_required
+def edit_scheduled_test(test_id):
+    test = ScheduledTest.query.get_or_404(test_id)
+    if request.method == 'POST':
+        test.class_id = request.form.get('class_id')
+        test.stream_id = request.form.get('stream_id')
+        test.subject_id = request.form.get('subject_id')
+        test.exam_type = request.form.get('exam_type')
+        test.test_date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
+        test.total_marks = float(request.form.get('total_marks')) if request.form.get('total_marks') else 25.0
+        test.passing_marks = float(request.form.get('passing_marks')) if request.form.get('passing_marks') else 9.0
+        test.duration = request.form.get('duration')
+        
+        db.session.commit()
+        flash('Test details updated successfully!', 'success')
+        return redirect(url_for('test_list'))
+        
+    classes = AcademicClass.query.all()
+    streams = Stream.query.all()
+    # Fetch subjects for the current stream
+    subjects = Subject.query.filter_by(stream_id=test.stream_id).all()
+    return render_template('academics/edit_test.html', test=test, classes=classes, streams=streams, subjects=subjects)
+
 @app.route('/academics/tests/record/<int:test_id>', methods=['GET', 'POST'])
 @login_required
 def record_test_marks(test_id):
