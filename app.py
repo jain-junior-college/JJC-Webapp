@@ -236,7 +236,8 @@ def sync_db():
             "ALTER TABLE student ADD COLUMN installments_allowed INTEGER DEFAULT 1",
             "ALTER TABLE student ADD COLUMN caste VARCHAR(50)",
             "ALTER TABLE student ADD COLUMN mothers_name VARCHAR(100)",
-            "ALTER TABLE student ADD COLUMN age_at_enrollment VARCHAR(50)"
+            "ALTER TABLE student ADD COLUMN age_at_enrollment VARCHAR(50)",
+            "ALTER TABLE scheduled_test ADD COLUMN IF NOT EXISTS duration VARCHAR(50)"
         ]
         
         for q in queries:
@@ -967,6 +968,7 @@ def schedule_test():
         dates = request.form.getlist('date[]')
         total_marks = request.form.getlist('total_marks[]')
         passing_marks = request.form.getlist('passing_marks[]')
+        durations = request.form.getlist('duration[]')
         
         for i in range(len(subject_ids)):
             if subject_ids[i] and dates[i]:
@@ -977,7 +979,8 @@ def schedule_test():
                     exam_type=exam_type,
                     test_date=datetime.strptime(dates[i], '%Y-%m-%d').date(),
                     total_marks=float(total_marks[i]) if total_marks[i] else 25.0,
-                    passing_marks=float(passing_marks[i]) if passing_marks[i] else 9.0
+                    passing_marks=float(passing_marks[i]) if passing_marks[i] else 9.0,
+                    duration=durations[i] if i < len(durations) else None
                 )
                 db.session.add(test)
                 

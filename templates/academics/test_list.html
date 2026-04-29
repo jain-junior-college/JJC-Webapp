@@ -54,7 +54,7 @@
                     <th style="padding: 1rem;">Date</th>
                     <th style="padding: 1rem;">Day</th>
                     <th style="padding: 1rem;">Subject</th>
-                    <th style="padding: 1rem;">Total Marks</th>
+                    <th style="padding: 1rem;">Time Duration</th>
                     <th style="padding: 1rem; text-align: right;" class="no-print">Action</th>
                 </tr>
             </thead>
@@ -64,7 +64,7 @@
                     <td style="padding: 1rem; font-weight: 700; color: #334155;">{{ test.test_date.strftime('%d-%m-%Y') }}</td>
                     <td style="padding: 1rem; color: #64748b; font-weight: 500;">{{ test.test_date.strftime('%A') }}</td>
                     <td style="padding: 1rem; font-weight: 700; color: var(--primary-color);">{{ test.subject_obj.name }}</td>
-                    <td style="padding: 1rem; font-weight: 600; color: #64748b;">{{ test.total_marks }}</td>
+                    <td style="padding: 1rem; font-weight: 600; color: #64748b;">{{ test.duration or 'N/A' }}</td>
                     <td style="padding: 1rem; text-align: right;" class="no-print">
                         <a href="{{ url_for('test_analysis', test_id=test.id) }}" class="btn" title="View Analysis" style="background: rgba(79, 70, 229, 0.1); color: var(--primary-color); padding: 0.4rem 0.8rem; font-size: 0.8rem; text-decoration: none; border-radius: 5px; margin-right: 0.3rem;">
                             <i class="fas fa-chart-pie"></i>
@@ -95,7 +95,8 @@
         box-shadow: none !important;
         background: white !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 1.5cm !important;
+        box-sizing: border-box;
     }
     .main-content { padding: 0 !important; margin: 0 !important; }
     .sidebar, .screen-header, .no-print { display: none !important; }
@@ -110,7 +111,7 @@
     .exam-table th { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
     
     /* Dynamic orientation classes injected via JS before print */
-    @page { margin: 1.5cm; }
+    @page { margin: 0; }
 }
 
 /* Print landscape specific class */
