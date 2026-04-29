@@ -42,8 +42,9 @@
             <p style="margin: 0.2rem 0 0 0; font-size: 0.9rem; color: #64748b; font-weight: 600;">{{ class_name }} &bull; {{ stream_name }}</p>
         </div>
         <div class="no-print" style="display: flex; gap: 0.5rem;">
-            <button onclick="printExam('exam_{{ loop.index }}', 'portrait')" class="btn" style="background: white; border: 1px solid #cbd5e1; color: #475569; font-size: 0.8rem;"><i class="fas fa-print"></i> Portrait</button>
-            <button onclick="printExam('exam_{{ loop.index }}', 'landscape')" class="btn" style="background: white; border: 1px solid #cbd5e1; color: #475569; font-size: 0.8rem;"><i class="fas fa-print"></i> Landscape</button>
+            <button onclick="printExam('exam_{{ loop.index }}', 'portrait', false)" class="btn" style="background: white; border: 1px solid #cbd5e1; color: #475569; font-size: 0.8rem;"><i class="fas fa-print"></i> Portrait</button>
+            <button onclick="printExam('exam_{{ loop.index }}', 'landscape', false)" class="btn" style="background: white; border: 1px solid #cbd5e1; color: #475569; font-size: 0.8rem;"><i class="fas fa-print"></i> Landscape</button>
+            <button onclick="printExam('exam_{{ loop.index }}', 'portrait', true)" class="btn" style="background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1; font-size: 0.8rem; font-weight: 700;"><i class="fas fa-user-graduate"></i> Student Copy</button>
         </div>
     </div>
 
@@ -54,7 +55,7 @@
                     <th style="padding: 1rem;">Date</th>
                     <th style="padding: 1rem;">Day</th>
                     <th style="padding: 1rem;">Subject</th>
-                    <th style="padding: 1rem;">Time & Supervision</th>
+                    <th style="padding: 1rem;" class="time-header">Time & Supervision</th>
                     <th style="padding: 1rem; text-align: right;" class="no-print">Action</th>
                 </tr>
             </thead>
@@ -70,7 +71,7 @@
                         {% endif %}
                         
                         {% for sup in test.supervisions %}
-                        <div style="font-size: 0.8rem; border-left: 2px solid #e2e8f0; padding-left: 0.5rem; margin-bottom: 0.2rem;">
+                        <div class="supervision-detail" style="font-size: 0.8rem; border-left: 2px solid #e2e8f0; padding-left: 0.5rem; margin-bottom: 0.2rem;">
                             <span style="color: #475569;">{{ sup.start_time }}-{{ sup.end_time }}:</span>
                             <span style="color: #1e3a8a; font-weight: 700;">{{ sup.supervisor_name }}</span>
                         </div>
@@ -153,16 +154,28 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
-function printExam(examCardId, orientation) {
+function printExam(examCardId, orientation, isStudentCopy) {
+    const card = document.getElementById(examCardId);
+    
+    // Handle Student Copy toggle
+    if (isStudentCopy) {
+        card.querySelectorAll('.supervision-detail').forEach(el => el.style.display = 'none');
+        const timeHeader = card.querySelector('.time-header');
+        if (timeHeader) {
+            timeHeader.dataset.original = timeHeader.innerText;
+            timeHeader.innerText = 'Exam Time';
+        }
+    }
+
     // Reset any previous print classes
     document.body.classList.remove('print-landscape', 'print-portrait');
-    document.querySelectorAll('.printable-card').forEach(card => card.classList.remove('print-active'));
+    document.querySelectorAll('.printable-card').forEach(c => c.classList.remove('print-active'));
     
     // Set the requested orientation class on body
     document.body.classList.add('print-' + orientation);
     
     // Activate the specific exam card for printing
-    document.getElementById(examCardId).classList.add('print-active');
+    card.classList.add('print-active');
     
     // Trigger print
     window.print();
@@ -170,7 +183,16 @@ function printExam(examCardId, orientation) {
     // Clean up after print dialog is closed
     setTimeout(() => {
         document.body.classList.remove('print-landscape', 'print-portrait');
-        document.getElementById(examCardId).classList.remove('print-active');
+        card.classList.remove('print-active');
+        
+        // Restore visibility if it was hidden for student copy
+        if (isStudentCopy) {
+            card.querySelectorAll('.supervision-detail').forEach(el => el.style.display = '');
+            const timeHeader = card.querySelector('.time-header');
+            if (timeHeader && timeHeader.dataset.original) {
+                timeHeader.innerText = timeHeader.dataset.original;
+            }
+        }
     }, 500);
 }
 </script>
