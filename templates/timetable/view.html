@@ -94,7 +94,7 @@
 @media print {
     @page {
         size: A4 landscape;
-        margin: 0.5cm;
+        margin: 0;
     }
     body * { visibility: hidden; }
     #printableGrid, #printableGrid * { visibility: visible; }
@@ -106,6 +106,8 @@
         border: none !important;
         box-shadow: none !important;
         background: white !important;
+        padding: 1cm !important;
+        box-sizing: border-box;
     }
     .main-content { padding: 0 !important; margin: 0 !important; }
     .sidebar, .btn, header, .glass-card:first-child, .no-print, .screen-header { display: none !important; }

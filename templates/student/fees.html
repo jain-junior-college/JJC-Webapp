@@ -1,0 +1,103 @@
+{% extends "layout.html" %}
+
+{% block title %}Fees & Payments{% endblock %}
+{% block header_title %}Fees & Payments{% endblock %}
+
+{% block content %}
+<div class="card-grid">
+    <div class="glass-card" style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); color: white;">
+        <div style="opacity: 0.8; font-size: 0.9rem; margin-bottom: 0.5rem;">Total Course Fees</div>
+        <div style="font-size: 2.2rem; font-weight: 800;">₹{{ "{:,.2f}".format(student.total_fees) }}</div>
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+            <div style="background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 8px; font-size: 0.8rem;">
+                Installments: {{ student.installments_allowed }}
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="stat-title">Amount Paid</div>
+        <div class="stat-value" style="color: #10b981;">₹{{ "{:,.2f}".format(total_paid) }}</div>
+        <div style="margin-top: 1rem; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
+            <div style="width: {{ (total_paid / student.total_fees * 100) if student.total_fees > 0 else 0 }}%; height: 100%; background: #10b981;"></div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="stat-title">Remaining Balance</div>
+        <div class="stat-value" style="color: #ef4444;">₹{{ "{:,.2f}".format(balance) }}</div>
+        <button onclick="document.getElementById('payment-modal').style.display='flex'" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+            <i class="fas fa-credit-card"></i> Pay Now
+        </button>
+    </div>
+</div>
+
+<div class="glass-card animate-in" style="margin-top: 3rem;">
+    <h3 style="font-weight: 800; margin-bottom: 2rem; color: #1e293b;">Payment History</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Receipt No.</th>
+                    <th>Date</th>
+                    <th>Method</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fee in student.fees|sort(attribute='payment_date', reverse=True) %}
+                <tr>
+                    <td style="font-weight: 700;">#{{ fee.id }}</td>
+                    <td>{{ fee.payment_date.strftime('%d-%m-%Y') }}</td>
+                    <td>
+                        <span style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">
+                            {{ fee.payment_method }}
+                        </span>
+                    </td>
+                    <td style="font-weight: 800; color: #10b981;">₹{{ "{:,.2f}".format(fee.amount_paid) }}</td>
+                    <td>
+                        <a href="{{ url_for('student_fee_receipt', id=fee.id) }}" class="btn" style="padding: 5px 12px; font-size: 0.8rem; background: #f1f5f9; color: #4f46e5; border: 1px solid #e2e8f0; text-decoration: none;">
+                            <i class="fas fa-download"></i> Receipt
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No payments recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div id="payment-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div class="glass-card animate-in" style="width: 100%; max-width: 450px; padding: 2.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h3 style="font-weight: 800;">Make Online Payment</h3>
+            <button onclick="document.getElementById('payment-modal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8;">&times;</button>
+        </div>
+        
+        <form method="POST">
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label>Enter Amount (₹)</label>
+                <input type="number" name="amount" class="form-control" placeholder="0.00" step="0.01" max="{{ balance }}" required>
+                <p style="font-size: 0.75rem; color: #64748b; margin-top: 5px;">Max payment allowed: ₹{{ balance }}</p>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px dashed #cbd5e0;">
+                <p style="font-size: 0.85rem; color: #64748b; text-align: center;">
+                    <i class="fas fa-shield-alt" style="color: #10b981;"></i> Secure Payment Gateway<br>
+                    <span style="font-size: 0.75rem; opacity: 0.8;">Payment is simulated for demonstration.</span>
+                </p>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-weight: 700;">
+                Proceed to Pay ₹
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

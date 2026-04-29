@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block title %}Digital Library{% endblock %}
+{% block header_title %}Digital Library{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <p style="color: var(--text-secondary);">Access curated resources, videos, and notes for <strong>{{ student.academic_class.name }} ({{ student.stream.name }})</strong>.</p>
+</div>
+
+<div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+    {% for res in resources %}
+    <div class="glass-card animate-in" style="display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div style="background: rgba(79, 70, 229, 0.1); color: #4f46e5; padding: 10px; border-radius: 12px;">
+                {% if res.resource_type == 'Video' %}
+                    <i class="fas fa-video" style="font-size: 1.5rem;"></i>
+                {% elif res.resource_type == 'PDF' %}
+                    <i class="fas fa-file-pdf" style="font-size: 1.5rem;"></i>
+                {% else %}
+                    <i class="fas fa-folder-open" style="font-size: 1.5rem;"></i>
+                {% endif %}
+            </div>
+            <span style="font-size: 0.7rem; font-weight: 700; color: #64748b; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; text-transform: uppercase;">
+                {{ res.resource_type }}
+            </span>
+        </div>
+        
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">{{ res.title }}</h3>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem; flex-grow: 1;">{{ res.description or 'No description provided.' }}</p>
+        
+        <div style="padding-top: 1rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 24px; height: 24px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: #64748b;">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <span style="font-size: 0.75rem; color: #64748b;">{{ res.teacher.name if res.teacher else 'College Staff' }}</span>
+            </div>
+            <a href="{{ res.file_url }}" target="_blank" class="btn" style="padding: 6px 15px; font-size: 0.8rem; background: #4f46e5; color: white; text-decoration: none;">
+                View Resource
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 4rem;">
+        <i class="fas fa-book-open" style="font-size: 3rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: #64748b;">No resources found for your class yet.</h3>
+        <p style="color: #94a3b8; font-size: 0.9rem;">Check back later or contact your teacher.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

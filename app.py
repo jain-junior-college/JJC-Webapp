@@ -272,12 +272,22 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def staff_required(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session or session.get('role') not in ['admin', 'staff']:
+            flash('Access denied. Staff only area.')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/')
 def index():
     return render_template('landing.html')
 
 @app.route('/dashboard')
-@login_required
+@staff_required
 def dashboard():
     total_students = Student.query.count()
     total_fees = db.session.query(db.func.sum(Fee.amount_paid)).scalar() or 0
@@ -292,13 +302,26 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        
+        # 1. Try Staff Login (User table)
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password_hash, password):
             session['user_id'] = user.id
             session['username'] = user.username
             session['role'] = user.role
             return redirect(url_for('dashboard'))
-        flash('Invalid credentials')
+            
+        # 2. Try Student Login (Student table)
+        # Students use their student_id as username and DOB as password
+        student = Student.query.filter_by(student_id=username).first()
+        if student and student.dob == password:
+            session['user_id'] = student.id
+            session['username'] = student.name
+            session['role'] = 'student'
+            session['student_db_id'] = student.id # Actual primary key
+            return redirect(url_for('student_dashboard'))
+            
+        flash('Invalid credentials. Staff use username/password, students use Student ID/Date of Birth.')
     return render_template('login.html')
 
 @app.route('/logout')
@@ -351,7 +374,7 @@ def calculate_age_string(dob_str):
         return ""
 
 @app.route('/student/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def edit_student(id):
     student = Student.query.get_or_404(id)
     if request.method == 'POST':
@@ -398,7 +421,7 @@ def edit_student(id):
     return render_template('students/edit.html', student=student, streams=streams, classes=classes, current_subject_ids=current_subject_ids)
 
 @app.route('/student/delete/<int:id>', methods=['POST'])
-@login_required
+@staff_required
 def delete_student(id):
     student = Student.query.get_or_404(id)
     try:
@@ -423,7 +446,7 @@ def delete_student(id):
     return redirect(url_for('student_list'))
 
 @app.route('/enroll', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def enroll():
     if request.method == 'POST':
         try:
@@ -496,7 +519,7 @@ def enroll():
     return render_template('students/enroll.html', streams=streams, classes=classes)
 
 @app.route('/api/next-student-id')
-@login_required
+@staff_required
 def get_next_student_id():
     class_id = request.args.get('class_id')
     class_obj = AcademicClass.query.get(class_id)
@@ -507,7 +530,7 @@ def get_next_student_id():
     return {"next_id": f"{prefix}{str(count + 1).zfill(3)}"}
 
 @app.route('/masters', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def masters():
     if request.method == 'POST':
         master_type = request.form.get('type')
@@ -548,7 +571,7 @@ def masters():
     return render_template('masters.html', streams=streams, classes=classes, fee_matrix=fee_matrix)
 
 @app.route('/masters/fee-matrix/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def edit_fee_matrix(id):
     fee = ClassStreamFee.query.get_or_404(id)
     if request.method == 'POST':
@@ -559,7 +582,7 @@ def edit_fee_matrix(id):
     return render_template('edit_fee_matrix.html', fee=fee)
 
 @app.route('/masters/class/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def edit_master_class(id):
     obj = AcademicClass.query.get_or_404(id)
     if request.method == 'POST':
@@ -585,7 +608,7 @@ def get_class_fees(class_id):
     return jsonify({"base_fees": obj.base_fees if obj else 0.0})
 
 @app.route('/masters/delete/<string:mtype>/<int:mid>', methods=['POST'])
-@login_required
+@staff_required
 def delete_master(mtype, mid):
     if mtype == 'stream':
         obj = Stream.query.get(mid)
@@ -599,7 +622,7 @@ def delete_master(mtype, mid):
 
 # Teacher & Subject Management
 @app.route('/teachers', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def manage_teachers():
     if request.method == 'POST':
         teacher = Teacher(
@@ -625,7 +648,7 @@ def manage_teachers():
     return render_template('teachers/manage.html', teachers=teachers, subjects=subjects)
 
 @app.route('/teachers/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def edit_teacher(id):
     teacher = Teacher.query.get_or_404(id)
     if request.method == 'POST':
@@ -653,7 +676,7 @@ def edit_teacher(id):
     return render_template('teachers/edit.html', teacher=teacher, subjects=subjects, teacher_subject_ids=teacher_subject_ids)
 
 @app.route('/teachers/delete/<int:id>', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def delete_teacher(id):
     teacher = Teacher.query.get_or_404(id)
     db.session.delete(teacher)
@@ -662,7 +685,7 @@ def delete_teacher(id):
     return redirect(url_for('manage_teachers'))
 
 @app.route('/subjects', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def manage_subjects():
     if request.method == 'POST':
         is_compulsory = 'is_compulsory' in request.form
@@ -679,7 +702,7 @@ def manage_subjects():
     return render_template('subjects/manage.html', streams=streams, subjects=subjects)
 
 @app.route('/subjects/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def edit_subject(id):
     subject = Subject.query.get_or_404(id)
     if request.method == 'POST':
@@ -693,7 +716,7 @@ def edit_subject(id):
     return render_template('subjects/edit_subject.html', subject=subject, streams=streams)
 
 @app.route('/subjects/delete/<int:id>')
-@login_required
+@staff_required
 def delete_subject(id):
     subject = Subject.query.get_or_404(id)
     db.session.delete(subject)
@@ -703,7 +726,7 @@ def delete_subject(id):
 
 # Attendance Routes
 @app.route('/attendance/mark', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def mark_attendance():
     selected_class = request.args.get('class_id')
     selected_stream = request.args.get('stream_id')
@@ -747,7 +770,7 @@ def mark_attendance():
                          date_str=date_str)
 
 @app.route('/attendance/report')
-@login_required
+@staff_required
 def attendance_report():
     report_type = request.args.get('type', 'daily')
     date_str = request.args.get('date', datetime.utcnow().strftime('%Y-%m-%d'))
@@ -795,7 +818,7 @@ def attendance_report():
                           date_str=date_str)
 
 @app.route('/attendance/early-exit/<int:id>', methods=['POST'])
-@login_required
+@staff_required
 def early_exit(id):
     att = Attendance.query.get_or_404(id)
     att.exit_time = request.form.get('exit_time')
@@ -805,20 +828,20 @@ def early_exit(id):
     return redirect(request.referrer or url_for('mark_attendance'))
 
 @app.route('/students')
-@login_required
+@staff_required
 def student_list():
     students = Student.query.all()
     return render_template('students/list.html', students=students)
 
 # Digital Library Routes
 @app.route('/library')
-@login_required
+@staff_required
 def library_list():
     resources = Resource.query.order_by(Resource.created_at.desc()).all()
     return render_template('library/list.html', resources=resources)
 
 @app.route('/library/upload', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def upload_resource():
     if request.method == 'POST':
         title = request.form.get('title')
@@ -848,7 +871,7 @@ def upload_resource():
     return render_template('library/upload.html', classes=classes, subjects=subjects, teachers=teachers)
 
 @app.route('/library/delete/<int:id>')
-@login_required
+@staff_required
 def delete_resource(id):
     res = Resource.query.get_or_404(id)
     db.session.delete(res)
@@ -867,7 +890,7 @@ def get_subjects_by_stream(stream_id):
 
 # Teacher Routes
 @app.route('/fees', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def collect_fees():
     if request.method == 'POST':
         fee = Fee(
@@ -886,7 +909,7 @@ def collect_fees():
     return render_template('fees/collect.html', students=students, recent_fees=recent_fees)
 
 @app.route('/fees/receipt/<int:id>')
-@login_required
+@staff_required
 def fee_receipt(id):
     fee = Fee.query.get_or_404(id)
     student = Student.query.get(fee.student_id)
@@ -896,7 +919,7 @@ def fee_receipt(id):
     return render_template('fees/receipt.html', fee=fee, student=student, total_paid=total_paid, balance=balance)
 
 @app.route('/fees/report')
-@login_required
+@staff_required
 def fee_report():
     students = Student.query.all()
     student_data = []
@@ -913,7 +936,7 @@ def fee_report():
 
 # Academic Routes
 @app.route('/academics', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def academic_entry():
     if request.method == 'POST':
         exam = Exam(
@@ -930,7 +953,7 @@ def academic_entry():
     return render_template('academics/enter_marks.html', students=students)
 
 @app.route('/report-card/<int:student_id>')
-@login_required
+@staff_required
 def report_card(student_id):
     student = Student.query.get_or_404(student_id)
     # Filter Prelims if class is XI
@@ -972,7 +995,7 @@ def report_card(student_id):
 # --- Test Scheduler Module ---
 
 @app.route('/academics/tests')
-@login_required
+@staff_required
 def test_list():
     tests = ScheduledTest.query.order_by(ScheduledTest.test_date.asc()).all()
     
@@ -987,7 +1010,7 @@ def test_list():
     return render_template('academics/test_list.html', grouped_tests=grouped_tests, tests=tests)
 
 @app.route('/academics/tests/schedule', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def schedule_test():
     if request.method == 'POST':
         class_id = request.form.get('class_id')
@@ -1045,7 +1068,7 @@ def schedule_test():
     return render_template('academics/schedule_test.html', classes=classes, streams=streams, subjects=subjects, teachers=teachers)
 
 @app.route('/academics/tests/edit/<int:test_id>', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def edit_scheduled_test(test_id):
     test = ScheduledTest.query.get_or_404(test_id)
     if request.method == 'POST':
@@ -1089,7 +1112,7 @@ def edit_scheduled_test(test_id):
     return render_template('academics/edit_test.html', test=test, classes=classes, streams=streams, subjects=subjects, teachers=teachers)
 
 @app.route('/academics/tests/record/<int:test_id>', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def record_test_marks(test_id):
     test = ScheduledTest.query.get_or_404(test_id)
     students = Student.query.filter_by(class_id=test.class_id, stream_id=test.stream_id).all()
@@ -1115,7 +1138,7 @@ def record_test_marks(test_id):
     return render_template('academics/record_marks.html', test=test, students=students, existing_marks=existing_marks)
 
 @app.route('/academics/tests/analysis/<int:test_id>')
-@login_required
+@staff_required
 def test_analysis(test_id):
     test = ScheduledTest.query.get_or_404(test_id)
     marks = test.marks
@@ -1143,7 +1166,7 @@ def test_analysis(test_id):
 # --- Timetable Module ---
 
 @app.route('/timetable')
-@login_required
+@staff_required
 def timetable_view():
     classes = AcademicClass.query.all()
     streams = Stream.query.all()
@@ -1158,7 +1181,7 @@ def timetable_view():
     return render_template('timetable/view.html', entries=entries, classes=classes, streams=streams, selected_class=int(class_id) if class_id else None, selected_stream=int(stream_id) if stream_id else None)
 
 @app.route('/timetable/manage', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def timetable_manage():
     if request.method == 'POST':
         days_to_apply = [request.form['day']]
@@ -1226,7 +1249,7 @@ def timetable_manage():
                            f_class=int(f_class) if f_class else None, f_subject=int(f_subject) if f_subject else None, f_day=f_day)
 
 @app.route('/timetable/delete/<int:id>')
-@login_required
+@staff_required
 def delete_timetable_entry(id):
     entry = TimetableEntry.query.get_or_404(id)
     db.session.delete(entry)
@@ -1235,7 +1258,7 @@ def delete_timetable_entry(id):
     return redirect(url_for('timetable_manage'))
 
 @app.route('/timetable/export/csv')
-@login_required
+@staff_required
 def timetable_export_csv():
     class_id = request.args.get('class_id')
     stream_id = request.args.get('stream_id')
@@ -1265,7 +1288,7 @@ def timetable_export_csv():
     return response
 
 @app.route('/timetable/delete-all')
-@login_required
+@staff_required
 def timetable_delete_all():
     class_id = request.args.get('class_id')
     stream_id = request.args.get('stream_id')
@@ -1281,7 +1304,7 @@ def timetable_delete_all():
     return redirect(url_for('timetable_view'))
 
 @app.route('/timetable/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
+@staff_required
 def edit_timetable_entry(id):
     entry = TimetableEntry.query.get_or_404(id)
     if request.method == 'POST':
@@ -1314,6 +1337,146 @@ def get_subject_teacher(subject_id):
     if teacher:
         return jsonify({'id': teacher.id, 'name': teacher.name})
     return jsonify({'id': None, 'name': 'Not Assigned'})
+
+# --- Student Portal Routes ---
+
+@app.route('/student/dashboard')
+def student_dashboard():
+    if 'user_id' not in session or session.get('role') != 'student':
+        return redirect(url_for('login'))
+        
+    student = Student.query.get(session['student_db_id'])
+    # Attendance Stats
+    total_days = Attendance.query.filter_by(student_id=student.id).count()
+    present_days = Attendance.query.filter_by(student_id=student.id, status='Present').count()
+    attendance_pct = (present_days / total_days * 100) if total_days > 0 else 0
+    
+    # Recent Marks
+    recent_marks = TestMark.query.filter_by(student_id=student.id).join(ScheduledTest).order_by(ScheduledTest.test_date.desc()).limit(5).all()
+    
+    # Fee Summary
+    total_paid = sum(f.amount_paid for f in student.fees)
+    balance = student.total_fees - total_paid
+    
+    return render_template('student/dashboard.html', 
+                           student=student, 
+                           attendance_pct=attendance_pct,
+                           recent_marks=recent_marks,
+                           total_paid=total_paid,
+                           balance=balance)
+
+@app.route('/student/profile', methods=['GET', 'POST'])
+def student_profile():
+    if 'user_id' not in session or session.get('role') != 'student':
+        return redirect(url_for('login'))
+        
+    student = Student.query.get(session['student_db_id'])
+    
+    if request.method == 'POST':
+        # Update Contact/Email
+        student.contact = request.form.get('contact')
+        student.email = request.form.get('email')
+        student.address = request.form.get('address')
+        
+        # Photo Upload
+        photo = request.files.get('photo')
+        if photo and photo.filename:
+            upload_result = cloudinary.uploader.upload(photo, folder="student_photos")
+            student.photo_url = upload_result['secure_url']
+            
+        # Document Upload
+        doc = request.files.get('document')
+        if doc and doc.filename:
+            upload_result = cloudinary.uploader.upload(doc, folder="student_docs", resource_type="auto")
+            student.document_url = upload_result['secure_url']
+            
+        db.session.commit()
+        flash('Profile updated successfully!')
+        return redirect(url_for('student_profile'))
+        
+    return render_template('student/profile.html', student=student)
+
+@app.route('/student/library')
+def student_library():
+    if 'user_id' not in session or session.get('role') != 'student':
+        return redirect(url_for('login'))
+        
+    student = Student.query.get(session['student_db_id'])
+    # Filter resources by class and stream
+    resources = Resource.query.filter(
+        (Resource.class_id == student.class_id) & 
+        (Resource.subject.has(stream_id=student.stream_id)) |
+        (Resource.is_public == True)
+    ).order_by(Resource.created_at.desc()).all()
+    
+    return render_template('student/library.html', resources=resources, student=student)
+
+@app.route('/student/academics')
+def student_academics():
+    if 'user_id' not in session or session.get('role') != 'student':
+        return redirect(url_for('login'))
+        
+    student = Student.query.get(session['student_db_id'])
+    test_marks = TestMark.query.filter_by(student_id=student.id).all()
+    
+    # Group results by exam type
+    grouped_results = {}
+    for tm in test_marks:
+        et = tm.test.exam_type
+        if et not in grouped_results:
+            grouped_results[et] = []
+        grouped_results[et].append({
+            'subject': tm.test.subject_obj.name,
+            'date': tm.test.test_date.strftime('%d-%m-%Y'),
+            'marks': tm.marks_obtained,
+            'max': tm.test.total_marks,
+            'passing': tm.test.passing_marks,
+            'status': 'Pass' if tm.marks_obtained >= tm.test.passing_marks else 'Fail'
+        })
+        
+    return render_template('student/academics.html', student=student, grouped_results=grouped_results)
+
+@app.route('/student/fees', methods=['GET', 'POST'])
+def student_fees():
+    if 'user_id' not in session or session.get('role') != 'student':
+        return redirect(url_for('login'))
+        
+    student = Student.query.get(session['student_db_id'])
+    total_paid = sum(f.amount_paid for f in student.fees)
+    balance = student.total_fees - total_paid
+    
+    if request.method == 'POST':
+        # Placeholder for Online Payment Integration
+        # For now, we'll simulate a successful payment
+        amount = float(request.form.get('amount'))
+        if amount > 0:
+            new_fee = Fee(
+                student_id=student.id,
+                amount_paid=amount,
+                payment_method='Online (Simulated)',
+                remarks='Paid via Student Portal'
+            )
+            db.session.add(new_fee)
+            db.session.commit()
+            flash(f'Payment of ₹{amount} received successfully! Receipt generated.')
+            return redirect(url_for('student_fees'))
+            
+    return render_template('student/fees.html', student=student, total_paid=total_paid, balance=balance)
+
+@app.route('/student/fees/receipt/<int:id>')
+def student_fee_receipt(id):
+    if 'user_id' not in session or session.get('role') != 'student':
+        return redirect(url_for('login'))
+        
+    fee = Fee.query.get_or_404(id)
+    if fee.student_id != session['student_db_id']:
+        return "Unauthorized", 403
+        
+    student = Student.query.get(fee.student_id)
+    total_paid = sum(f.amount_paid for f in student.fees if f.payment_date <= fee.payment_date)
+    balance = student.total_fees - total_paid
+    
+    return render_template('fees/receipt.html', fee=fee, student=student, total_paid=total_paid, balance=balance)
 
 if __name__ == '__main__':
     # Running on 0.0.0.0 for LAN deployment
