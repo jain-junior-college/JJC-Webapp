@@ -237,7 +237,9 @@ def sync_db():
             "ALTER TABLE student ADD COLUMN caste VARCHAR(50)",
             "ALTER TABLE student ADD COLUMN mothers_name VARCHAR(100)",
             "ALTER TABLE student ADD COLUMN age_at_enrollment VARCHAR(50)",
-            "ALTER TABLE scheduled_test ADD COLUMN IF NOT EXISTS duration VARCHAR(50)"
+            "ALTER TABLE scheduled_test ADD COLUMN IF NOT EXISTS duration VARCHAR(50)",
+            "ALTER TABLE scheduled_test ADD COLUMN IF NOT EXISTS start_time VARCHAR(20)",
+            "ALTER TABLE scheduled_test ADD COLUMN IF NOT EXISTS end_time VARCHAR(20)"
         ]
         
         for q in queries:
@@ -968,7 +970,8 @@ def schedule_test():
         dates = request.form.getlist('date[]')
         total_marks = request.form.getlist('total_marks[]')
         passing_marks = request.form.getlist('passing_marks[]')
-        durations = request.form.getlist('duration[]')
+        start_times = request.form.getlist('start_time[]')
+        end_times = request.form.getlist('end_time[]')
         
         for i in range(len(subject_ids)):
             if subject_ids[i] and dates[i]:
@@ -980,7 +983,8 @@ def schedule_test():
                     test_date=datetime.strptime(dates[i], '%Y-%m-%d').date(),
                     total_marks=float(total_marks[i]) if total_marks[i] else 25.0,
                     passing_marks=float(passing_marks[i]) if passing_marks[i] else 9.0,
-                    duration=durations[i] if i < len(durations) else None
+                    start_time=start_times[i] if i < len(start_times) else None,
+                    end_time=end_times[i] if i < len(end_times) else None
                 )
                 db.session.add(test)
                 
@@ -1005,7 +1009,26 @@ def edit_scheduled_test(test_id):
         test.test_date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
         test.total_marks = float(request.form.get('total_marks')) if request.form.get('total_marks') else 25.0
         test.passing_marks = float(request.form.get('passing_marks')) if request.form.get('passing_marks') else 9.0
-        test.duration = request.form.get('duration')
+        test.start_time = request.form.get('start_time')
+        test.end_time = request.form.get('end_time')
+        
+        # Handle supervisions
+        # Remove old ones first
+        TestSupervision.query.filter_by(test_id=test.id).delete()
+        
+        sup_names = request.form.getlist('supervisor_name[]')
+        sup_starts = request.form.getlist('sup_start[]')
+        sup_ends = request.form.getlist('sup_end[]')
+        
+        for i in range(len(sup_names)):
+            if sup_names[i]:
+                sup = TestSupervision(
+                    test_id=test.id,
+                    supervisor_name=sup_names[i],
+                    start_time=sup_starts[i] if i < len(sup_starts) else None,
+                    end_time=sup_ends[i] if i < len(sup_ends) else None
+                )
+                db.session.add(sup)
         
         db.session.commit()
         flash('Test details updated successfully!', 'success')

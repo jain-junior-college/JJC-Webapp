@@ -145,12 +145,23 @@ class ScheduledTest(db.Model):
     total_marks = db.Column(db.Float, default=25.0)
     passing_marks = db.Column(db.Float, default=9.0)
     duration = db.Column(db.String(50))
+    start_time = db.Column(db.String(20))
+    end_time = db.Column(db.String(20))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     academic_class = db.relationship('AcademicClass', backref='tests')
     stream = db.relationship('Stream', backref='tests')
     subject_obj = db.relationship('Subject', backref='tests')
     marks = db.relationship('TestMark', backref='test', cascade="all, delete-orphan")
+    supervisions = db.relationship('TestSupervision', backref='test', cascade="all, delete-orphan", order_by="TestSupervision.start_time")
+
+class TestSupervision(db.Model):
+    __tablename__ = 'test_supervision'
+    id = db.Column(db.Integer, primary_key=True)
+    test_id = db.Column(db.Integer, db.ForeignKey('scheduled_test.id'), nullable=False)
+    supervisor_name = db.Column(db.String(100), nullable=False)
+    start_time = db.Column(db.String(20))
+    end_time = db.Column(db.String(20))
 
 class TestMark(db.Model):
     __tablename__ = 'test_mark'

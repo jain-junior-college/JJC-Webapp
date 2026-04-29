@@ -4,14 +4,14 @@
 {% block header_title %}Modify Exam Details{% endblock %}
 
 {% block content %}
-<div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+<div class="glass-card" style="max-width: 900px; margin: 0 auto;">
     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
         <a href="{{ url_for('test_list') }}" style="color: var(--text-secondary);"><i class="fas fa-arrow-left"></i></a>
         <h3 style="font-weight: 700; margin: 0;">Edit Scheduled Test</h3>
     </div>
 
     <form method="POST">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 2rem;">
             <div class="form-group">
                 <label>Academic Class</label>
                 <select name="class_id" class="form-control" required>
@@ -53,9 +53,15 @@
                 <input type="date" name="date" class="form-control" value="{{ test.test_date }}" required>
             </div>
 
-            <div class="form-group">
-                <label>Time Duration</label>
-                <input type="text" name="duration" class="form-control" value="{{ test.duration or '' }}" placeholder="eg: 1.5 Hours">
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label>Start Time</label>
+                    <input type="text" name="start_time" class="form-control" value="{{ test.start_time or '' }}" placeholder="8:30 AM" required>
+                </div>
+                <div>
+                    <label>End Time</label>
+                    <input type="text" name="end_time" class="form-control" value="{{ test.end_time or '' }}" placeholder="10:30 AM" required>
+                </div>
             </div>
 
             <div class="form-group">
@@ -69,9 +75,57 @@
             </div>
         </div>
 
-        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+        <div style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h4 style="margin: 0; font-weight: 700; color: #1e3a8a;"><i class="fas fa-users-cog"></i> Supervision Slots</h4>
+                <button type="button" class="btn" onclick="addSupervisor()" style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-size: 0.85rem; font-weight: 600;">
+                    <i class="fas fa-plus"></i> Add Slot
+                </button>
+            </div>
+
+            <div id="supervision_container">
+                {% if test.supervisions %}
+                    {% for sup in test.supervisions %}
+                    <div class="supervision-row" style="display: grid; grid-template-columns: 1fr 100px 100px 50px; gap: 1rem; margin-bottom: 1rem; align-items: flex-end; background: #f8fafc; padding: 1rem; border-radius: 10px; border: 1px solid #e2e8f0;">
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.75rem;">Supervisor Name</label>
+                            <input type="text" name="supervisor_name[]" class="form-control" value="{{ sup.supervisor_name }}" required style="margin: 0;">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.75rem;">Start</label>
+                            <input type="text" name="sup_start[]" class="form-control" value="{{ sup.start_time }}" required style="margin: 0;">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.75rem;">End</label>
+                            <input type="text" name="sup_end[]" class="form-control" value="{{ sup.end_time }}" required style="margin: 0;">
+                        </div>
+                        <button type="button" onclick="this.closest('.supervision-row').remove()" style="color: #ef4444; background: none; border: none; font-size: 1.2rem; cursor: pointer; padding-bottom: 8px;"><i class="fas fa-times-circle"></i></button>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Initial blank slot suggested based on exam time -->
+                    <div class="supervision-row" style="display: grid; grid-template-columns: 1fr 100px 100px 50px; gap: 1rem; margin-bottom: 1rem; align-items: flex-end; background: #f8fafc; padding: 1rem; border-radius: 10px; border: 1px solid #e2e8f0;">
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.75rem;">Supervisor Name</label>
+                            <input type="text" name="supervisor_name[]" class="form-control" placeholder="Name" style="margin: 0;">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.75rem;">Start</label>
+                            <input type="text" name="sup_start[]" class="form-control" placeholder="8:30 AM" style="margin: 0;">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.75rem;">End</label>
+                            <input type="text" name="sup_end[]" class="form-control" placeholder="10:30 AM" style="margin: 0;">
+                        </div>
+                        <button type="button" onclick="this.closest('.supervision-row').remove()" style="color: #ef4444; background: none; border: none; font-size: 1.2rem; cursor: pointer; padding-bottom: 8px;"><i class="fas fa-times-circle"></i></button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 2rem;">
             <a href="{{ url_for('test_list') }}" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-secondary); text-decoration: none; padding: 10px 20px;">Cancel</a>
-            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2rem;">
+            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 3rem;">
                 <i class="fas fa-save"></i> Save Changes
             </button>
         </div>
@@ -79,6 +133,38 @@
 </div>
 
 <script>
+    function addSupervisor() {
+        const container = document.getElementById('supervision_container');
+        const div = document.createElement('div');
+        div.className = 'supervision-row';
+        div.style.display = 'grid';
+        div.style.gridTemplateColumns = '1fr 100px 100px 50px';
+        div.style.gap = '1rem';
+        div.style.marginBottom = '1rem';
+        div.style.alignItems = 'flex-end';
+        div.style.background = '#f8fafc';
+        div.style.padding = '1rem';
+        div.style.borderRadius = '10px';
+        div.style.border = '1px solid #e2e8f0';
+        
+        div.innerHTML = `
+            <div class="form-group" style="margin: 0;">
+                <label style="font-size: 0.75rem;">Supervisor Name</label>
+                <input type="text" name="supervisor_name[]" class="form-control" required style="margin: 0;">
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label style="font-size: 0.75rem;">Start</label>
+                <input type="text" name="sup_start[]" class="form-control" required style="margin: 0;">
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label style="font-size: 0.75rem;">End</label>
+                <input type="text" name="sup_end[]" class="form-control" required style="margin: 0;">
+            </div>
+            <button type="button" onclick="this.closest('.supervision-row').remove()" style="color: #ef4444; background: none; border: none; font-size: 1.2rem; cursor: pointer; padding-bottom: 8px;"><i class="fas fa-times-circle"></i></button>
+        `;
+        container.appendChild(div);
+    }
+
     function fetchSubjects() {
         const streamId = document.getElementById('stream_id').value;
         const subjectSelect = document.getElementById('subject_id');
