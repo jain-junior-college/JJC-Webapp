@@ -1,12 +1,10 @@
 {% extends "layout.html" %}
 
-{% block title %}Schedule Exam Timetable{% endblock %}
-{% block header_title %}Academic Scheduler{% endblock %}
+{% block title %}Schedule New Test{% endblock %}
+{% block header_title %}Exam Timetable Scheduler{% endblock %}
 
 {% block content %}
-<div class="glass-card" style="max-width: 900px; margin: 0 auto;">
-    <h3 style="font-weight: 700; margin-bottom: 2rem;"><i class="fas fa-calendar-alt" style="color: var(--primary-color);"></i> Schedule Exam Timetable</h3>
-    
+<div class="glass-card">
     <form method="POST">
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #e2e8f0;">
             <div class="form-group">
@@ -42,19 +40,27 @@
             </div>
         </div>
 
-        <h4 style="font-weight: 700; margin-bottom: 1rem; color: #1e293b;">Exam Schedule</h4>
-        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem;">Select subjects and assign dates to create the full timetable for this exam.</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div>
+                <h4 style="font-weight: 700; margin-bottom: 0.5rem; color: #1e293b;">Exam Schedule</h4>
+                <p style="font-size: 0.85rem; color: #64748b; margin: 0;">Select subjects and assign dates to create the full timetable for this exam.</p>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="addRow()">
+                <i class="fas fa-plus"></i> Add Subject Row
+            </button>
+        </div>
 
-        <div class="table-container" style="margin-bottom: 1.5rem;">
-            <table style="width: 100%;" id="schedule_table">
+        <div class="table-container" style="margin-bottom: 1.5rem; overflow-x: visible;">
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0 0.5rem;" id="schedule_table">
                 <thead>
-                    <tr style="text-align: left;">
+                    <tr style="text-align: left; color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
                         <th style="padding: 1rem;">Subject</th>
                         <th style="padding: 1rem;">Test Date</th>
-                        <th style="padding: 1rem; width: 120px;">Total Marks</th>
-                        <th style="padding: 1rem; width: 120px;">Passing</th>
-                        <th style="padding: 1rem; width: 100px;">Start</th>
-                        <th style="padding: 1rem; width: 100px;">End</th>
+                        <th style="padding: 1rem; width: 100px;">Total</th>
+                        <th style="padding: 1rem; width: 100px;">Passing</th>
+                        <th style="padding: 1rem; width: 90px;">Start</th>
+                        <th style="padding: 1rem; width: 90px;">End</th>
+                        <th style="padding: 1rem;">Supervision Slots</th>
                         <th style="padding: 1rem; width: 50px;"></th>
                     </tr>
                 </thead>
@@ -62,24 +68,27 @@
                     <!-- Rows will be added here -->
                 </tbody>
             </table>
-            
-            <div style="padding: 1rem; text-align: center; border-top: 1px dashed #cbd5e1; background: #f8fafc;">
-                <button type="button" class="btn" onclick="addRow()" style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 600; font-size: 0.9rem;">
-                    <i class="fas fa-plus"></i> Add Subject to Schedule
-                </button>
-            </div>
         </div>
 
-        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-            <a href="{{ url_for('test_list') }}" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-secondary); text-decoration: none;">Cancel</a>
-            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2.5rem;">
-                <i class="fas fa-save"></i> Publish Timetable
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
+            <a href="{{ url_for('test_list') }}" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-secondary); text-decoration: none; padding: 10px 20px;">Cancel</a>
+            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 3rem; font-weight: 700; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);">
+                <i class="fas fa-save"></i> Create Timetable
             </button>
         </div>
     </form>
 </div>
 
+<datalist id="teacherList">
+    {% for t in teachers %}
+    <option value="{{ t.name }}">
+    {% endfor %}
+</datalist>
+
 <script>
+    let rowIndex = 0;
+    let availableSubjects = [];
+
     function handleClassChange() {
         const classSelect = document.getElementById('class_id');
         const examSelect = document.getElementById('exam_type');
@@ -111,81 +120,26 @@
     // Run on load
     document.addEventListener('DOMContentLoaded', handleClassChange);
 
-    let availableSubjects = [];
-
-    function updateExamTypes() {
-        const classSelect = document.getElementById('class_id');
-        const examSelect = document.getElementById('exam_type');
-        const selectedClassName = classSelect.options[classSelect.selectedIndex].text;
-        
-        const defaultOptions = [
-            "Unit Test - I",
-            "Mid-term Examination",
-            "Unit Test - II",
-            "Final Examination"
-        ];
-        
-        examSelect.innerHTML = '';
-        defaultOptions.forEach(opt => {
-            const option = document.createElement('option');
-            option.value = opt;
-            option.text = opt;
-            examSelect.appendChild(option);
-        });
-        
-        if (selectedClassName.includes('XII')) {
-            const prelim1 = document.createElement('option');
-            prelim1.value = "Prelim - 1";
-            prelim1.text = "Prelim - 1";
-            examSelect.appendChild(prelim1);
-            
-            const prelim2 = document.createElement('option');
-            prelim2.value = "Prelim - 2";
-            prelim2.text = "Prelim - 2";
-            examSelect.appendChild(prelim2);
-        }
-    }
-
     function fetchSubjects() {
         const streamId = document.getElementById('stream_id').value;
-        if (!streamId) {
-            availableSubjects = [];
-            document.getElementById('schedule_body').innerHTML = '';
-            return;
-        }
-
+        if (!streamId) return;
+        
         fetch(`/api/subjects/${streamId}`)
             .then(r => r.json())
             .then(subjects => {
                 availableSubjects = subjects;
-                document.getElementById('schedule_body').innerHTML = '';
-                // Auto-add rows for compulsory subjects to speed up data entry
-                subjects.forEach(s => {
-                    if (s.is_compulsory) {
-                        addRow(s.id);
-                    }
-                });
+                // Re-add initial row if table is empty
                 if (document.getElementById('schedule_body').children.length === 0) {
-                    addRow(); // add at least one blank row
+                    addRow();
                 }
-            })
-            .catch(err => console.error("Error fetching subjects:", err));
-    }
-
-    function suggestPassing(inputElem) {
-        const row = inputElem.closest('tr');
-        const total = parseFloat(inputElem.value);
-        const passingInput = row.querySelector('.passing-input');
-        if (!isNaN(total)) {
-            // Suggest 35% rounded to nearest 0.5
-            const suggested = Math.ceil((total * 0.35) * 2) / 2;
-            passingInput.value = suggested;
-        }
+            });
     }
 
     function addRow(preselectSubjectId = null) {
         const tbody = document.getElementById('schedule_body');
         const tr = document.createElement('tr');
+        tr.style.background = "#fff";
+        tr.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
         
         let subjectOptions = '<option value="">Select Subject</option>';
         availableSubjects.forEach(s => {
@@ -194,31 +148,62 @@
         });
 
         tr.innerHTML = `
-            <td style="padding: 0.5rem 1rem;">
-                <select name="subject_id[]" class="form-control" required style="margin-bottom: 0;">
+            <td style="padding: 0.75rem 1rem;">
+                <select name="subject_id[]" class="form-control" required style="margin: 0; min-width: 150px;">
                     ${subjectOptions}
                 </select>
+                <input type="hidden" name="row_indices[]" value="${rowIndex}">
             </td>
-            <td style="padding: 0.5rem 1rem;">
-                <input type="date" name="date[]" class="form-control" required style="margin-bottom: 0;">
+            <td style="padding: 0.75rem 1rem;">
+                <input type="date" name="date[]" class="form-control" required style="margin: 0; min-width: 130px;">
             </td>
-            <td style="padding: 0.5rem 1rem;">
-                <input type="number" name="total_marks[]" class="form-control total-input" value="25.0" step="0.5" required style="margin-bottom: 0;" oninput="suggestPassing(this)">
+            <td style="padding: 0.75rem 1rem;">
+                <input type="number" name="total_marks[]" class="form-control" value="25.0" step="0.5" required style="margin: 0;">
             </td>
-            <td style="padding: 0.5rem 1rem;">
-                <input type="number" name="passing_marks[]" class="form-control passing-input" value="9.0" step="0.5" required style="margin-bottom: 0;">
+            <td style="padding: 0.75rem 1rem;">
+                <input type="number" name="passing_marks[]" class="form-control" value="9.0" step="0.5" required style="margin: 0;">
             </td>
-            <td style="padding: 0.5rem 1rem;">
-                <input type="text" name="start_time[]" class="form-control" placeholder="8:30 AM" required style="margin-bottom: 0;">
+            <td style="padding: 0.75rem 1rem;">
+                <input type="text" name="start_time[]" class="form-control" placeholder="8:30" required style="margin: 0;">
             </td>
-            <td style="padding: 0.5rem 1rem;">
-                <input type="text" name="end_time[]" class="form-control" placeholder="10:30 AM" required style="margin-bottom: 0;">
+            <td style="padding: 0.75rem 1rem;">
+                <input type="text" name="end_time[]" class="form-control" placeholder="10:30" required style="margin: 0;">
             </td>
-            <td style="padding: 0.5rem 1rem; text-align: center;">
-                <button type="button" class="btn" onclick="this.closest('tr').remove()" style="padding: 0.5rem; color: #ef4444; background: transparent;"><i class="fas fa-times"></i></button>
+            <td style="padding: 0.75rem 1rem;">
+                <div id="sup_container_${rowIndex}" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <!-- Supervision slots will go here -->
+                </div>
+                <button type="button" class="btn" onclick="addSupToRow(${rowIndex})" style="margin-top: 0.5rem; background: rgba(79, 70, 229, 0.05); color: var(--primary-color); font-size: 0.75rem; padding: 4px 8px; border: 1px dashed var(--primary-color);">
+                    <i class="fas fa-user-plus"></i> Add Supervisor
+                </button>
+            </td>
+            <td style="padding: 0.75rem 1rem; text-align: center;">
+                <button type="button" class="btn" onclick="this.closest('tr').remove()" style="padding: 0.5rem; color: #ef4444; background: transparent;"><i class="fas fa-times-circle"></i></button>
             </td>
         `;
         tbody.appendChild(tr);
+        rowIndex++;
+    }
+
+    function addSupToRow(id) {
+        const container = document.getElementById(`sup_container_${id}`);
+        const div = document.createElement('div');
+        div.style.display = 'grid';
+        div.style.gridTemplateColumns = '1fr 60px 60px 25px';
+        div.style.gap = '0.3rem';
+        div.style.alignItems = 'center';
+        div.style.background = '#f8fafc';
+        div.style.padding = '5px';
+        div.style.borderRadius = '5px';
+        div.style.border = '1px solid #e2e8f0';
+
+        div.innerHTML = `
+            <input type="text" name="sup_name_${id}[]" class="form-control" placeholder="Teacher" required style="margin:0; font-size: 0.75rem; padding: 5px;" list="teacherList">
+            <input type="text" name="sup_start_${id}[]" class="form-control" placeholder="8:30" required style="margin:0; font-size: 0.75rem; padding: 5px;">
+            <input type="text" name="sup_end_${id}[]" class="form-control" placeholder="9:30" required style="margin:0; font-size: 0.75rem; padding: 5px;">
+            <button type="button" onclick="this.parentElement.remove()" style="color: #ef4444; background: none; border: none; font-size: 0.9rem; cursor: pointer;"><i class="fas fa-times"></i></button>
+        `;
+        container.appendChild(div);
     }
 </script>
 {% endblock %}

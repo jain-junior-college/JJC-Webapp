@@ -973,6 +973,7 @@ def schedule_test():
         passing_marks = request.form.getlist('passing_marks[]')
         start_times = request.form.getlist('start_time[]')
         end_times = request.form.getlist('end_time[]')
+        row_indices = request.form.getlist('row_indices[]')
         
         for i in range(len(subject_ids)):
             if subject_ids[i] and dates[i]:
@@ -988,6 +989,23 @@ def schedule_test():
                     end_time=end_times[i] if i < len(end_times) else None
                 )
                 db.session.add(test)
+                db.session.flush() # To get test.id
+                
+                # Handle nested supervisions for this row
+                idx = row_indices[i]
+                sup_names = request.form.getlist(f'sup_name_{idx}[]')
+                sup_starts = request.form.getlist(f'sup_start_{idx}[]')
+                sup_ends = request.form.getlist(f'sup_end_{idx}[]')
+                
+                for j in range(len(sup_names)):
+                    if sup_names[j]:
+                        sup = TestSupervision(
+                            test_id=test.id,
+                            supervisor_name=sup_names[j],
+                            start_time=sup_starts[j] if j < len(sup_starts) else None,
+                            end_time=sup_ends[j] if j < len(sup_ends) else None
+                        )
+                        db.session.add(sup)
                 
         db.session.commit()
         flash('Exam timetable scheduled successfully!', 'success')
@@ -996,7 +1014,8 @@ def schedule_test():
     classes = AcademicClass.query.all()
     streams = Stream.query.all()
     subjects = Subject.query.all()
-    return render_template('academics/schedule_test.html', classes=classes, streams=streams, subjects=subjects)
+    teachers = Teacher.query.order_by(Teacher.name).all()
+    return render_template('academics/schedule_test.html', classes=classes, streams=streams, subjects=subjects, teachers=teachers)
 
 @app.route('/academics/tests/edit/<int:test_id>', methods=['GET', 'POST'])
 @login_required
