@@ -940,7 +940,34 @@ def report_card(student_id):
     # Also fetch from new TestMark
     test_marks = TestMark.query.filter_by(student_id=student_id).all()
     
-    return render_template('academics/report_card.html', student=student, exams=exams, test_marks=test_marks)
+    # Group results by exam type for better presentation
+    grouped_results = {}
+    
+    # 1. New system marks
+    for tm in test_marks:
+        et = tm.test.exam_type
+        if et not in grouped_results:
+            grouped_results[et] = []
+        grouped_results[et].append({
+            'subject': tm.test.subject_obj.name,
+            'date': tm.test.test_date.strftime('%d-%m-%Y'),
+            'marks': tm.marks_obtained,
+            'max': tm.test.total_marks
+        })
+        
+    # 2. Legacy marks
+    for exam in exams:
+        et = exam.exam_type
+        if et not in grouped_results:
+            grouped_results[et] = []
+        grouped_results[et].append({
+            'subject': exam.subject,
+            'date': '—',
+            'marks': exam.marks_obtained,
+            'max': exam.total_marks
+        })
+        
+    return render_template('academics/report_card.html', student=student, grouped_results=grouped_results)
 
 # --- Test Scheduler Module ---
 

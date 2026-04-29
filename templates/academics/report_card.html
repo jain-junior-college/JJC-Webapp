@@ -6,22 +6,25 @@
 {% block content %}
 <div class="glass-card" style="max-width: 900px; margin: 0 auto; background: white; color: #0f172a; padding: 0; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
     
-    <!-- Report Header with Logo -->
-    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 3rem; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 15px 15px 0 0;">
-        <div style="display: flex; align-items: center; gap: 2rem;">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" style="width: 100px; height: 100px; background: white; border-radius: 15px; padding: 10px;">
-            <div>
-                <h1 style="margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -0.5px;">JAIN JUNIOR COLLEGE</h1>
-                <p style="margin: 0.3rem 0; color: #cbd5e1; font-weight: 600; font-size: 1.1rem; font-style: italic;">Where Knowledge Meets Character</p>
-                <div style="margin-top: 1rem; font-size: 0.85rem; display: flex; gap: 1.5rem; opacity: 0.9;">
-                    <span><i class="fas fa-map-marker-alt"></i> Main Campus Road</span>
-                    <span><i class="fas fa-certificate"></i> Govt. Recognized Jr. College</span>
-                </div>
+    <!-- Report Header with Logo (Matching Landing Page Style) -->
+    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 3rem; color: white; border-radius: 15px 15px 0 0; text-align: center; position: relative;">
+        <div style="margin-bottom: 1.5rem;">
+            <img src="{{ url_for('static', filename='images/logo.jpg') }}" style="width: 100px; height: 100px; background: white; border-radius: 50%; border: 4px solid rgba(255,255,255,0.2); object-fit: contain;">
+        </div>
+        <div>
+            <p style="margin: 0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; font-weight: 600;">VISHWAKALYAN EDUCATION SOCIETY'S</p>
+            <h1 style="margin: 0.3rem 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px;">JAIN JUNIOR COLLEGE</h1>
+            <p style="margin: 0.2rem 0; color: #fbbf24; font-weight: 700; font-size: 1.5rem; font-family: 'Noto Sans Devanagari', sans-serif;">॥ ज्ञान संस्कारेण मनुष्य शोभते ॥</p>
+            
+            <div style="margin-top: 1.5rem; font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.2rem; opacity: 0.9; line-height: 1.4;">
+                <span><i class="fas fa-map-marker-alt"></i> Rao Colony, Talegaon Dabhade, Pune 410506</span>
+                <span><i class="fas fa-phone-alt"></i> +91 880-655-9777 | <i class="fas fa-envelope"></i> jjc.talegaon@gmail.com</span>
             </div>
         </div>
-        <div style="text-align: right;">
-            <h4 style="margin: 0; opacity: 0.8; font-weight: 400;">ACADEMIC RECENT</h4>
-            <h2 style="margin: 0; font-weight: 800;" class="academicYearStr">2026 - 2027</h2>
+
+        <div style="position: absolute; top: 3rem; right: 3rem; text-align: right;">
+            <p style="margin: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7;">ACADEMIC RECENT</p>
+            <h3 style="margin: 0; font-weight: 800; color: #fbbf24;" class="academicYearStr">2026 - 2027</h3>
         </div>
     </div>
 
@@ -48,50 +51,40 @@
         </div>
 
         <!-- Academic Performance Table -->
-        <h4 style="font-weight: 800; color: #1e3a8a; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-            <i class="fas fa-award"></i> EXAMINATION SUMMARY
-        </h4>
-        <div class="table-container" style="border: 1px solid #f1f5f9; border-radius: 12px; overflow: hidden;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="background: #f8fafc; color: #64748b; text-align: left; font-size: 0.85rem;">
-                        <th style="padding: 1.2rem;">SUBJECT</th>
-                        <th style="padding: 1.2rem;">EXAM TYPE</th>
-                        <th style="padding: 1.2rem;">DATE</th>
-                        <th style="padding: 1.2rem; text-align: right;">MARKS</th>
-                        <th style="padding: 1.2rem; text-align: right;">MAX</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- New Test System Marks -->
-                    {% for tm in test_marks %}
-                    <tr style="border-bottom: 1px solid #f1f5f9;">
-                        <td style="padding: 1.2rem; font-weight: 700; color: #1e293b;">{{ tm.test.subject_obj.name }}</td>
-                        <td style="padding: 1.2rem;">{{ tm.test.exam_type }}</td>
-                        <td style="padding: 1.2rem; color: #64748b; font-size: 0.9rem;">{{ tm.test.test_date.strftime('%d-%m-%Y') }}</td>
-                        <td style="padding: 1.2rem; text-align: right; font-weight: 800; color: #166534;">{{ tm.marks_obtained }}</td>
-                        <td style="padding: 1.2rem; text-align: right; color: #94a3b8; font-weight: 600;">{{ tm.test.total_marks }}</td>
-                    </tr>
-                    {% endfor %}
-
-                    <!-- Legacy Exam Systems Marks -->
-                    {% for exam in exams %}
-                    <tr style="border-bottom: 1px solid #f1f5f9;">
-                        <td style="padding: 1.2rem; font-weight: 700; color: #1e293b;">{{ exam.subject }}</td>
-                        <td style="padding: 1.2rem;">{{ exam.exam_type }}</td>
-                        <td style="padding: 1.2rem; color: #64748b; font-size: 0.9rem;">—</td>
-                        <td style="padding: 1.2rem; text-align: right; font-weight: 800; color: #166534;">{{ exam.marks_obtained }}</td>
-                        <td style="padding: 1.2rem; text-align: right; color: #94a3b8; font-weight: 600;">{{ exam.total_marks }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        {% for exam_type, marks in grouped_results.items() %}
+        <div style="margin-bottom: 3rem;">
+            <h4 style="font-weight: 800; color: #1e3a8a; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem; background: #f1f5f9; padding: 0.8rem 1.2rem; border-radius: 8px;">
+                <i class="fas fa-file-alt"></i> {{ exam_type.upper() }}
+            </h4>
+            <div class="table-container" style="border: 1px solid #f1f5f9; border-radius: 12px; overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8fafc; color: #64748b; text-align: left; font-size: 0.85rem;">
+                            <th style="padding: 1.2rem;">SUBJECT</th>
+                            <th style="padding: 1.2rem;">DATE</th>
+                            <th style="padding: 1.2rem; text-align: right;">MARKS</th>
+                            <th style="padding: 1.2rem; text-align: right;">MAX</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in marks %}
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 1.2rem; font-weight: 700; color: #1e293b;">{{ m.subject }}</td>
+                            <td style="padding: 1.2rem; color: #64748b; font-size: 0.9rem;">{{ m.date }}</td>
+                            <td style="padding: 1.2rem; text-align: right; font-weight: 800; color: #166534;">{{ m.marks }}</td>
+                            <td style="padding: 1.2rem; text-align: right; color: #94a3b8; font-weight: 600;">{{ m.max }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
+        {% endfor %}
 
-        {% if not test_marks and not exams %}
+        {% if not grouped_results %}
         <div style="text-align: center; padding: 4rem; color: #94a3b8;">
             <i class="fas fa-file-invoice" style="font-size: 3rem; opacity: 0.2; display: block; margin-bottom: 1rem;"></i>
-            Academic records are being processed.
+            Academic records are being processed for this session.
         </div>
         {% endif %}
 
