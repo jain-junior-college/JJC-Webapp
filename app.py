@@ -239,7 +239,8 @@ def sync_db():
             "ALTER TABLE student ADD COLUMN age_at_enrollment VARCHAR(50)",
             "ALTER TABLE scheduled_test ADD COLUMN IF NOT EXISTS duration VARCHAR(50)",
             "ALTER TABLE scheduled_test ADD COLUMN IF NOT EXISTS start_time VARCHAR(20)",
-            "ALTER TABLE scheduled_test ADD COLUMN IF NOT EXISTS end_time VARCHAR(20)"
+            "ALTER TABLE scheduled_test ADD COLUMN IF NOT EXISTS end_time VARCHAR(20)",
+            "CREATE TABLE IF NOT EXISTS test_supervision (id SERIAL PRIMARY KEY, test_id INTEGER REFERENCES scheduled_test(id), supervisor_name VARCHAR(100), start_time VARCHAR(20), end_time VARCHAR(20))"
         ]
         
         for q in queries:
