@@ -23,6 +23,7 @@ jobs:
         with:
           arguments: assembleDebug
           build-root-directory: android_app
+          gradle-version: 8.1.1
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
