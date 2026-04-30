@@ -1,8 +1,8 @@
 <resources>
-    <style name="Theme.AppCompat.Light.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="JJCTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">#1e3a8a</item>
-        <item name="colorPrimaryDark">#1e3a8a</item>
+        <item name="colorPrimaryDark">#111827</item>
         <item name="colorAccent">#d4af37</item>
     </style>
 </resources>
