@@ -26,10 +26,11 @@
     <!-- Mobile Header -->
     <header class="top-bar">
         <div class="logo-section">
-            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="JJC Logo">
+            <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="JJC Logo">
             <h2>JJC</h2>
         </div>
         <div class="user-info-mobile">
+            <span style="font-size: 0.8rem; margin-right: 5px; color: var(--text-secondary);">{{ session.username }}</span>
             <i class="fas fa-user-circle"></i>
         </div>
     </header>
@@ -50,6 +51,10 @@
                 <i class="fas fa-rupee-sign"></i>
                 <span>Fees</span>
             </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="toggleMobileMenu()">
+                <i class="fas fa-th-large"></i>
+                <span>More</span>
+            </a>
         {% else %}
             <a href="{{ url_for('student_academics') }}" class="nav-item">
                 <i class="fas fa-graduation-cap"></i>
@@ -59,13 +64,28 @@
                 <i class="fas fa-wallet"></i>
                 <span>My Fees</span>
             </a>
+            <a href="{{ url_for('student_profile') }}" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
         {% endif %}
-        
-        <a href="{{ url_for('logout') }}" class="nav-item">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-        </a>
     </nav>
+
+    <!-- Mobile Full Menu Overlay -->
+    <div id="mobileMenuOverlay" class="mobile-menu-overlay">
+        <div class="mobile-menu-content">
+            <div class="menu-header">
+                <h3>Admin Menu</h3>
+                <button onclick="toggleMobileMenu()">&times;</button>
+            </div>
+            <div class="menu-grid">
+                <a href="{{ url_for('masters') }}"><i class="fas fa-database"></i> Masters</a>
+                <a href="{{ url_for('users') }}"><i class="fas fa-users"></i> Users</a>
+                <a href="{{ url_for('attendance') }}"><i class="fas fa-calendar-check"></i> Attendance</a>
+                <a href="{{ url_for('logout') }}" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </div>
     
     <nav class="sidebar" id="sidebar">
         <div class="logo-container">
@@ -132,5 +152,15 @@
     {% endif %}
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        function toggleMobileMenu() {
+            const overlay = document.getElementById('mobileMenuOverlay');
+            if (overlay.style.display === 'flex') {
+                overlay.style.display = 'none';
+            } else {
+                overlay.style.display = 'flex';
+            }
+        }
+    </script>
 </body>
 </html>
