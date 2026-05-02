@@ -361,16 +361,92 @@ footer {
     opacity: 0.7;
 }
 
-/* Responsive */
+/* Responsive Mobile Overrides */
 @media (max-width: 768px) {
-    .hero { padding-top: 120px; padding-left: 5%; padding-right: 5%; }
-    .hero h1 { font-size: 2.8rem; }
-    .hero h2 { font-size: 1rem; }
-    .hero .tagline { font-size: 1.4rem; }
-    .hero .desc { font-size: 1rem; }
-    .nav-links { display: none; }
-    .contact-container { grid-template-columns: 1fr; }
-    .about-grid { grid-template-columns: 1fr; gap: 2rem; }
-    .features-grid { grid-template-columns: 1fr !important; }
-    section { padding: 3rem 5%; }
+    nav {
+        padding: 0.8rem 15px;
+        height: 60px;
+    }
+
+    .logo img {
+        height: 35px;
+    }
+
+    .logo h1 {
+        font-size: 1.2rem;
+    }
+
+    .logo p {
+        font-size: 0.5rem;
+    }
+
+    .hero {
+        padding-top: 60px; /* Aligned with fixed nav height */
+        padding-bottom: 2rem;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .hero-logo-img {
+        height: 80px;
+        margin-bottom: 1rem;
+        margin-top: 2rem;
+    }
+
+    .hero h1 {
+        font-size: 2.2rem !important; /* Fixed large font issue */
+        padding: 0 10px;
+    }
+
+    .hero h2 {
+        font-size: 0.8rem !important;
+    }
+
+    .hero .tagline {
+        font-size: 1.4rem !important;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero .desc {
+        font-size: 0.95rem !important;
+        padding: 0 15px;
+    }
+
+    .hero .portal-btn {
+        width: 100%;
+        max-width: 300px;
+        margin-bottom: 0.5rem;
+    }
+
+    section {
+        padding: 3rem 15px;
+    }
+
+    .section-title h2 {
+        font-size: 1.8rem;
+    }
+
+    .contact-container {
+        padding: 1.5rem;
+        grid-template-columns: 1fr;
+    }
+
+    .contact-form-container {
+        padding: 1rem !important;
+    }
+
+    .contact-form-container form input, 
+    .contact-form-container form select, 
+    .contact-form-container form textarea {
+        font-size: 0.9rem;
+        padding: 0.8rem;
+    }
+
+    .footer-logo h2 {
+        font-size: 1.2rem;
+    }
+
+    .artistic-marathi {
+        font-size: 1.6rem !important;
+    }
 }
