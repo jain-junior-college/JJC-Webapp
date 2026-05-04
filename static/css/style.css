@@ -296,21 +296,21 @@ tr:hover {
     background: rgba(255,255,255,0.5);
 }
 
+/* Hidden on desktop by default */
+.top-bar, .mobile-bottom-nav, .mobile-menu-overlay {
+    display: none;
+}
+
+/* Global Logo Safety */
+.logo-section img {
+    max-height: 40px;
+    width: auto;
+}
+
 /* Mobile Responsive Redesign */
 @media (max-width: 992px) {
-    /* Hide the sidebar completely on mobile in favor of bottom nav */
-    .sidebar {
-        display: none !important;
-    }
-    
-    .main-content {
-        margin-left: 0 !important;
-        padding: 15px;
-        padding-bottom: 80px; /* Space for bottom nav */
-    }
-
-    /* Fixed Header Optimization */
     .top-bar {
+        display: flex !important;
         position: sticky;
         top: 0;
         z-index: 1000;
@@ -318,7 +318,6 @@ tr:hover {
         backdrop-filter: blur(10px);
         padding: 10px 15px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        display: flex;
         align-items: center;
         justify-content: space-between;
     }
