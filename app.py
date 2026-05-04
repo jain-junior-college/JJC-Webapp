@@ -830,8 +830,15 @@ def early_exit(id):
 @app.route('/students')
 @staff_required
 def student_list():
-    students = Student.query.all()
-    return render_template('students/list.html', students=students)
+    sort_by = request.args.get('sort_by', 'name')
+    
+    query = Student.query
+    if sort_by == 'student_id':
+        students = query.order_by(Student.student_id).all()
+    else:
+        students = query.order_by(Student.name).all()
+        
+    return render_template('students/list.html', students=students, current_sort=sort_by)
 
 # Digital Library Routes
 @app.route('/library')

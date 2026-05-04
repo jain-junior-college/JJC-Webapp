@@ -5,11 +5,20 @@
 
 {% block content %}
 <div class="glass-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h3 style="font-weight: 700;">Enrolled Students</h3>
-        <a href="{{ url_for('enroll') }}" class="btn btn-primary" style="text-decoration: none;">
-            <i class="fas fa-plus"></i> New Student
-        </a>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h3 style="font-weight: 700; margin: 0;">Enrolled Students</h3>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <form method="GET" action="{{ url_for('student_list') }}" id="sortForm" style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.5); padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);">
+                <label for="sort_by" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Sort by:</label>
+                <select name="sort_by" id="sort_by" onchange="this.form.submit()" style="border: none; background: transparent; font-size: 0.85rem; font-weight: 700; color: var(--primary-color); cursor: pointer; outline: none;">
+                    <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Alphabetical</option>
+                    <option value="student_id" {% if current_sort == 'student_id' %}selected{% endif %}>Student ID</option>
+                </select>
+            </form>
+            <a href="{{ url_for('enroll') }}" class="btn btn-primary" style="text-decoration: none; white-space: nowrap;">
+                <i class="fas fa-plus"></i> New Student
+            </a>
+        </div>
     </div>
 
     <div class="table-container">
