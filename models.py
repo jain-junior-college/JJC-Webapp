@@ -211,7 +211,7 @@ class Topper(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     percentage = db.Column(db.String(20), nullable=False)
-    marks = db.Column(db.String(20)) # e.g. 580/600
+    marks = db.Column(db.String(255)) # e.g. 580/600 or subject details
     stream = db.Column(db.String(50), nullable=False)
     rank = db.Column(db.Integer, nullable=False) # 1, 2, or 3
     photo_url = db.Column(db.String(255))

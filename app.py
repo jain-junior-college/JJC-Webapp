@@ -103,7 +103,7 @@ if not IS_BUILD:
                     id SERIAL PRIMARY KEY,
                     name VARCHAR(100) NOT NULL,
                     percentage VARCHAR(20) NOT NULL,
-                    marks VARCHAR(20),
+                    marks VARCHAR(255),
                     stream VARCHAR(50) NOT NULL,
                     rank INTEGER NOT NULL,
                     photo_url VARCHAR(255),
@@ -118,7 +118,9 @@ if not IS_BUILD:
                 BEGIN 
                     IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
                                    WHERE table_name='topper' AND column_name='marks') THEN
-                        ALTER TABLE topper ADD COLUMN marks VARCHAR(20);
+                        ALTER TABLE topper ADD COLUMN marks VARCHAR(255);
+                    ELSE
+                        ALTER TABLE topper ALTER COLUMN marks TYPE VARCHAR(255);
                     END IF;
                 END $$;
             """)
@@ -258,7 +260,8 @@ def sync_db():
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS exit_time VARCHAR(20)",
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS exit_reason VARCHAR(255)",
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS academic_year VARCHAR(20)",
-            "ALTER TABLE topper ADD COLUMN IF NOT EXISTS marks VARCHAR(20)",
+            "ALTER TABLE topper ADD COLUMN IF NOT EXISTS marks VARCHAR(255)",
+            "ALTER TABLE topper ALTER COLUMN marks TYPE VARCHAR(255)",
             "ALTER TABLE timetable ALTER COLUMN teacher_id DROP NOT NULL",
             "ALTER TABLE student ADD COLUMN installments_allowed INTEGER DEFAULT 1",
             "ALTER TABLE student ADD COLUMN caste VARCHAR(50)",
