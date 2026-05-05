@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+
+{% block title %}Manage Hall of Fame{% endblock %}
+{% block header_title %}Hall of Fame Management{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h3 style="font-weight: 700;">HSC Toppers</h3>
+    </div>
+
+    <!-- Add New Topper Form -->
+    <div style="background: rgba(79, 70, 229, 0.05); padding: 1.5rem; border-radius: 15px; margin-bottom: 3rem;">
+        <h4 style="margin-bottom: 1.5rem;">Add New Topper</h4>
+        <form method="POST" enctype="multipart/form-data" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div class="form-group">
+                <label>Student Name</label>
+                <input type="text" name="name" class="form-control" placeholder="e.g. Rahul Patil" required>
+            </div>
+            <div class="form-group">
+                <label>Percentage / Marks</label>
+                <input type="text" name="percentage" class="form-control" placeholder="e.g. 95.6%" required>
+            </div>
+            <div class="form-group">
+                <label>Stream</label>
+                <select name="stream" class="form-control" required>
+                    <option value="Science">Science</option>
+                    <option value="Commerce">Commerce</option>
+                    <option value="Arts">Arts</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Rank (1-3)</label>
+                <select name="rank" class="form-control" required>
+                    <option value="1">1st Rank</option>
+                    <option value="2">2nd Rank</option>
+                    <option value="3">3rd Rank</option>
+                </select>
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Photograph</label>
+                <input type="file" name="photo" class="form-control" accept="image/*" required>
+            </div>
+            <div style="grid-column: 1 / -1;">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Upload & Add to Hall of Fame</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Current Toppers List -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Photo</th>
+                    <th>Name</th>
+                    <th>Score</th>
+                    <th>Stream</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for topper in toppers %}
+                <tr>
+                    <td><span style="font-weight: 800; color: var(--primary-color);">#{{ topper.rank }}</span></td>
+                    <td>
+                        {% if topper.photo_url %}
+                        <img src="{{ topper.photo_url }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color);">
+                        {% else %}
+                        <div style="width: 50px; height: 50px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center;"><i class="fas fa-user"></i></div>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 600;">{{ topper.name }}</td>
+                    <td>{{ topper.percentage }}</td>
+                    <td>{{ topper.stream }}</td>
+                    <td>
+                        <a href="{{ url_for('delete_topper', id=topper.id) }}" class="btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.5rem;" onclick="return confirm('Remove from Hall of Fame?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 3rem;">No toppers added yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -205,3 +205,14 @@ class Enquiry(db.Model):
     course_interest = db.Column(db.String(50))
     message = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Topper(db.Model):
+    __tablename__ = 'topper'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    percentage = db.Column(db.String(20), nullable=False)
+    stream = db.Column(db.String(50), nullable=False)
+    rank = db.Column(db.Integer, nullable=False) # 1, 2, or 3
+    photo_url = db.Column(db.String(255))
+    academic_year = db.Column(db.String(20), default='2023-24')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

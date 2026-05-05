@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee, ScheduledTest, TestMark, TimetableEntry, TestSupervision
+from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee, ScheduledTest, TestMark, TimetableEntry, TestSupervision, Topper
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
 import cloudinary
@@ -94,6 +94,20 @@ if not IS_BUILD:
                     test_id INTEGER NOT NULL REFERENCES scheduled_test(id) ON DELETE CASCADE,
                     student_id INTEGER NOT NULL REFERENCES student(id),
                     marks_obtained FLOAT NOT NULL
+                );
+            """)
+
+            # Create topper table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS topper (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL,
+                    percentage VARCHAR(20) NOT NULL,
+                    stream VARCHAR(50) NOT NULL,
+                    rank INTEGER NOT NULL,
+                    photo_url VARCHAR(255),
+                    academic_year VARCHAR(20) DEFAULT '2023-24',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
 
@@ -284,7 +298,8 @@ def staff_required(f):
 
 @app.route('/')
 def index():
-    return render_template('landing.html')
+    toppers = Topper.query.order_by(Topper.rank.asc()).all()
+    return render_template('landing.html', toppers=toppers)
 
 @app.route('/dashboard')
 @staff_required
@@ -1484,6 +1499,46 @@ def student_fee_receipt(id):
     balance = student.total_fees - total_paid
     
     return render_template('fees/receipt.html', fee=fee, student=student, total_paid=total_paid, balance=balance)
+
+# Topper Management Routes
+@app.route('/admin/toppers', methods=['GET', 'POST'])
+@staff_required
+def manage_toppers():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        percentage = request.form.get('percentage')
+        stream = request.form.get('stream')
+        rank = request.form.get('rank')
+        photo = request.files.get('photo')
+        
+        photo_url = None
+        if photo and photo.filename:
+            upload_result = cloudinary.uploader.upload(photo, folder="college_toppers")
+            photo_url = upload_result['secure_url']
+            
+        new_topper = Topper(
+            name=name,
+            percentage=percentage,
+            stream=stream,
+            rank=int(rank),
+            photo_url=photo_url
+        )
+        db.session.add(new_topper)
+        db.session.commit()
+        flash('Topper added to Hall of Fame!')
+        return redirect(url_for('manage_toppers'))
+        
+    toppers = Topper.query.order_by(Topper.rank.asc()).all()
+    return render_template('admin/manage_toppers.html', toppers=toppers)
+
+@app.route('/admin/toppers/delete/<int:id>')
+@staff_required
+def delete_topper(id):
+    topper = Topper.query.get_or_404(id)
+    db.session.delete(topper)
+    db.session.commit()
+    flash('Topper removed from Hall of Fame.')
+    return redirect(url_for('manage_toppers'))
 
 if __name__ == '__main__':
     # Running on 0.0.0.0 for LAN deployment
