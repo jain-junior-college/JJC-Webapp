@@ -103,12 +103,24 @@ if not IS_BUILD:
                     id SERIAL PRIMARY KEY,
                     name VARCHAR(100) NOT NULL,
                     percentage VARCHAR(20) NOT NULL,
+                    marks VARCHAR(20),
                     stream VARCHAR(50) NOT NULL,
                     rank INTEGER NOT NULL,
                     photo_url VARCHAR(255),
                     academic_year VARCHAR(20) DEFAULT '2023-24',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
+            """)
+
+            # Add marks column if missing
+            cur.execute("""
+                DO $$ 
+                BEGIN 
+                    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                                   WHERE table_name='topper' AND column_name='marks') THEN
+                        ALTER TABLE topper ADD COLUMN marks VARCHAR(20);
+                    END IF;
+                END $$;
             """)
 
             # Create timetable table
@@ -1507,6 +1519,7 @@ def manage_toppers():
     if request.method == 'POST':
         name = request.form.get('name')
         percentage = request.form.get('percentage')
+        marks = request.form.get('marks')
         stream = request.form.get('stream')
         rank = request.form.get('rank')
         photo = request.files.get('photo')
@@ -1519,6 +1532,7 @@ def manage_toppers():
         new_topper = Topper(
             name=name,
             percentage=percentage,
+            marks=marks,
             stream=stream,
             rank=int(rank),
             photo_url=photo_url

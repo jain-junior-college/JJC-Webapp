@@ -18,8 +18,12 @@
                 <input type="text" name="name" class="form-control" placeholder="e.g. Rahul Patil" required>
             </div>
             <div class="form-group">
-                <label>Percentage / Marks</label>
+                <label>Percentage / Score</label>
                 <input type="text" name="percentage" class="form-control" placeholder="e.g. 95.6%" required>
+            </div>
+            <div class="form-group">
+                <label>Marks Obtained</label>
+                <input type="text" name="marks" class="form-control" placeholder="e.g. 580/600">
             </div>
             <div class="form-group">
                 <label>Stream</label>
@@ -55,7 +59,8 @@
                     <th>Rank</th>
                     <th>Photo</th>
                     <th>Name</th>
-                    <th>Score</th>
+                    <th>Percentage</th>
+                    <th>Marks</th>
                     <th>Stream</th>
                     <th>Actions</th>
                 </tr>
@@ -73,6 +78,7 @@
                     </td>
                     <td style="font-weight: 600;">{{ topper.name }}</td>
                     <td>{{ topper.percentage }}</td>
+                    <td>{{ topper.marks }}</td>
                     <td>{{ topper.stream }}</td>
                     <td>
                         <a href="{{ url_for('delete_topper', id=topper.id) }}" class="btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.5rem;" onclick="return confirm('Remove from Hall of Fame?')">
