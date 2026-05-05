@@ -258,6 +258,7 @@ def sync_db():
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS exit_time VARCHAR(20)",
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS exit_reason VARCHAR(255)",
             "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS academic_year VARCHAR(20)",
+            "ALTER TABLE topper ADD COLUMN IF NOT EXISTS marks VARCHAR(20)",
             "ALTER TABLE timetable ALTER COLUMN teacher_id DROP NOT NULL",
             "ALTER TABLE student ADD COLUMN installments_allowed INTEGER DEFAULT 1",
             "ALTER TABLE student ADD COLUMN caste VARCHAR(50)",
@@ -1524,22 +1525,27 @@ def manage_toppers():
         rank = request.form.get('rank')
         photo = request.files.get('photo')
         
-        photo_url = None
-        if photo and photo.filename:
-            upload_result = cloudinary.uploader.upload(photo, folder="college_toppers")
-            photo_url = upload_result['secure_url']
+        try:
+            photo_url = None
+            if photo and photo.filename:
+                upload_result = cloudinary.uploader.upload(photo, folder="college_toppers")
+                photo_url = upload_result['secure_url']
+                
+            new_topper = Topper(
+                name=name,
+                percentage=percentage,
+                marks=marks,
+                stream=stream,
+                rank=int(rank) if rank else 0,
+                photo_url=photo_url
+            )
+            db.session.add(new_topper)
+            db.session.commit()
+            flash('Topper added to Hall of Fame!')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding topper: {str(e)}')
             
-        new_topper = Topper(
-            name=name,
-            percentage=percentage,
-            marks=marks,
-            stream=stream,
-            rank=int(rank),
-            photo_url=photo_url
-        )
-        db.session.add(new_topper)
-        db.session.commit()
-        flash('Topper added to Hall of Fame!')
         return redirect(url_for('manage_toppers'))
         
     toppers = Topper.query.order_by(Topper.rank.asc()).all()
