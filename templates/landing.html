@@ -40,7 +40,11 @@
                 </div>
             </div>
         </div>
-        <ul class="nav-links">
+        <div class="nav-toggle" id="navToggle">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <ul class="nav-links" id="navLinks">
             <li><a href="#home">Home</a></li>
             <li><a href="#about">About</a></li>
             <li><a href="#courses">Courses</a></li>
@@ -48,6 +52,17 @@
             <li><a href="{{ url_for('login') }}" class="portal-btn" style="background: var(--secondary); color: var(--primary) !important;"><i class="fas fa-user-graduate"></i> Student Portal</a></li>
         </ul>
     </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="nav-overlay" id="navOverlay">
+        <ul class="mobile-nav-links">
+            <li><a href="#home" onclick="toggleMenu()">Home</a></li>
+            <li><a href="#about" onclick="toggleMenu()">About</a></li>
+            <li><a href="#courses" onclick="toggleMenu()">Courses</a></li>
+            <li><a href="#contact" onclick="toggleMenu()">Contact</a></li>
+            <li><a href="{{ url_for('login') }}" class="portal-btn" style="margin-top: 1rem; background: var(--secondary); color: var(--primary) !important;"><i class="fas fa-user-graduate"></i> Student Portal</a></li>
+        </ul>
+    </div>
 
     <header id="home" class="hero">
         <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="College Logo" class="hero-logo-img">
@@ -270,6 +285,23 @@
     </footer>
 
     <script>
+        const navToggle = document.getElementById('navToggle');
+        const navOverlay = document.getElementById('navOverlay');
+
+        function toggleMenu() {
+            navOverlay.classList.toggle('active');
+            const icon = navToggle.querySelector('i');
+            if (navOverlay.classList.contains('active')) {
+                icon.classList.replace('fa-bars', 'fa-times');
+                document.body.style.overflow = 'hidden';
+            } else {
+                icon.classList.replace('fa-times', 'fa-bars');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        navToggle.addEventListener('click', toggleMenu);
+
         // Simple reveal on scroll
         window.addEventListener('scroll', () => {
             const nav = document.querySelector('nav');
