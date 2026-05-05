@@ -342,18 +342,25 @@ def login():
             session['role'] = user.role
             return redirect(url_for('dashboard'))
             
-        # 2. Try Student Login (Student table)
-        # Students use their student_id as username and DOB as password
+        flash('Invalid staff credentials.')
+    return render_template('login.html')
+
+@app.route('/student/login', methods=['GET', 'POST'])
+def student_login():
+    if request.method == 'POST':
+        username = request.form['username'] # Student ID
+        password = request.form['password'] # DOB
+        
         student = Student.query.filter_by(student_id=username).first()
         if student and student.dob == password:
             session['user_id'] = student.id
             session['username'] = student.name
             session['role'] = 'student'
-            session['student_db_id'] = student.id # Actual primary key
+            session['student_db_id'] = student.id
             return redirect(url_for('student_dashboard'))
             
-        flash('Invalid credentials. Staff use username/password, students use Student ID/Date of Birth.')
-    return render_template('login.html')
+        flash('Invalid Student ID or Date of Birth. Please try again.')
+    return render_template('student/login.html')
 
 @app.route('/logout')
 def logout():
@@ -1381,7 +1388,7 @@ def get_subject_teacher(subject_id):
 @app.route('/student/dashboard')
 def student_dashboard():
     if 'user_id' not in session or session.get('role') != 'student':
-        return redirect(url_for('login'))
+        return redirect(url_for('student_login'))
         
     student = Student.query.get(session['student_db_id'])
     # Attendance Stats
@@ -1406,7 +1413,7 @@ def student_dashboard():
 @app.route('/student/profile', methods=['GET', 'POST'])
 def student_profile():
     if 'user_id' not in session or session.get('role') != 'student':
-        return redirect(url_for('login'))
+        return redirect(url_for('student_login'))
         
     student = Student.query.get(session['student_db_id'])
     
@@ -1437,7 +1444,7 @@ def student_profile():
 @app.route('/student/library')
 def student_library():
     if 'user_id' not in session or session.get('role') != 'student':
-        return redirect(url_for('login'))
+        return redirect(url_for('student_login'))
         
     student = Student.query.get(session['student_db_id'])
     # Filter resources by class and stream
@@ -1452,7 +1459,7 @@ def student_library():
 @app.route('/student/academics')
 def student_academics():
     if 'user_id' not in session or session.get('role') != 'student':
-        return redirect(url_for('login'))
+        return redirect(url_for('student_login'))
         
     student = Student.query.get(session['student_db_id'])
     test_marks = TestMark.query.filter_by(student_id=student.id).all()
@@ -1477,7 +1484,7 @@ def student_academics():
 @app.route('/student/fees', methods=['GET', 'POST'])
 def student_fees():
     if 'user_id' not in session or session.get('role') != 'student':
-        return redirect(url_for('login'))
+        return redirect(url_for('student_login'))
         
     student = Student.query.get(session['student_db_id'])
     total_paid = sum(f.amount_paid for f in student.fees)
