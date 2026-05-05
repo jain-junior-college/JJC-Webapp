@@ -221,6 +221,12 @@ header {
     color: var(--text-primary);
 }
 
+@media (max-width: 768px) {
+    .stat-value {
+        font-size: 1.5rem;
+    }
+}
+
 /* Forms */
 .form-group {
     margin-bottom: 1.5rem;
@@ -294,6 +300,25 @@ td {
 
 tr:hover {
     background: rgba(255,255,255,0.5);
+}
+
+@media (max-width: 768px) {
+    th, td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .table-container {
+        margin: 0 -1rem; /* Full width on mobile */
+        padding: 0 1rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Make student ID and Name sticky or more compact if needed */
+    td img {
+        width: 30px !important;
+        height: 30px !important;
+    }
 }
 
 /* Hidden on desktop by default */
@@ -455,6 +480,25 @@ tr:hover {
         cursor: pointer;
         box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
     }
+
+    /* Dashboard Grid Stacking */
+    .dashboard-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+    }
+
+    header {
+        margin-bottom: 1.5rem;
+    }
+
+    header h2 {
+        font-size: 1.25rem;
+    }
+
+    header p {
+        font-size: 0.8rem;
+    }
+}
 }
 
 .mobile-nav-toggle {
