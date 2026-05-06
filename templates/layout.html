@@ -43,11 +43,11 @@
         </a>
         
         {% if session.role in ['admin', 'staff'] %}
-            <a href="{{ url_for('enrollments') }}" class="nav-item">
+            <a href="{{ url_for('student_list') }}" class="nav-item">
                 <i class="fas fa-user-plus"></i>
                 <span>Admissions</span>
             </a>
-            <a href="{{ url_for('fees') }}" class="nav-item">
+            <a href="{{ url_for('collect_fees') }}" class="nav-item">
                 <i class="fas fa-rupee-sign"></i>
                 <span>Fees</span>
             </a>
