@@ -92,30 +92,6 @@ body {
         color: var(--primary-blue);
         margin: 0;
     }
-
-    .menu-header button {
-        background: none;
-        border: none;
-        font-size: 2rem;
-        color: var(--text-secondary);
-        cursor: pointer;
-    }
-
-    .menu-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-        padding-bottom: 30px;
-    }
-
-    .menu-grid a {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-decoration: none;
-        color: var(--text-dark);
-        font-size: 0.75rem;
-        padding: 15px 5px;
         background: #f8fafc;
         border-radius: 15px;
         transition: all 0.2s ease;
@@ -302,6 +278,18 @@ tr:hover {
     background: rgba(255,255,255,0.5);
 }
 
+/* Grid Layouts */
+.dashboard-grid, .masters-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.dashboard-grid {
+    grid-template-columns: 1.5fr 1fr;
+}
+
 @media (max-width: 768px) {
     th, td {
         padding: 0.75rem 0.5rem;
@@ -468,6 +456,13 @@ tr:hover {
     
     header .user-profile {
         display: none !important; /* Hide redundant admin label */
+    }
+
+    /* Robust Responsive Grid Overrides */
+    .dashboard-grid, .masters-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+        margin-top: 1.5rem !important;
     }
     
     .user-profile {
