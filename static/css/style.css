@@ -417,6 +417,14 @@ tr:hover {
 
 /* Responsive Design */
 @media (max-width: 992px) {
+    /* Robust Responsive Grid Overrides */
+    .dashboard-grid, .masters-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+        margin-top: 1.5rem !important;
+    }
+
     :root {
         --sidebar-width: 0px;
     }
@@ -458,12 +466,6 @@ tr:hover {
         display: none !important; /* Hide redundant admin label */
     }
 
-    /* Robust Responsive Grid Overrides */
-    .dashboard-grid, .masters-grid {
-        grid-template-columns: 1fr !important;
-        gap: 1.5rem !important;
-        margin-top: 1.5rem !important;
-    }
     
     .user-profile {
         width: 100%;
@@ -498,11 +500,6 @@ tr:hover {
         box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
     }
 
-    /* Dashboard Grid Stacking */
-    .dashboard-grid {
-        grid-template-columns: 1fr !important;
-        gap: 1.5rem !important;
-    }
 
     header {
         margin-bottom: 1.5rem;
@@ -515,7 +512,6 @@ tr:hover {
     header p {
         font-size: 0.8rem;
     }
-}
 }
 
 .mobile-nav-toggle {
