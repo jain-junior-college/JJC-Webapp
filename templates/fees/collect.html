@@ -4,7 +4,19 @@
 {% block header_title %}Fee Management{% endblock %}
 
 {% block content %}
-<div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem;">
+<div class="dashboard-grid">
+    <style>
+        .dashboard-grid {
+            display: grid; 
+            grid-template-columns: 1fr 1.5fr; 
+            gap: 2rem;
+        }
+        @media (max-width: 992px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
     <!-- Fee Collection Form -->
     <div class="glass-card">
         <h3 style="margin-bottom: 2rem; font-weight: 700;">Record Payment</h3>
