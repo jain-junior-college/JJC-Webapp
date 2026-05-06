@@ -37,12 +37,16 @@
 
     <!-- Mobile Bottom Navigation (Role Aware) -->
     <nav class="mobile-bottom-nav">
-        <a href="{{ url_for('dashboard' if session.role in ['admin', 'staff'] else 'student_dashboard') }}" class="nav-item">
+        {% if session.get('role') in ['admin', 'staff'] %}
+            <a href="{{ url_for('dashboard') }}" class="nav-item">
+        {% else %}
+            <a href="{{ url_for('student_dashboard') }}" class="nav-item">
+        {% endif %}
             <i class="fas fa-home"></i>
             <span>Home</span>
         </a>
         
-        {% if session.role in ['admin', 'staff'] %}
+        {% if session.get('role') in ['admin', 'staff'] %}
             <a href="{{ url_for('student_list') }}" class="nav-item">
                 <i class="fas fa-user-plus"></i>
                 <span>Admissions</span>
@@ -97,7 +101,7 @@
             </p>
         </div>
         <ul class="nav-links">
-            {% if session.role == 'student' %}
+            {% if session.get('role') == 'student' %}
                 <li><a href="{{ url_for('student_dashboard') }}" class="{% if request.endpoint == 'student_dashboard' %}active{% endif %}"><i class="fas fa-home"></i> Dashboard</a></li>
                 <li><a href="{{ url_for('student_profile') }}" class="{% if request.endpoint == 'student_profile' %}active{% endif %}"><i class="fas fa-user-circle"></i> My Profile</a></li>
                 <li><a href="{{ url_for('student_library') }}" class="{% if request.endpoint == 'student_library' %}active{% endif %}"><i class="fas fa-book-reader"></i> Digital Library</a></li>
