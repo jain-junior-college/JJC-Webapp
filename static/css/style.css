@@ -345,6 +345,11 @@ tr:hover {
         box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         align-items: center;
         justify-content: space-between;
+        transition: transform 0.3s ease;
+    }
+
+    .top-bar.nav-hidden {
+        transform: translateY(-100%);
     }
 
     .logo-section img {
@@ -371,6 +376,11 @@ tr:hover {
         justify-content: space-around;
         align-items: center;
         padding-bottom: env(safe-area-inset-bottom);
+        transition: transform 0.3s ease;
+    }
+
+    .mobile-bottom-nav.nav-hidden {
+        transform: translateY(100%);
     }
 
     .nav-item {
@@ -446,6 +456,18 @@ tr:hover {
         align-items: flex-start;
         gap: 1rem;
         margin-bottom: 2rem;
+    }
+    
+    header h2 {
+        font-size: 1.2rem !important;
+    }
+    
+    header p {
+        display: none; /* Hide subtitle on mobile to save space */
+    }
+    
+    header .user-profile {
+        display: none !important; /* Hide redundant admin label */
     }
     
     .user-profile {

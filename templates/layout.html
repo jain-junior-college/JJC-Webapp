@@ -168,6 +168,33 @@
                 overlay.style.display = 'flex';
             }
         }
+
+        // Auto-hide Header/Footer on Scroll
+        let lastScroll = 0;
+        const topBar = document.querySelector('.top-bar');
+        const bottomNav = document.querySelector('.mobile-bottom-nav');
+
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            if (window.innerWidth <= 992) {
+                if (currentScroll <= 0) {
+                    topBar.classList.remove('nav-hidden');
+                    bottomNav.classList.remove('nav-hidden');
+                    return;
+                }
+                
+                if (currentScroll > lastScroll && !topBar.classList.contains('nav-hidden')) {
+                    // Scroll Down
+                    topBar.classList.add('nav-hidden');
+                    bottomNav.classList.add('nav-hidden');
+                } else if (currentScroll < lastScroll && topBar.classList.contains('nav-hidden')) {
+                    // Scroll Up
+                    topBar.classList.remove('nav-hidden');
+                    bottomNav.classList.remove('nav-hidden');
+                }
+            }
+            lastScroll = currentScroll;
+        });
     </script>
 </body>
 </html>
