@@ -1511,7 +1511,7 @@ def student_fees():
 @app.route('/student/fees/receipt/<int:id>')
 def student_fee_receipt(id):
     if 'user_id' not in session or session.get('role') != 'student':
-        return redirect(url_for('login'))
+        return redirect(url_for('student_login'))
         
     fee = Fee.query.get_or_404(id)
     if fee.student_id != session['student_db_id']:

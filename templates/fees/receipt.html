@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout.html" if session.get('role') in ['admin', 'staff'] else "student/layout.html" %}
 
 {% block title %}Fee Receipt - {{ student.name }}{% endblock %}
 {% block header_title %}Official Payment Receipt{% endblock %}
@@ -81,8 +81,11 @@
             <p style="border-top: 1px solid #1e293b; padding-top: 0.5rem; font-size: 0.8rem; font-weight: 700;">Authorized Signatory</p>
         </div>
         <div>
+            <a href="{{ url_for('dashboard' if session.get('role') in ['admin', 'staff'] else 'student_fees') }}" class="btn" style="background: #f1f5f9; color: #64748b; margin-right: 1rem; text-decoration: none; padding: 0.8rem 1.5rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem;">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
             <button onclick="window.print()" class="btn btn-primary" id="printBtn">
-                <i class="fas fa-print"></i> Print Receipt
+                <i class="fas fa-print"></i> Print / Save PDF
             </button>
         </div>
     </div>
