@@ -1484,7 +1484,9 @@ def student_academics():
             'status': 'Pass' if tm.marks_obtained >= tm.test.passing_marks else 'Fail'
         })
         
-    return render_template('student/academics.html', student=student, grouped_results=grouped_results)
+    from datetime import datetime
+    current_date = datetime.now().strftime('%d-%m-%Y')
+    return render_template('student/academics.html', grouped_results=grouped_results, student=student, current_date=current_date)
 
 @app.route('/student/fees', methods=['GET', 'POST'])
 def student_fees():
