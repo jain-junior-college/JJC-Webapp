@@ -131,6 +131,7 @@ class Fee(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     amount_paid = db.Column(db.Float, nullable=False)
     payment_date = db.Column(db.DateTime, default=datetime.utcnow)
+    receipt_no = db.Column(db.Integer) # Sequential number per reset
     payment_method = db.Column(db.String(50))
     remarks = db.Column(db.String(200))
 

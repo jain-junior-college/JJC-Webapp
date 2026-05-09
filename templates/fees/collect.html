@@ -67,6 +67,7 @@
             <table class="table">
                 <thead>
                     <tr>
+                        <th>Receipt #</th>
                         <th>Date</th>
                         <th>Student</th>
                         <th>Amount</th>
@@ -77,6 +78,7 @@
                 <tbody>
                     {% for fee in recent_fees %}
                     <tr>
+                        <td style="font-weight: 700;">#{{ fee.receipt_no if fee.receipt_no else fee.id }}</td>
                         <td>{{ fee.payment_date.strftime('%d-%b %H:%M') }}</td>
                         <td style="font-weight: 600;">{{ fee.student.name }}</td>
                         <td style="font-weight: 700; color: #166534;">₹{{ "{:,.2f}".format(fee.amount_paid) }}</td>

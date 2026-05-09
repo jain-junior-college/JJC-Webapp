@@ -12,7 +12,7 @@
             <div>
                 <h1 style="color: #1e3a8a; margin: 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px;">JAIN JUNIOR COLLEGE</h1>
                 <p style="margin: 0.2rem 0 0; color: #b45309; font-size: 0.9rem; font-weight: 700; font-style: italic;">Excellence in Education, Integrity in Character</p>
-                <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.75rem;">Receipt ID: #REC-{{ fee.id }}-{{ student.student_id[-3:] }}</p>
+                <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.75rem;">Receipt ID: #REC-{{ fee.receipt_no if fee.receipt_no else fee.id }}-{{ student.student_id[-3:] }}</p>
             </div>
         </div>
         <div style="text-align: right;">

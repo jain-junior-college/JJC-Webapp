@@ -50,6 +50,8 @@ if not IS_BUILD:
             cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS base_fees FLOAT DEFAULT 0.0;")
             cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS concession FLOAT DEFAULT 0.0;")
             cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS total_fees FLOAT DEFAULT 0.0;")
+            cur.execute("ALTER TABLE fee ADD COLUMN IF NOT EXISTS receipt_no INTEGER;")
+            cur.execute("UPDATE fee SET receipt_no = id WHERE receipt_no IS NULL;")
             
             # Create class_stream_fee table if missing
             cur.execute("""
@@ -938,11 +940,14 @@ def get_subjects_by_stream(stream_id):
 @staff_required
 def collect_fees():
     if request.method == 'POST':
+        # Get next receipt number
+        last_receipt = db.session.query(db.func.max(Fee.receipt_no)).scalar() or 0
         fee = Fee(
             student_id=request.form['student_id'],
             amount_paid=float(request.form['amount']),
             payment_method=request.form['method'],
-            remarks=request.form['remarks']
+            remarks=request.form['remarks'],
+            receipt_no=last_receipt + 1
         )
         db.session.add(fee)
         db.session.commit()
@@ -1495,11 +1500,13 @@ def student_fees():
         # For now, we'll simulate a successful payment
         amount = float(request.form.get('amount'))
         if amount > 0:
+            last_receipt = db.session.query(db.func.max(Fee.receipt_no)).scalar() or 0
             new_fee = Fee(
                 student_id=student.id,
                 amount_paid=amount,
                 payment_method='Online (Simulated)',
-                remarks='Paid via Student Portal'
+                remarks='Paid via Student Portal',
+                receipt_no=last_receipt + 1
             )
             db.session.add(new_fee)
             db.session.commit()
