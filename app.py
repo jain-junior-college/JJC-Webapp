@@ -985,22 +985,10 @@ def fee_report():
     return render_template('fees/report.html', student_data=student_data)
 
 # Academic Routes
-@app.route('/academics', methods=['GET', 'POST'])
+@app.route('/academics')
 @staff_required
 def academic_entry():
-    if request.method == 'POST':
-        exam = Exam(
-            student_id=request.form['student_id'],
-            subject=request.form['subject'],
-            marks_obtained=float(request.form['marks']),
-            total_marks=float(request.form['total_marks']),
-            exam_type=request.form['exam_type']
-        )
-        db.session.add(exam)
-        db.session.commit()
-        flash('Marks entered successfully!')
-    students = Student.query.all()
-    return render_template('academics/enter_marks.html', students=students)
+    return redirect(url_for('test_list'))
 
 @app.route('/report-card/<int:student_id>')
 @staff_required
@@ -1041,6 +1029,56 @@ def report_card(student_id):
         })
         
     return render_template('academics/report_card.html', student=student, grouped_results=grouped_results)
+
+@app.route('/academics/consolidated', methods=['GET'])
+@staff_required
+def consolidated_report():
+    classes = AcademicClass.query.all()
+    streams = Stream.query.all()
+    
+    selected_class_id = request.args.get('class_id', type=int)
+    selected_stream_id = request.args.get('stream_id', type=int)
+    
+    report_data = []
+    subjects = []
+    class_obj = None
+    stream_obj = None
+    
+    if selected_class_id and selected_stream_id:
+        class_obj = AcademicClass.query.get(selected_class_id)
+        stream_obj = Stream.query.get(selected_stream_id)
+        students = Student.query.filter_by(class_id=selected_class_id, stream_id=selected_stream_id).order_by(Student.name).all()
+        subjects = Subject.query.filter_by(stream_id=selected_stream_id).all()
+        
+        for student in students:
+            student_data = {'student': student, 'subjects': {}, 'total_obtained': 0, 'total_max': 0}
+            for sub in subjects:
+                tests = ScheduledTest.query.filter_by(class_id=selected_class_id, stream_id=selected_stream_id, subject_id=sub.id).all()
+                total_obtained = 0
+                total_max = 0
+                for test in tests:
+                    mark = TestMark.query.filter_by(test_id=test.id, student_id=student.id).first()
+                    if mark:
+                        total_obtained += mark.marks_obtained
+                        total_max += test.total_marks
+                        
+                pct = (total_obtained / total_max * 100) if total_max > 0 else 0
+                student_data['subjects'][sub.id] = {
+                    'obtained': total_obtained,
+                    'max': total_max,
+                    'pct': pct
+                }
+                student_data['total_obtained'] += total_obtained
+                student_data['total_max'] += total_max
+                
+            student_data['overall_pct'] = (student_data['total_obtained'] / student_data['total_max'] * 100) if student_data['total_max'] > 0 else 0
+            report_data.append(student_data)
+            
+    return render_template('academics/consolidated.html', classes=classes, streams=streams, 
+                           selected_class_id=selected_class_id, selected_stream_id=selected_stream_id,
+                           class_obj=class_obj, stream_obj=stream_obj,
+                           subjects=subjects, report_data=report_data)
+
 
 # --- Test Scheduler Module ---
 

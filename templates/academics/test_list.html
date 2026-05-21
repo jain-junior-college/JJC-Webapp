@@ -6,9 +6,14 @@
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
     <h3 style="font-weight: 700; color: #1e3a8a;"><i class="fas fa-layer-group"></i> Exam Timetables</h3>
-    <a href="{{ url_for('schedule_test') }}" class="btn btn-primary" style="text-decoration: none;">
-        <i class="fas fa-calendar-plus"></i> Schedule New Test
-    </a>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('consolidated_report') }}" class="btn" style="background: #f1f5f9; color: #475569; text-decoration: none;">
+            <i class="fas fa-file-alt"></i> Consolidated Report
+        </a>
+        <a href="{{ url_for('schedule_test') }}" class="btn btn-primary" style="text-decoration: none;">
+            <i class="fas fa-calendar-plus"></i> Schedule New Test
+        </a>
+    </div>
 </div>
 
 {% if not grouped_tests %}

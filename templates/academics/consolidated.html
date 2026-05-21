@@ -1,0 +1,108 @@
+{% extends "layout.html" %}
+
+{% block title %}Consolidated Report{% endblock %}
+{% block header_title %}Consolidated Academic Report{% endblock %}
+
+{% block content %}
+<div class="glass-card screen-only" style="margin-bottom: 2rem;">
+    <form method="GET" style="display: flex; gap: 1rem; align-items: flex-end;">
+        <div class="form-group" style="flex: 1;">
+            <label>Select Class</label>
+            <select name="class_id" class="form-control" required>
+                <option value="">Choose Class...</option>
+                {% for c in classes %}
+                <option value="{{ c.id }}" {% if selected_class_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="flex: 1;">
+            <label>Select Stream</label>
+            <select name="stream_id" class="form-control" required>
+                <option value="">Choose Stream...</option>
+                {% for s in streams %}
+                <option value="{{ s.id }}" {% if selected_stream_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Generate Report</button>
+        </div>
+    </form>
+</div>
+
+{% if selected_class_id and selected_stream_id %}
+<div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
+    <!-- Print Official Header -->
+    <div class="print-only" style="display: none; padding: 2rem 2rem 0 2rem;">
+        <div style="display: flex; align-items: center; gap: 1.5rem; border-bottom: 3px solid #1e3a8a; padding-bottom: 1.5rem;">
+            <img src="{{ url_for('static', filename='images/logo.jpg') }}" style="width: 80px; height: 80px; object-fit: contain;">
+            <div>
+                <h1 style="color: #1e3a8a; margin: 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px;">JAIN JUNIOR COLLEGE</h1>
+                <p style="margin: 0.2rem 0 0; color: #b45309; font-size: 0.9rem; font-weight: 700; font-style: italic;">Excellence in Education, Integrity in Character</p>
+                <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.9rem; font-weight: 700;">Consolidated Academic Report: {{ class_obj.name }} - {{ stream_obj.name }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div style="background: #f8fafc; padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;" class="screen-only">
+        <h3 style="margin: 0; font-weight: 800; color: #1e3a8a;">{{ class_obj.name }} - {{ stream_obj.name }} Report</h3>
+        <button onclick="window.print()" class="btn btn-primary" style="font-size: 0.8rem;"><i class="fas fa-print"></i> Print Master Sheet</button>
+    </div>
+
+    <div class="table-container" style="padding: 2rem;">
+        {% if subjects %}
+        <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+            <thead>
+                <tr style="background: #1e3a8a; color: white;">
+                    <th style="padding: 1rem; text-align: left; border-radius: 8px 0 0 0;">Student Name</th>
+                    {% for sub in subjects %}
+                    <th style="padding: 1rem; text-align: center;">{{ sub.name }}<br><span style="font-size: 0.7rem; font-weight: 400; opacity: 0.8;">(Avg %)</span></th>
+                    {% endfor %}
+                    <th style="padding: 1rem; text-align: center; border-radius: 0 8px 0 0; background: #b45309;">Overall %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in report_data %}
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 1rem; font-weight: 700; color: #334155;">{{ data.student.name }}</td>
+                    {% for sub in subjects %}
+                    <td style="padding: 1rem; text-align: center; font-weight: 600; color: {% if data.subjects[sub.id].pct >= 35 %}#166534{% else %}#dc2626{% endif %};">
+                        {{ "{:.1f}".format(data.subjects[sub.id].pct) }}%
+                    </td>
+                    {% endfor %}
+                    <td style="padding: 1rem; text-align: center; font-weight: 800; color: #0f172a; background: #fffbeb;">
+                        {{ "{:.1f}".format(data.overall_pct) }}%
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ subjects|length + 2 }}" style="text-align: center; padding: 2rem; color: #64748b;">No students found in this class.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p style="margin-top: 1rem; font-size: 0.8rem; color: #64748b;">* Percentages represent the average marks obtained across all tests conducted to date.</p>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: #64748b;">
+            <i class="fas fa-book-open" style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem; display: block;"></i>
+            No subjects configured for this stream. Please configure subjects first in Subject Master.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<style>
+@media print {
+    @page { size: A4 landscape; margin: 1cm; }
+    body { padding: 0 !important; margin: 0 !important; background: white !important; }
+    .sidebar, .top-bar, .mobile-bottom-nav, header, .screen-only, .btn { display: none !important; }
+    .main-content { padding: 0 !important; margin: 0 !important; }
+    .print-only { display: block !important; }
+    .glass-card { box-shadow: none !important; border: 1px solid #ddd !important; width: 100% !important; margin: 0 !important; }
+    .table-container { padding: 0 !important; margin-top: 1rem !important; }
+    table { font-size: 0.8rem; }
+    th, td { padding: 0.5rem !important; }
+}
+</style>
+{% endblock %}
