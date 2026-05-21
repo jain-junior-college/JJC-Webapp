@@ -20,6 +20,23 @@
     </div>
 
     <form method="POST">
+        <!-- Sort Toggle -->
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem;">
+            <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">Sort By:</span>
+            <a href="?sort=id" style="text-decoration: none;">
+                <span style="padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+                    {% if sort_by == 'id' %}background: #4f46e5; color: white;{% else %}background: #f1f5f9; color: #475569;{% endif %}">
+                    <i class="fas fa-id-badge"></i> Roll No / ID
+                </span>
+            </a>
+            <a href="?sort=name" style="text-decoration: none;">
+                <span style="padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+                    {% if sort_by == 'name' %}background: #4f46e5; color: white;{% else %}background: #f1f5f9; color: #475569;{% endif %}">
+                    <i class="fas fa-sort-alpha-down"></i> Alphabetical
+                </span>
+            </a>
+        </div>
+
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="text-align: left; background: #f8fafc; color: #64748b; font-size: 0.85rem;">

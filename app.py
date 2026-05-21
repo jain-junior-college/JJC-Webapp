@@ -1203,14 +1203,17 @@ def edit_scheduled_test(test_id):
 @staff_required
 def record_test_marks(test_id):
     test = ScheduledTest.query.get_or_404(test_id)
-    students = Student.query.filter_by(class_id=test.class_id, stream_id=test.stream_id).all()
+    sort_by = request.args.get('sort', 'id')  # 'id' or 'name'
+    
+    if sort_by == 'name':
+        students = Student.query.filter_by(class_id=test.class_id, stream_id=test.stream_id).order_by(Student.name).all()
+    else:
+        students = Student.query.filter_by(class_id=test.class_id, stream_id=test.stream_id).order_by(Student.student_id).all()
     
     if request.method == 'POST':
-        # Bulk mark entry
         for student in students:
             marks = request.form.get(f'marks_{student.id}')
             if marks:
-                # Update existing or create new
                 existing = TestMark.query.filter_by(test_id=test_id, student_id=student.id).first()
                 if existing:
                     existing.marks_obtained = float(marks)
@@ -1221,9 +1224,8 @@ def record_test_marks(test_id):
         flash('Marks recorded for the entire class!')
         return redirect(url_for('test_list'))
     
-    # Pre-fetch existing marks for input population
     existing_marks = {m.student_id: m.marks_obtained for m in test.marks}
-    return render_template('academics/record_marks.html', test=test, students=students, existing_marks=existing_marks)
+    return render_template('academics/record_marks.html', test=test, students=students, existing_marks=existing_marks, sort_by=sort_by)
 
 @app.route('/academics/tests/analysis/<int:test_id>')
 @staff_required
