@@ -52,6 +52,24 @@ if not IS_BUILD:
             cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS total_fees FLOAT DEFAULT 0.0;")
             cur.execute("ALTER TABLE fee ADD COLUMN IF NOT EXISTS receipt_no INTEGER;")
             cur.execute("UPDATE fee SET receipt_no = id WHERE receipt_no IS NULL;")
+
+            # CRITICAL: Add stream_id and class_id to student table (required for consolidated report)
+            cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS stream_id INTEGER REFERENCES stream(id);")
+            cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS class_id INTEGER REFERENCES academic_class(id);")
+
+            # Add other missing student fields
+            cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS address TEXT;")
+            cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS guardian_name VARCHAR(100);")
+            cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS caste VARCHAR(50);")
+            cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS mothers_name VARCHAR(100);")
+            cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS age_at_enrollment VARCHAR(50);")
+            cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS installments_allowed INTEGER DEFAULT 1;")
+            cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS photo_url VARCHAR(255);")
+            cur.execute("ALTER TABLE student ADD COLUMN IF NOT EXISTS document_url VARCHAR(255);")
+
+            # Add missing subject columns
+            cur.execute("ALTER TABLE subject ADD COLUMN IF NOT EXISTS stream_id INTEGER REFERENCES stream(id);")
+            cur.execute("ALTER TABLE subject ADD COLUMN IF NOT EXISTS is_compulsory BOOLEAN DEFAULT TRUE;")
             
             # Create class_stream_fee table if missing
             cur.execute("""
