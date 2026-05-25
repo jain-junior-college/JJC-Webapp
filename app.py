@@ -1293,8 +1293,14 @@ def timetable_view():
 def timetable_manage():
     if request.method == 'POST':
         days_to_apply = [request.form['day']]
-        if 'apply_to_all' in request.form:
-            days_to_apply = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        if 'apply_to_all_days' in request.form or 'apply_to_all' in request.form:
+            selected_days = request.form.getlist('applied_days')
+            if selected_days:
+                for day in selected_days:
+                    if day not in days_to_apply:
+                        days_to_apply.append(day)
+            else:
+                days_to_apply = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
         # Handle empty teacher_id for Breaks
         raw_teacher_id = request.form.get('teacher_id')
         teacher_id = int(raw_teacher_id) if raw_teacher_id and raw_teacher_id.strip() else None
@@ -1427,6 +1433,30 @@ def edit_timetable_entry(id):
         entry.teacher_id = int(raw_teacher_id) if raw_teacher_id and raw_teacher_id.strip() else None
         
         db.session.commit()
+
+        # Handle auto-apply to other days
+        if 'apply_to_all_days' in request.form or 'apply_to_all' in request.form:
+            selected_days = request.form.getlist('applied_days')
+            if not selected_days:
+                # default to all other days
+                selected_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+            
+            # Filter out the primary day since the original entry is already updated to that day
+            other_days = [d for d in selected_days if d != entry.day]
+            
+            for day in other_days:
+                new_entry = TimetableEntry(
+                    class_id=entry.class_id,
+                    stream_id=entry.stream_id,
+                    day=day,
+                    start_time=entry.start_time,
+                    end_time=entry.end_time,
+                    subject_id=entry.subject_id,
+                    teacher_id=entry.teacher_id
+                )
+                db.session.add(new_entry)
+            db.session.commit()
+
         flash('Timetable slot updated!')
         return redirect(url_for('timetable_manage'))
         

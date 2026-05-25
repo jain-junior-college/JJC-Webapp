@@ -4,6 +4,48 @@
 {% block header_title %}Edit Slot{% endblock %}
 
 {% block content %}
+<style>
+    .day-chip-label {
+        position: relative;
+        cursor: pointer;
+        user-select: none;
+    }
+    .day-chip-checkbox {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .day-chip {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        border: 1.5px solid rgba(79, 70, 229, 0.2);
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        text-align: center;
+        min-width: 50px;
+    }
+    .day-chip-checkbox:checked + .day-chip {
+        background: var(--primary-color) !important;
+        color: white !important;
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+        transform: translateY(-1px);
+    }
+    .day-chip:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        background: rgba(79, 70, 229, 0.02);
+    }
+    .day-chip-checkbox:checked + .day-chip:hover {
+        color: white !important;
+        background: var(--primary-hover) !important;
+    }
+</style>
 <div class="glass-card" style="max-width: 600px; margin: 0 auto;">
     <h3 style="font-weight: 700; margin-bottom: 2rem;">Modify Timetable Slot</h3>
     
@@ -63,6 +105,30 @@
                 {% endfor %}
             </select>
             <p id="assignment_status" style="font-size: 0.7rem; margin-top: 0.3rem; color: var(--primary-color);"></p>
+        </div>
+
+        <div class="form-group" style="margin-top: 1.5rem; background: rgba(79, 70, 229, 0.05); padding: 1.5rem; border-radius: 12px; border: 1px dashed var(--primary-color);">
+            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer; color: var(--primary-color); font-weight: 800; margin-bottom: 0px;">
+                <input type="checkbox" id="toggle_auto_apply" name="apply_to_all_days" style="width: 22px; height: 22px; accent-color: var(--primary-color);">
+                <i class="fas fa-copy"></i> Auto-Apply this modified slot to other days
+            </label>
+            
+            <div id="auto_apply_days_container" style="display: none; margin-top: 1rem; margin-left: 2.2rem;">
+                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.8rem; font-weight: 600;">Select other days to apply this slot to:</p>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.8rem;">
+                    {% for d in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
+                    <label class="day-chip-label">
+                        <input type="checkbox" name="applied_days" value="{{ d }}" class="day-chip-checkbox">
+                        <span class="day-chip">{{ d[:3] }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <button type="button" id="btn_all_days" class="btn" style="padding: 0.25rem 0.6rem; font-size: 0.7rem; background: rgba(79, 70, 229, 0.1); color: var(--primary-color); border: none; border-radius: 6px;">All Days</button>
+                    <button type="button" id="btn_clear_days" class="btn" style="padding: 0.25rem 0.6rem; font-size: 0.7rem; background: rgba(0,0,0,0.05); color: var(--text-secondary); border: none; border-radius: 6px;">Clear</button>
+                </div>
+            </div>
+            <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem; margin-left: 2.2rem;">This will create duplicate slots with these same details on the selected days.</p>
         </div>
 
         <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
@@ -126,5 +192,38 @@ async function autoAssignTeacher() {
         statusLabel.innerText = "⚠ Error in auto-assignment.";
     }
 }
+
+// Specific days selector functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleAutoApply = document.getElementById('toggle_auto_apply');
+    const autoApplyContainer = document.getElementById('auto_apply_days_container');
+    const btnAllDays = document.getElementById('btn_all_days');
+    const btnClearDays = document.getElementById('btn_clear_days');
+    const checkboxes = document.querySelectorAll('.day-chip-checkbox');
+
+    if (toggleAutoApply && autoApplyContainer) {
+        toggleAutoApply.addEventListener('change', function() {
+            autoApplyContainer.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+
+    if (btnAllDays) {
+        btnAllDays.addEventListener('click', function(e) {
+            e.preventDefault();
+            checkboxes.forEach(cb => {
+                cb.checked = true;
+            });
+        });
+    }
+
+    if (btnClearDays) {
+        btnClearDays.addEventListener('click', function(e) {
+            e.preventDefault();
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+            });
+        });
+    }
+});
 </script>
 {% endblock %}
