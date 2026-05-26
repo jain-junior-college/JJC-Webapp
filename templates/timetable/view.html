@@ -43,7 +43,16 @@
             <div>
                 <h1 style="color: #1e3a8a; margin: 0; font-size: 1.8rem; font-weight: 800;">JAIN JUNIOR COLLEGE</h1>
                 <p style="margin: 0.2rem 0 0; color: #b45309; font-size: 0.9rem; font-weight: 700; font-style: italic;">Excellence in Education, Integrity in Character</p>
-                <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.8rem; font-weight: 600;">Academic Timetable | <span id="academicYearStr"></span></p>
+                <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.8rem; font-weight: 600;">
+                    Academic Timetable | <span id="academicYearStr"></span>
+                    {% if selected_class and selected_stream %}
+                        {% set sel_class_obj = classes | selectattr('id', 'equalto', selected_class) | first %}
+                        {% set sel_stream_obj = streams | selectattr('id', 'equalto', selected_stream) | first %}
+                        {% if sel_class_obj and sel_stream_obj %}
+                            | Class: {{ sel_class_obj.name }} - {{ sel_stream_obj.name }}
+                        {% endif %}
+                    {% endif %}
+                </p>
             </div>
         </div>
     </div>
@@ -51,7 +60,16 @@
     <!-- Screen Header -->
     <div style="background: #f8fafc; padding: 1.5rem 2rem; border-bottom: 2px solid #e2e8f0;" class="screen-header">
         <div class="timetable-screen-header">
-            <h3 style="margin: 0; font-weight: 800; color: #1e3a8a;">Master Weekly Grid</h3>
+            <h3 style="margin: 0; font-weight: 800; color: #1e3a8a;">
+                Master Weekly Grid
+                {% if selected_class and selected_stream %}
+                    {% set sel_class_obj = classes | selectattr('id', 'equalto', selected_class) | first %}
+                    {% set sel_stream_obj = streams | selectattr('id', 'equalto', selected_stream) | first %}
+                    {% if sel_class_obj and sel_stream_obj %}
+                        <span style="color: var(--text-secondary); font-size: 1.1rem; font-weight: 600; margin-left: 0.5rem;">— Class {{ sel_class_obj.name }} ({{ sel_stream_obj.name }})</span>
+                    {% endif %}
+                {% endif %}
+            </h3>
             <div class="timetable-action-btns no-print">
                 <a href="{{ url_for('timetable_delete_all', class_id=selected_class, stream_id=selected_stream) }}" class="btn" style="background: #ef4444; color: white; text-decoration: none; font-size: 0.8rem;" onclick="return confirm('DANGER: This will erase the ENTIRE schedule. Are you sure?')"><i class="fas fa-trash-alt"></i> Clear</a>
                 <a href="{{ url_for('timetable_export_csv', class_id=selected_class, stream_id=selected_stream) }}" class="btn" style="background: #166534; color: white; text-decoration: none; font-size: 0.8rem;"><i class="fas fa-file-excel"></i> Excel</a>
