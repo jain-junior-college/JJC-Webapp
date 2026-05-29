@@ -29,11 +29,19 @@
                 </select>
             </div>
             <div>
+                <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Class</label>
                 <select name="class_id" class="form-control">
                     <option value="">-- All Classes / Select Class --</option>
                     {% for c in classes %}
                     <option value="{{ c.id }}">{{ c.name }}</option>
                     {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Sort By (Daily)</label>
+                <select name="sort_by" class="form-control">
+                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Alphabetical (Name)</option>
+                    <option value="student_id" {% if sort_by == 'student_id' %}selected{% endif %}>Student ID</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary" style="height: 48px;"><i class="fas fa-sync"></i> Update Report</button>

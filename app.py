@@ -834,6 +834,7 @@ def attendance_report():
     date_str = request.args.get('date', datetime.utcnow().strftime('%Y-%m-%d'))
     student_id = request.args.get('student_id')
     class_id = request.args.get('class_id')
+    sort_by = request.args.get('sort_by', 'name')
     
     attendance_date = datetime.strptime(date_str, '%Y-%m-%d').date()
     
@@ -841,7 +842,15 @@ def attendance_report():
     stats = {}
     
     if report_type == 'daily':
-        report_data = Attendance.query.filter_by(date=attendance_date).all()
+        query = Attendance.query.filter_by(date=attendance_date).join(Student)
+        if class_id:
+            query = query.filter(Student.class_id == class_id)
+        
+        if sort_by == 'student_id':
+            report_data = query.order_by(Student.student_id).all()
+        else:
+            report_data = query.order_by(Student.name).all()
+            
         # Calculate Class summary
         if class_id:
             total_students = Student.query.filter_by(class_id=class_id).count()
@@ -873,7 +882,8 @@ def attendance_report():
                           students=students,
                           classes=classes,
                           stats=stats,
-                          date_str=date_str)
+                          date_str=date_str,
+                          sort_by=sort_by)
 
 @app.route('/attendance/early-exit/<int:id>', methods=['POST'])
 @staff_required
@@ -989,7 +999,12 @@ def fee_receipt(id):
 @app.route('/fees/report')
 @staff_required
 def fee_report():
-    students = Student.query.all()
+    sort_by = request.args.get('sort_by', 'name')
+    if sort_by == 'student_id':
+        students = Student.query.order_by(Student.student_id).all()
+    else:
+        students = Student.query.order_by(Student.name).all()
+        
     student_data = []
     for s in students:
         total_paid = sum(f.amount_paid for f in s.fees)
@@ -1000,7 +1015,7 @@ def fee_report():
             'balance': balance,
             'installments': s.installments_allowed
         })
-    return render_template('fees/report.html', student_data=student_data)
+    return render_template('fees/report.html', student_data=student_data, sort_by=sort_by)
 
 # Academic Routes
 @app.route('/academics')
@@ -1056,6 +1071,7 @@ def consolidated_report():
     
     selected_class_id = request.args.get('class_id', type=int)
     selected_stream_id = request.args.get('stream_id', type=int)
+    sort_by = request.args.get('sort_by', 'name')
     
     report_data = []
     subjects = []
@@ -1065,7 +1081,11 @@ def consolidated_report():
     if selected_class_id and selected_stream_id:
         class_obj = AcademicClass.query.get(selected_class_id)
         stream_obj = Stream.query.get(selected_stream_id)
-        students = Student.query.filter_by(class_id=selected_class_id, stream_id=selected_stream_id).order_by(Student.name).all()
+        query = Student.query.filter_by(class_id=selected_class_id, stream_id=selected_stream_id)
+        if sort_by == 'student_id':
+            students = query.order_by(Student.student_id).all()
+        else:
+            students = query.order_by(Student.name).all()
         subjects = Subject.query.filter_by(stream_id=selected_stream_id).all()
         
         for student in students:
@@ -1095,7 +1115,7 @@ def consolidated_report():
     return render_template('academics/consolidated.html', classes=classes, streams=streams, 
                            selected_class_id=selected_class_id, selected_stream_id=selected_stream_id,
                            class_obj=class_obj, stream_obj=stream_obj,
-                           subjects=subjects, report_data=report_data)
+                           subjects=subjects, report_data=report_data, sort_by=sort_by)
 
 
 # --- Test Scheduler Module ---
@@ -1266,10 +1286,16 @@ def test_analysis(test_id):
     stats['min_marks'] = min(obtained_marks) if obtained_marks else 0
     stats['avg_marks'] = (sum(obtained_marks) / len(obtained_marks)) if obtained_marks else 0
     
-    # Sort students by marks desc
-    sorted_marks = sorted(marks, key=lambda x: x.marks_obtained, reverse=True)
-    
-    return render_template('academics/test_analysis.html', test=test, stats=stats, sorted_marks=sorted_marks)
+    sort_by = request.args.get('sort_by', 'rank')
+    # Sort students by selected order
+    if sort_by == 'student_id':
+        sorted_marks = sorted(marks, key=lambda x: x.student.student_id)
+    elif sort_by == 'name':
+        sorted_marks = sorted(marks, key=lambda x: x.student.name.lower())
+    else:
+        sorted_marks = sorted(marks, key=lambda x: x.marks_obtained, reverse=True)
+        
+    return render_template('academics/test_analysis.html', test=test, stats=stats, sorted_marks=sorted_marks, sort_by=sort_by)
 
 # --- Timetable Module ---
 
