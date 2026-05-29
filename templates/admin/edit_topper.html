@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Topper - {{ topper.name }}{% endblock %}
+{% block header_title %}Modify Topper Details{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 600px; margin: 0 auto;">
+    <h3 style="margin-bottom: 2rem; font-weight: 700;">Update Topper</h3>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Student Name</label>
+            <input type="text" name="name" class="form-control" value="{{ topper.name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Percentage / Score</label>
+            <input type="text" name="percentage" class="form-control" value="{{ topper.percentage }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Marks Obtained</label>
+            <input type="text" name="marks" class="form-control" value="{{ topper.marks }}">
+        </div>
+
+        <div class="form-group">
+            <label>Stream</label>
+            <select name="stream" class="form-control" required>
+                <option value="Science" {% if topper.stream == 'Science' %}selected{% endif %}>Science</option>
+                <option value="Commerce" {% if topper.stream == 'Commerce' %}selected{% endif %}>Commerce</option>
+                <option value="Arts" {% if topper.stream == 'Arts' %}selected{% endif %}>Arts</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Rank (1-3)</label>
+            <select name="rank" class="form-control" required>
+                <option value="1" {% if topper.rank == 1 %}selected{% endif %}>1st Rank</option>
+                <option value="2" {% if topper.rank == 2 %}selected{% endif %}>2nd Rank</option>
+                <option value="3" {% if topper.rank == 3 %}selected{% endif %}>3rd Rank</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label style="display: block; margin-bottom: 0.5rem;">Current Photograph</label>
+            <div style="margin-bottom: 1rem;">
+                {% if topper.photo_url %}
+                <img src="{{ topper.photo_url }}" style="width: 100px; height: 100px; border-radius: 12px; object-fit: cover; border: 2px solid var(--primary-color);">
+                {% else %}
+                <div style="width: 100px; height: 100px; border-radius: 12px; background: #eee; display: flex; align-items: center; justify-content: center;"><i class="fas fa-user" style="font-size: 2rem; color: #64748b;"></i></div>
+                {% endif %}
+            </div>
+            <label>Upload New Photograph (Optional)</label>
+            <input type="file" name="photo" class="form-control" accept="image/*">
+        </div>
+
+        <div style="margin-top: 3rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="{{ url_for('manage_toppers') }}" class="btn" style="background: white; border: 1px solid #cbd5e1; color: #1e293b; text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 8px; display: inline-flex; align-items: center;">Cancel</a>
+            <button type="submit" class="btn btn-primary" style="padding: 0.75rem 3rem; border-radius: 8px;">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1693,6 +1693,31 @@ def delete_topper(id):
     flash('Topper removed from Hall of Fame.')
     return redirect(url_for('manage_toppers'))
 
+@app.route('/admin/toppers/edit/<int:id>', methods=['GET', 'POST'])
+@staff_required
+def edit_topper(id):
+    topper = Topper.query.get_or_404(id)
+    if request.method == 'POST':
+        try:
+            topper.name = request.form.get('name')
+            topper.percentage = request.form.get('percentage')
+            topper.marks = request.form.get('marks')
+            topper.stream = request.form.get('stream')
+            topper.rank = int(request.form.get('rank'))
+            
+            photo = request.files.get('photo')
+            if photo and photo.filename:
+                upload_result = cloudinary.uploader.upload(photo, folder="college_toppers")
+                topper.photo_url = upload_result['secure_url']
+                
+            db.session.commit()
+            flash('Topper updated successfully!')
+            return redirect(url_for('manage_toppers'))
+        except Exception as e:
+            flash(f'Error updating topper: {str(e)}')
+            
+    return render_template('admin/edit_topper.html', topper=topper)
+
 if __name__ == '__main__':
     # Running on 0.0.0.0 for LAN deployment
     app.run(host='0.0.0.0', port=5000, debug=True)
