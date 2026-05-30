@@ -3,13 +3,14 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee, ScheduledTest, TestMark, TimetableEntry, TestSupervision, Topper, LogBook
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import cloudinary
 import cloudinary.uploader
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'jjc-dev-secret-key-2024-fallback')
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
 # Ensure upload folder exists
 os.makedirs(os.path.join(app.root_path, 'static/uploads'), exist_ok=True)
 
@@ -201,6 +202,12 @@ def format_time_12hr(time_str):
     except:
         return time_str
 
+# --- Request Lifecycle ---
+@app.before_request
+def make_session_permanent():
+    if 'user_id' in session:
+        session.permanent = True
+
 # --- Context Processors ---
 @app.context_processor
 def inject_now():
@@ -390,6 +397,7 @@ def login():
         # 1. Try Staff Login (User table)
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password_hash, password):
+            session.permanent = True
             session['user_id'] = user.id
             session['username'] = user.username
             session['role'] = user.role
@@ -406,6 +414,7 @@ def student_login():
         
         student = Student.query.filter_by(student_id=username).first()
         if student and student.dob == password:
+            session.permanent = True
             session['user_id'] = student.id
             session['username'] = student.name
             session['role'] = 'student'
