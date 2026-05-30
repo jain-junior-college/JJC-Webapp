@@ -1756,11 +1756,26 @@ def edit_topper(id):
 # ─────────────────────────────────────────────────────────────
 
 def _current_academic_year():
-    """Auto-detect academic year: June onwards = new year (e.g. Jun 2026 → 2026-27)."""
+    """Auto-detect academic year: May onwards = new year (e.g. May 2026 → 2026-27).
+    Also enforces 2026-27 as the minimum academic year, removing previous years."""
     now = datetime.now()
-    if now.month >= 6:
-        return f"{now.year}-{str(now.year + 1)[-2:]}"
-    return f"{now.year - 1}-{str(now.year)[-2:]}"
+    if now.month >= 5:
+        base_year = now.year
+    else:
+        base_year = now.year - 1
+    
+    if base_year < 2026:
+        base_year = 2026
+    return f"{base_year}-{str(base_year + 1)[-2:]}"
+
+def _get_academic_year_options():
+    """Generate list of academic years starting from 2026-27 up to current year."""
+    current_year_str = _current_academic_year()
+    current_base = int(current_year_str.split('-')[0])
+    options = []
+    for y in range(2026, current_base + 1):
+        options.append(f"{y}-{str(y+1)[-2:]}")
+    return options
 
 @app.route('/logbook')
 @staff_required
@@ -1786,13 +1801,8 @@ def logbook_view():
 
     entries = query.order_by(LogBook.date.desc()).all()
 
-    # Build list of available academic years for dropdown (current + 2 past)
-    now = datetime.now()
-    year_options = []
-    base = now.year if now.month >= 6 else now.year - 1
-    for i in range(3):
-        y = base - i
-        year_options.append(f"{y}-{str(y+1)[-2:]}")
+    # Build list of available academic years starting from 2026-27
+    year_options = _get_academic_year_options()
 
     return render_template('logbook/logbook.html',
         entries=entries,
@@ -1811,12 +1821,7 @@ def logbook_add():
     subjects = Subject.query.all()
     teachers = Teacher.query.order_by(Teacher.name).all()
 
-    now = datetime.now()
-    year_options = []
-    base = now.year if now.month >= 6 else now.year - 1
-    for i in range(3):
-        y = base - i
-        year_options.append(f"{y}-{str(y+1)[-2:]}")
+    year_options = _get_academic_year_options()
 
     if request.method == 'POST':
         entry = LogBook(
@@ -1857,12 +1862,7 @@ def logbook_edit(entry_id):
     subjects = Subject.query.all()
     teachers = Teacher.query.order_by(Teacher.name).all()
 
-    now = datetime.now()
-    year_options = []
-    base = now.year if now.month >= 6 else now.year - 1
-    for i in range(3):
-        y = base - i
-        year_options.append(f"{y}-{str(y+1)[-2:]}")
+    year_options = _get_academic_year_options()
 
     if request.method == 'POST':
         entry.class_id        = request.form.get('class_id')
