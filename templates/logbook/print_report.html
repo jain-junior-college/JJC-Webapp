@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Book Report — Jain Junior College</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ── Base Reset ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #fff;
+            color: #111827;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* ── Screen-only wrapper (preview look before printing) ── */
+        @media screen {
+            body { background: #f3f4f6; padding: 2rem; }
+            .print-page {
+                max-width: 900px;
+                margin: 0 auto;
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: 0 4px 32px rgba(0,0,0,0.12);
+                padding: 2.5rem;
+            }
+            .screen-print-btn {
+                display: flex;
+                justify-content: center;
+                gap: 1rem;
+                margin-bottom: 2rem;
+                flex-wrap: wrap;
+            }
+            .btn-print, .btn-back {
+                padding: 0.6rem 1.5rem;
+                border-radius: 9px;
+                font-weight: 700;
+                font-size: 0.9rem;
+                cursor: pointer;
+                border: none;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .btn-print { background: linear-gradient(135deg,#2563eb,#7c3aed); color:#fff; }
+            .btn-back  { background: #f3f4f6; color:#374151; border:1px solid #d1d5db; }
+        }
+        @media print {
+            .screen-print-btn { display: none; }
+            .print-page { padding: 0; }
+            body { background: #fff; padding: 0; }
+        }
+
+        /* ── Report Header ── */
+        .rpt-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            border-bottom: 3px solid #1e3a5f;
+            padding-bottom: 1rem;
+            margin-bottom: 1.25rem;
+            gap: 1rem;
+        }
+        .rpt-college-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #1e3a5f;
+            letter-spacing: -0.02em;
+        }
+        .rpt-college-sub {
+            font-size: 0.78rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+        .rpt-type-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+        .badge-daily   { background: #dbeafe; color: #1d4ed8; }
+        .badge-monthly { background: #ede9fe; color: #6d28d9; }
+        .badge-yearly  { background: #d1fae5; color: #065f46; }
+
+        /* ── Meta Info Bar ── */
+        .rpt-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 2rem;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .rpt-meta-item { display: flex; flex-direction: column; }
+        .rpt-meta-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: #9ca3af;
+        }
+        .rpt-meta-value { font-weight: 700; color: #111827; font-size: 0.9rem; }
+
+        /* ── Table ── */
+        .rpt-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            page-break-inside: auto;
+        }
+        .rpt-table thead tr {
+            background: #1e3a5f;
+            color: #fff;
+        }
+        .rpt-table th {
+            padding: 0.65rem 0.85rem;
+            text-align: left;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .rpt-table td {
+            padding: 0.6rem 0.85rem;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+        .rpt-table tbody tr:nth-child(even) { background: #f9fafb; }
+        .rpt-table tbody tr { page-break-inside: avoid; }
+        .rpt-table tbody tr:last-child td { border-bottom: none; }
+
+        .no-entries {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+
+        /* ── Subject Group Heading ── */
+        .subject-heading {
+            background: linear-gradient(90deg, #dbeafe, #ede9fe);
+            font-weight: 700;
+            color: #1e3a5f;
+            padding: 0.5rem 0.85rem;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Footer ── */
+        .rpt-footer {
+            margin-top: 2rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        .rpt-footer .sign-box {
+            text-align: center;
+        }
+        .rpt-footer .sign-line {
+            width: 160px;
+            border-top: 1px solid #374151;
+            margin: 2rem auto 0.3rem;
+        }
+
+        @media print {
+            .rpt-table { font-size: 11px; }
+            .rpt-table th, .rpt-table td { padding: 5px 7px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Screen-only print button -->
+    <div class="screen-print-btn">
+        <a href="{{ url_for('logbook_view') }}" class="btn-back">
+            ← Back to Log Book
+        </a>
+        <button class="btn-print" onclick="window.print()">
+            🖨️ Print / Save as PDF
+        </button>
+    </div>
+
+    <div class="print-page">
+        <!-- Header -->
+        <div class="rpt-header">
+            <div>
+                <div class="rpt-college-name">Jain Junior College</div>
+                <div class="rpt-college-sub">Log Book Report — Subject-wise Daily Topics Record</div>
+            </div>
+            <div style="text-align:right;">
+                <span class="rpt-type-badge badge-{{ report_type }}">
+                    {% if report_type == 'daily' %}Daily Report
+                    {% elif report_type == 'monthly' %}Monthly Report
+                    {% else %}Yearly Report{% endif %}
+                </span>
+                <div style="font-size:0.75rem; color:#6b7280; margin-top:6px;">
+                    Generated: {{ now.strftime('%d %b %Y, %I:%M %p') if now else '' }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Meta info -->
+        <div class="rpt-meta">
+            <div class="rpt-meta-item">
+                <span class="rpt-meta-label">Academic Year</span>
+                <span class="rpt-meta-value">{{ academic_year }}</span>
+            </div>
+            {% if class_obj %}
+            <div class="rpt-meta-item">
+                <span class="rpt-meta-label">Class</span>
+                <span class="rpt-meta-value">{{ class_obj.name }}</span>
+            </div>
+            {% endif %}
+            {% if stream_obj %}
+            <div class="rpt-meta-item">
+                <span class="rpt-meta-label">Stream</span>
+                <span class="rpt-meta-value">{{ stream_obj.name }}</span>
+            </div>
+            {% endif %}
+            {% if subject_obj %}
+            <div class="rpt-meta-item">
+                <span class="rpt-meta-label">Subject</span>
+                <span class="rpt-meta-value">{{ subject_obj.name }}</span>
+            </div>
+            {% endif %}
+            {% if report_type == 'daily' %}
+            <div class="rpt-meta-item">
+                <span class="rpt-meta-label">Date</span>
+                <span class="rpt-meta-value">{{ date_str }}</span>
+            </div>
+            {% elif report_type == 'monthly' and month_name %}
+            <div class="rpt-meta-item">
+                <span class="rpt-meta-label">Month</span>
+                <span class="rpt-meta-value">{{ month_name }}</span>
+            </div>
+            {% endif %}
+            <div class="rpt-meta-item">
+                <span class="rpt-meta-label">Total Entries</span>
+                <span class="rpt-meta-value">{{ entries|length }}</span>
+            </div>
+        </div>
+
+        <!-- Entries Table -->
+        {% if entries %}
+            {% if report_type == 'yearly' and not subject_obj %}
+                {# Group by subject for yearly all-subjects view #}
+                {% set ns = namespace(current_subj=None) %}
+                <table class="rpt-table">
+                    <thead>
+                        <tr>
+                            <th style="width:80px;">Date</th>
+                            <th style="width:70px;">Day</th>
+                            <th style="width:90px;">Class/Stream</th>
+                            <th style="width:100px;">Subject</th>
+                            <th>Topics Covered</th>
+                            <th style="width:100px;">Teacher</th>
+                            <th style="width:130px;">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in entries %}
+                            {% if ns.current_subj != e.subject.name %}
+                                {% set ns.current_subj = e.subject.name %}
+                                <tr>
+                                    <td colspan="7" class="subject-heading">
+                                        📚 {{ e.subject.name }}
+                                    </td>
+                                </tr>
+                            {% endif %}
+                            <tr>
+                                <td style="white-space:nowrap; font-weight:600;">{{ e.date.strftime('%d %b %Y') }}</td>
+                                <td style="color:#6b7280;">{{ e.date.strftime('%a') }}</td>
+                                <td>{{ e.academic_class.name }} / {{ e.stream.name }}</td>
+                                <td>{{ e.subject.name }}</td>
+                                <td>{{ e.topics_covered }}</td>
+                                <td>{{ e.teacher.name if e.teacher else '—' }}</td>
+                                <td style="color:#6b7280;">{{ e.remarks or '—' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                {# Simple list for daily/monthly or filtered yearly #}
+                <table class="rpt-table">
+                    <thead>
+                        <tr>
+                            <th style="width:35px;">#</th>
+                            <th style="width:90px;">Date</th>
+                            <th style="width:60px;">Day</th>
+                            {% if not class_obj %}<th style="width:90px;">Class</th>{% endif %}
+                            {% if not stream_obj %}<th style="width:90px;">Stream</th>{% endif %}
+                            {% if not subject_obj %}<th style="width:100px;">Subject</th>{% endif %}
+                            <th>Topics Covered</th>
+                            <th style="width:100px;">Teacher</th>
+                            <th style="width:130px;">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in entries %}
+                        <tr>
+                            <td style="color:#9ca3af;">{{ loop.index }}</td>
+                            <td style="white-space:nowrap; font-weight:600;">{{ e.date.strftime('%d %b %Y') }}</td>
+                            <td style="color:#6b7280;">{{ e.date.strftime('%a') }}</td>
+                            {% if not class_obj %}<td>{{ e.academic_class.name }}</td>{% endif %}
+                            {% if not stream_obj %}<td>{{ e.stream.name }}</td>{% endif %}
+                            {% if not subject_obj %}<td>{{ e.subject.name }}</td>{% endif %}
+                            <td>{{ e.topics_covered }}</td>
+                            <td>{{ e.teacher.name if e.teacher else '—' }}</td>
+                            <td style="color:#6b7280;">{{ e.remarks or '—' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        {% else %}
+            <div class="no-entries">No log entries found for the selected criteria.</div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="rpt-footer">
+            <div>
+                <div class="sign-box">
+                    <div class="sign-line"></div>
+                    <div>Class Teacher / HOD Signature</div>
+                </div>
+            </div>
+            <div style="text-align:center; align-self:flex-end;">
+                <div style="font-size:0.7rem;">Jain Junior College — Confidential Academic Record</div>
+            </div>
+            <div>
+                <div class="sign-box">
+                    <div class="sign-line"></div>
+                    <div>Principal Signature</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Pass current datetime to Jinja
+    </script>
+</body>
+</html>

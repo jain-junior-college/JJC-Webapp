@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee, ScheduledTest, TestMark, TimetableEntry, TestSupervision, Topper
+from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee, ScheduledTest, TestMark, TimetableEntry, TestSupervision, Topper, LogBook
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
 import cloudinary
@@ -160,6 +160,22 @@ if not IS_BUILD:
             """)
             # Fix existing table if it was created with NOT NULL
             cur.execute("ALTER TABLE timetable ALTER COLUMN teacher_id DROP NOT NULL;")
+
+            # Create log_book table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS log_book (
+                    id SERIAL PRIMARY KEY,
+                    class_id INTEGER NOT NULL REFERENCES academic_class(id),
+                    stream_id INTEGER NOT NULL REFERENCES stream(id),
+                    subject_id INTEGER NOT NULL REFERENCES subject(id),
+                    teacher_id INTEGER REFERENCES teacher(id),
+                    date DATE NOT NULL,
+                    academic_year VARCHAR(20) NOT NULL,
+                    topics_covered TEXT NOT NULL,
+                    remarks TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
             
             conn.commit()
             cur.close()
@@ -185,6 +201,11 @@ def format_time_12hr(time_str):
     except:
         return time_str
 
+# --- Context Processors ---
+@app.context_processor
+def inject_now():
+    """Inject current datetime into all templates."""
+    return {'now': datetime.now()}
 
 # Database Auto-Initialization
 def auto_init_db():
@@ -290,7 +311,19 @@ def sync_db():
             "ALTER TABLE scheduled_test ADD COLUMN IF NOT EXISTS duration VARCHAR(50)",
             "ALTER TABLE scheduled_test ADD COLUMN IF NOT EXISTS start_time VARCHAR(20)",
             "ALTER TABLE scheduled_test ADD COLUMN IF NOT EXISTS end_time VARCHAR(20)",
-            "CREATE TABLE IF NOT EXISTS test_supervision (id SERIAL PRIMARY KEY, test_id INTEGER REFERENCES scheduled_test(id), supervisor_name VARCHAR(100), start_time VARCHAR(20), end_time VARCHAR(20))"
+            "CREATE TABLE IF NOT EXISTS test_supervision (id SERIAL PRIMARY KEY, test_id INTEGER REFERENCES scheduled_test(id), supervisor_name VARCHAR(100), start_time VARCHAR(20), end_time VARCHAR(20))",
+            """CREATE TABLE IF NOT EXISTS log_book (
+                id SERIAL PRIMARY KEY,
+                class_id INTEGER NOT NULL REFERENCES academic_class(id),
+                stream_id INTEGER NOT NULL REFERENCES stream(id),
+                subject_id INTEGER NOT NULL REFERENCES subject(id),
+                teacher_id INTEGER REFERENCES teacher(id),
+                date DATE NOT NULL,
+                academic_year VARCHAR(20) NOT NULL,
+                topics_covered TEXT NOT NULL,
+                remarks TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )"""
         ]
         
         for q in queries:
@@ -1717,6 +1750,203 @@ def edit_topper(id):
             flash(f'Error updating topper: {str(e)}')
             
     return render_template('admin/edit_topper.html', topper=topper)
+
+# ─────────────────────────────────────────────────────────────
+# LOG BOOK ROUTES
+# ─────────────────────────────────────────────────────────────
+
+def _current_academic_year():
+    """Auto-detect academic year: June onwards = new year (e.g. Jun 2026 → 2026-27)."""
+    now = datetime.now()
+    if now.month >= 6:
+        return f"{now.year}-{str(now.year + 1)[-2:]}"
+    return f"{now.year - 1}-{str(now.year)[-2:]}"
+
+@app.route('/logbook')
+@staff_required
+def logbook_view():
+    classes  = AcademicClass.query.all()
+    streams  = Stream.query.all()
+    subjects = Subject.query.all()
+    teachers = Teacher.query.order_by(Teacher.name).all()
+
+    # Filters
+    sel_class    = request.args.get('class_id', type=int)
+    sel_stream   = request.args.get('stream_id', type=int)
+    sel_subject  = request.args.get('subject_id', type=int)
+    sel_year     = request.args.get('academic_year', _current_academic_year())
+    sel_month    = request.args.get('month', type=int)
+
+    query = LogBook.query.filter_by(academic_year=sel_year)
+    if sel_class:   query = query.filter_by(class_id=sel_class)
+    if sel_stream:  query = query.filter_by(stream_id=sel_stream)
+    if sel_subject: query = query.filter_by(subject_id=sel_subject)
+    if sel_month:
+        query = query.filter(db.extract('month', LogBook.date) == sel_month)
+
+    entries = query.order_by(LogBook.date.desc()).all()
+
+    # Build list of available academic years for dropdown (current + 2 past)
+    now = datetime.now()
+    year_options = []
+    base = now.year if now.month >= 6 else now.year - 1
+    for i in range(3):
+        y = base - i
+        year_options.append(f"{y}-{str(y+1)[-2:]}")
+
+    return render_template('logbook/logbook.html',
+        entries=entries,
+        classes=classes, streams=streams, subjects=subjects, teachers=teachers,
+        sel_class=sel_class, sel_stream=sel_stream, sel_subject=sel_subject,
+        sel_year=sel_year, sel_month=sel_month,
+        year_options=year_options,
+        current_year=_current_academic_year()
+    )
+
+@app.route('/logbook/add', methods=['GET', 'POST'])
+@staff_required
+def logbook_add():
+    classes  = AcademicClass.query.all()
+    streams  = Stream.query.all()
+    subjects = Subject.query.all()
+    teachers = Teacher.query.order_by(Teacher.name).all()
+
+    now = datetime.now()
+    year_options = []
+    base = now.year if now.month >= 6 else now.year - 1
+    for i in range(3):
+        y = base - i
+        year_options.append(f"{y}-{str(y+1)[-2:]}")
+
+    if request.method == 'POST':
+        entry = LogBook(
+            class_id       = request.form.get('class_id'),
+            stream_id      = request.form.get('stream_id'),
+            subject_id     = request.form.get('subject_id'),
+            teacher_id     = request.form.get('teacher_id') or None,
+            date           = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date(),
+            academic_year  = request.form.get('academic_year', _current_academic_year()),
+            topics_covered = request.form.get('topics_covered', '').strip(),
+            remarks        = request.form.get('remarks', '').strip() or None,
+        )
+        db.session.add(entry)
+        db.session.commit()
+        flash('Log book entry added successfully!', 'success')
+        return redirect(url_for('logbook_view',
+            class_id=entry.class_id, stream_id=entry.stream_id,
+            academic_year=entry.academic_year))
+
+    prefill = {
+        'class_id':      request.args.get('class_id', ''),
+        'stream_id':     request.args.get('stream_id', ''),
+        'subject_id':    request.args.get('subject_id', ''),
+        'academic_year': request.args.get('academic_year', _current_academic_year()),
+        'date':          datetime.now().strftime('%Y-%m-%d'),
+    }
+    return render_template('logbook/add_entry.html',
+        classes=classes, streams=streams, subjects=subjects, teachers=teachers,
+        year_options=year_options, prefill=prefill, edit_mode=False
+    )
+
+@app.route('/logbook/edit/<int:entry_id>', methods=['GET', 'POST'])
+@staff_required
+def logbook_edit(entry_id):
+    entry    = LogBook.query.get_or_404(entry_id)
+    classes  = AcademicClass.query.all()
+    streams  = Stream.query.all()
+    subjects = Subject.query.all()
+    teachers = Teacher.query.order_by(Teacher.name).all()
+
+    now = datetime.now()
+    year_options = []
+    base = now.year if now.month >= 6 else now.year - 1
+    for i in range(3):
+        y = base - i
+        year_options.append(f"{y}-{str(y+1)[-2:]}")
+
+    if request.method == 'POST':
+        entry.class_id        = request.form.get('class_id')
+        entry.stream_id       = request.form.get('stream_id')
+        entry.subject_id      = request.form.get('subject_id')
+        entry.teacher_id      = request.form.get('teacher_id') or None
+        entry.date            = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
+        entry.academic_year   = request.form.get('academic_year', _current_academic_year())
+        entry.topics_covered  = request.form.get('topics_covered', '').strip()
+        entry.remarks         = request.form.get('remarks', '').strip() or None
+        db.session.commit()
+        flash('Log book entry updated!', 'success')
+        return redirect(url_for('logbook_view',
+            class_id=entry.class_id, stream_id=entry.stream_id,
+            academic_year=entry.academic_year))
+
+    prefill = {
+        'class_id':      entry.class_id,
+        'stream_id':     entry.stream_id,
+        'subject_id':    entry.subject_id,
+        'teacher_id':    entry.teacher_id,
+        'academic_year': entry.academic_year,
+        'date':          entry.date.strftime('%Y-%m-%d'),
+        'topics_covered': entry.topics_covered,
+        'remarks':       entry.remarks or '',
+    }
+    return render_template('logbook/add_entry.html',
+        classes=classes, streams=streams, subjects=subjects, teachers=teachers,
+        year_options=year_options, prefill=prefill, edit_mode=True, entry=entry
+    )
+
+@app.route('/logbook/delete/<int:entry_id>', methods=['POST'])
+@staff_required
+def logbook_delete(entry_id):
+    entry = LogBook.query.get_or_404(entry_id)
+    db.session.delete(entry)
+    db.session.commit()
+    flash('Log book entry deleted.', 'success')
+    return redirect(request.referrer or url_for('logbook_view'))
+
+@app.route('/logbook/print')
+@staff_required
+def logbook_print():
+    report_type  = request.args.get('type', 'daily')   # daily | monthly | yearly
+    sel_class    = request.args.get('class_id', type=int)
+    sel_stream   = request.args.get('stream_id', type=int)
+    sel_subject  = request.args.get('subject_id', type=int)
+    sel_year     = request.args.get('academic_year', _current_academic_year())
+    date_str     = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+    sel_month    = request.args.get('month', type=int)
+
+    query = LogBook.query.filter_by(academic_year=sel_year)
+    if sel_class:   query = query.filter_by(class_id=sel_class)
+    if sel_stream:  query = query.filter_by(stream_id=sel_stream)
+    if sel_subject: query = query.filter_by(subject_id=sel_subject)
+
+    if report_type == 'daily':
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        query = query.filter(LogBook.date == target_date)
+    elif report_type == 'monthly' and sel_month:
+        query = query.filter(db.extract('month', LogBook.date) == sel_month)
+
+    entries = query.order_by(LogBook.date.asc(), LogBook.subject_id.asc()).all()
+
+    class_obj   = AcademicClass.query.get(sel_class)  if sel_class   else None
+    stream_obj  = Stream.query.get(sel_stream)         if sel_stream  else None
+    subject_obj = Subject.query.get(sel_subject)       if sel_subject else None
+
+    month_name = ''
+    if sel_month:
+        import calendar
+        month_name = calendar.month_name[sel_month]
+
+    return render_template('logbook/print_report.html',
+        entries=entries,
+        report_type=report_type,
+        class_obj=class_obj,
+        stream_obj=stream_obj,
+        subject_obj=subject_obj,
+        academic_year=sel_year,
+        date_str=date_str,
+        month_name=month_name,
+    )
+
 
 if __name__ == '__main__':
     # Running on 0.0.0.0 for LAN deployment

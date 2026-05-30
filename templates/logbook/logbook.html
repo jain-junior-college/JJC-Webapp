@@ -1,0 +1,290 @@
+{% extends "layout.html" %}
+{% block title %}Log Book{% endblock %}
+{% block header_title %}📖 Yearly Log Book{% endblock %}
+
+{% block content %}
+<style>
+/* ── Log Book Page Styles ── */
+.lb-hero {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 60%, #7c3aed 100%);
+    border-radius: 18px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    box-shadow: 0 8px 32px rgba(37,99,235,0.25);
+}
+.lb-hero-text h2 { color: #fff; font-size: 1.6rem; font-weight: 800; margin: 0 0 0.25rem; }
+.lb-hero-text p  { color: rgba(255,255,255,0.75); margin: 0; font-size: 0.9rem; }
+.lb-hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+.lb-filter-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.lb-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+}
+.lb-filter-grid select,
+.lb-filter-grid input {
+    width: 100%;
+    padding: 0.55rem 0.85rem;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-family: inherit;
+}
+.lb-filter-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+/* Print buttons row */
+.print-btn-row {
+    display: flex; gap: 0.6rem; flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+.btn-print-daily   { background: linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; }
+.btn-print-monthly { background: linear-gradient(135deg,#8b5cf6,#7c3aed); color:#fff; }
+.btn-print-yearly  { background: linear-gradient(135deg,#10b981,#059669); color:#fff; }
+
+/* Table */
+.lb-table-wrap { overflow-x: auto; border-radius: 14px; }
+.lb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.lb-table thead tr {
+    background: linear-gradient(90deg, #1e3a5f, #2563eb);
+    color: #fff;
+}
+.lb-table th { padding: 0.85rem 1rem; text-align: left; font-weight: 600; white-space: nowrap; }
+.lb-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.lb-table tbody tr:hover { background: rgba(37,99,235,0.04); }
+.lb-table tbody tr:last-child td { border-bottom: none; }
+
+.topics-cell { max-width: 300px; line-height: 1.5; }
+.badge-subject {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    background: rgba(37,99,235,0.12);
+    color: #2563eb;
+}
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-secondary);
+}
+.empty-state i { font-size: 3rem; margin-bottom: 1rem; display: block; opacity: 0.4; }
+
+/* Action buttons in table */
+.tbl-actions { display: flex; gap: 0.4rem; }
+.btn-xs {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.btn-edit-xs  { background: rgba(37,99,235,0.12); color: #2563eb; }
+.btn-del-xs   { background: rgba(239,68,68,0.10); color: #dc2626; }
+.btn-edit-xs:hover { background: rgba(37,99,235,0.22); }
+.btn-del-xs:hover  { background: rgba(239,68,68,0.20); }
+
+/* Entry count pill */
+.count-pill {
+    background: linear-gradient(135deg,#2563eb,#7c3aed);
+    color:#fff;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-left: 8px;
+}
+</style>
+
+<!-- Hero -->
+<div class="lb-hero">
+    <div class="lb-hero-text">
+        <h2><i class="fas fa-book-open" style="margin-right:8px;"></i>Log Book</h2>
+        <p>Yearly classwise record of topics covered — Academic Year {{ sel_year }}</p>
+    </div>
+    <div class="lb-hero-actions">
+        <a href="{{ url_for('logbook_add', class_id=sel_class or '', stream_id=sel_stream or '', academic_year=sel_year) }}"
+           class="btn btn-primary" id="btn-add-log-entry"
+           style="background:rgba(255,255,255,0.18);border:2px solid rgba(255,255,255,0.5);color:#fff;border-radius:10px;padding:0.55rem 1.2rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:8px;">
+            <i class="fas fa-plus-circle"></i> Add Entry
+        </a>
+    </div>
+</div>
+
+<!-- Filter Card -->
+<div class="lb-filter-card">
+    <form method="GET" action="{{ url_for('logbook_view') }}" id="lb-filter-form">
+        <div class="lb-filter-grid">
+            <select name="academic_year" id="filter-year">
+                {% for y in year_options %}
+                    <option value="{{ y }}" {% if y == sel_year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="class_id" id="filter-class">
+                <option value="">All Classes</option>
+                {% for c in classes %}
+                    <option value="{{ c.id }}" {% if sel_class == c.id %}selected{% endif %}>Class {{ c.name }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="stream_id" id="filter-stream">
+                <option value="">All Streams</option>
+                {% for s in streams %}
+                    <option value="{{ s.id }}" {% if sel_stream == s.id %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="subject_id" id="filter-subject">
+                <option value="">All Subjects</option>
+                {% for s in subjects %}
+                    <option value="{{ s.id }}" {% if sel_subject == s.id %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="month" id="filter-month">
+                <option value="">All Months</option>
+                {% for m in range(1, 13) %}
+                    {% set mnames = ['','January','February','March','April','May','June','July','August','September','October','November','December'] %}
+                    <option value="{{ m }}" {% if sel_month == m %}selected{% endif %}>{{ mnames[m] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="lb-filter-actions">
+            <button type="submit" class="btn btn-primary" id="btn-filter-apply"
+                style="padding:0.5rem 1.3rem;border-radius:9px;border:none;cursor:pointer;font-weight:600;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;">
+                <i class="fas fa-filter"></i> Apply Filter
+            </button>
+            <a href="{{ url_for('logbook_view') }}" class="btn"
+                style="padding:0.5rem 1.3rem;border-radius:9px;border:1px solid var(--border);text-decoration:none;font-weight:600;color:var(--text-secondary);">
+                <i class="fas fa-times"></i> Clear
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Print Buttons -->
+<div class="print-btn-row">
+    <a href="{{ url_for('logbook_print', type='daily',
+        class_id=sel_class or '', stream_id=sel_stream or '', subject_id=sel_subject or '',
+        academic_year=sel_year) }}"
+       target="_blank" id="btn-print-daily"
+       class="btn btn-print-daily"
+       style="padding:0.5rem 1.2rem;border-radius:9px;text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:8px;font-size:0.875rem;">
+        <i class="fas fa-calendar-day"></i> Print — Daily
+    </a>
+    <a href="{{ url_for('logbook_print', type='monthly',
+        class_id=sel_class or '', stream_id=sel_stream or '', subject_id=sel_subject or '',
+        academic_year=sel_year, month=sel_month or '') }}"
+       target="_blank" id="btn-print-monthly"
+       class="btn btn-print-monthly"
+       style="padding:0.5rem 1.2rem;border-radius:9px;text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:8px;font-size:0.875rem;">
+        <i class="fas fa-calendar-alt"></i> Print — Monthly
+    </a>
+    <a href="{{ url_for('logbook_print', type='yearly',
+        class_id=sel_class or '', stream_id=sel_stream or '', subject_id=sel_subject or '',
+        academic_year=sel_year) }}"
+       target="_blank" id="btn-print-yearly"
+       class="btn btn-print-yearly"
+       style="padding:0.5rem 1.2rem;border-radius:9px;text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:8px;font-size:0.875rem;">
+        <i class="fas fa-calendar"></i> Print — Yearly
+    </a>
+</div>
+
+<!-- Entries Table -->
+<div class="glass-card" style="padding: 0; overflow: hidden;">
+    <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+        <h3 style="margin:0; font-weight:700;">
+            Log Entries
+            <span class="count-pill">{{ entries|length }}</span>
+        </h3>
+        <span style="color:var(--text-secondary); font-size:0.85rem;">Academic Year: {{ sel_year }}</span>
+    </div>
+
+    {% if entries %}
+    <div class="lb-table-wrap">
+        <table class="lb-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Class / Stream</th>
+                    <th>Subject</th>
+                    <th>Teacher</th>
+                    <th>Topics Covered</th>
+                    <th>Remarks</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in entries %}
+                <tr>
+                    <td style="color:var(--text-secondary); font-size:0.8rem;">{{ loop.index }}</td>
+                    <td style="white-space:nowrap; font-weight:600;">
+                        {{ e.date.strftime('%d %b %Y') }}
+                        <div style="font-size:0.75rem; color:var(--text-secondary);">{{ e.date.strftime('%A') }}</div>
+                    </td>
+                    <td style="white-space:nowrap;">
+                        <strong>{{ e.academic_class.name }}</strong>
+                        <span style="color:var(--text-secondary);">/ {{ e.stream.name }}</span>
+                    </td>
+                    <td><span class="badge-subject">{{ e.subject.name }}</span></td>
+                    <td style="color:var(--text-secondary);">{{ e.teacher.name if e.teacher else '—' }}</td>
+                    <td class="topics-cell">{{ e.topics_covered }}</td>
+                    <td style="color:var(--text-secondary); font-size:0.85rem; max-width:180px;">{{ e.remarks or '—' }}</td>
+                    <td>
+                        <div class="tbl-actions">
+                            <a href="{{ url_for('logbook_edit', entry_id=e.id) }}"
+                               class="btn-xs btn-edit-xs" id="btn-edit-log-{{ e.id }}">
+                                <i class="fas fa-pencil-alt"></i> Edit
+                            </a>
+                            <form method="POST" action="{{ url_for('logbook_delete', entry_id=e.id) }}"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Delete this log entry?');">
+                                <button type="submit" class="btn-xs btn-del-xs" id="btn-del-log-{{ e.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-book-open"></i>
+        <p style="font-weight:600; margin:0 0 0.5rem;">No entries found</p>
+        <p style="font-size:0.9rem; margin:0 0 1.5rem;">Start recording daily topics for your classes.</p>
+        <a href="{{ url_for('logbook_add') }}" class="btn btn-primary"
+           style="display:inline-flex;align-items:center;gap:8px;padding:0.6rem 1.5rem;border-radius:10px;text-decoration:none;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-weight:700;">
+            <i class="fas fa-plus-circle"></i> Add First Entry
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

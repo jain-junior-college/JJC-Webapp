@@ -218,3 +218,21 @@ class Topper(db.Model):
     photo_url = db.Column(db.String(255))
     academic_year = db.Column(db.String(20), default='2023-24')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class LogBook(db.Model):
+    __tablename__ = 'log_book'
+    id            = db.Column(db.Integer, primary_key=True)
+    class_id      = db.Column(db.Integer, db.ForeignKey('academic_class.id'), nullable=False)
+    stream_id     = db.Column(db.Integer, db.ForeignKey('stream.id'), nullable=False)
+    subject_id    = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    teacher_id    = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=True)
+    date          = db.Column(db.Date, nullable=False)
+    academic_year = db.Column(db.String(20), nullable=False)   # e.g. "2025-26"
+    topics_covered = db.Column(db.Text, nullable=False)
+    remarks       = db.Column(db.Text)
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+
+    academic_class = db.relationship('AcademicClass', backref='log_entries')
+    stream         = db.relationship('Stream', backref='log_entries')
+    subject        = db.relationship('Subject', backref='log_entries')
+    teacher        = db.relationship('Teacher', backref='log_entries')
