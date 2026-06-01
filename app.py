@@ -873,59 +873,113 @@ def mark_attendance():
 @staff_required
 def attendance_report():
     report_type = request.args.get('type', 'daily')
-    date_str = request.args.get('date', datetime.utcnow().strftime('%Y-%m-%d'))
-    student_id = request.args.get('student_id')
-    class_id = request.args.get('class_id')
-    sort_by = request.args.get('sort_by', 'name')
-    
+    date_str    = request.args.get('date', datetime.utcnow().strftime('%Y-%m-%d'))
+    student_id  = request.args.get('student_id')
+    class_id    = request.args.get('class_id')
+    stream_id   = request.args.get('stream_id')
+    sort_by     = request.args.get('sort_by', 'name')
+
     attendance_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    
+
     report_data = []
     stats = {}
-    
+
     if report_type == 'daily':
         query = Attendance.query.filter_by(date=attendance_date).join(Student)
         if class_id:
             query = query.filter(Student.class_id == class_id)
-        
+        if stream_id:
+            query = query.filter(Student.stream_id == stream_id)
+
         if sort_by == 'student_id':
             report_data = query.order_by(Student.student_id).all()
         else:
             report_data = query.order_by(Student.name).all()
-            
-        # Calculate Class summary
+
+        # Class summary stats
         if class_id:
             total_students = Student.query.filter_by(class_id=class_id).count()
-            present_count = Attendance.query.filter_by(date=attendance_date, status='Present').join(Student).filter(Student.class_id == class_id).count()
+            present_count  = Attendance.query.filter_by(date=attendance_date, status='Present') \
+                                .join(Student).filter(Student.class_id == class_id).count()
             stats['class_percentage'] = (present_count / total_students * 100) if total_students > 0 else 0
             stats['present'] = present_count
-            stats['absent'] = total_students - present_count
-    
+            stats['absent']  = total_students - present_count
+
     elif report_type == 'monthly' and student_id:
-        # Calculate monthly percentage
+        # Single-student monthly breakdown
         month = attendance_date.month
-        year = attendance_date.year
+        year  = attendance_date.year
         all_month_attendance = Attendance.query.filter(
             db.extract('month', Attendance.date) == month,
-            db.extract('year', Attendance.date) == year,
+            db.extract('year',  Attendance.date) == year,
             Attendance.student_id == student_id
         ).all()
-        
+
         days_present = sum(1 for a in all_month_attendance if a.status == 'Present')
-        total_days = len(all_month_attendance)
+        total_days   = len(all_month_attendance)
         stats['monthly_percentage'] = (days_present / total_days * 100) if total_days > 0 else 0
         report_data = all_month_attendance
 
+    elif report_type == 'monthly' and class_id:
+        # Monthly summary for ALL students in a class/stream
+        month      = attendance_date.month
+        year       = attendance_date.year
+        month_name = attendance_date.strftime('%B %Y')
+
+        student_query = Student.query.filter_by(class_id=class_id)
+        if stream_id:
+            student_query = student_query.filter_by(stream_id=stream_id)
+            
+        if sort_by == 'student_id':
+            all_students = student_query.order_by(Student.student_id).all()
+        else:
+            all_students = student_query.order_by(Student.name).all()
+
+        monthly_report      = []
+        total_present_all   = 0
+        total_days_all      = 0
+
+        for s in all_students:
+            month_records = Attendance.query.filter(
+                db.extract('month', Attendance.date) == month,
+                db.extract('year',  Attendance.date) == year,
+                Attendance.student_id == s.id
+            ).order_by(Attendance.date).all()
+
+            days_present = sum(1 for a in month_records if a.status == 'Present')
+            days_absent  = sum(1 for a in month_records if a.status == 'Absent')
+            total_days   = len(month_records)
+            pct          = (days_present / total_days * 100) if total_days > 0 else 0
+
+            total_present_all += days_present
+            total_days_all    += total_days
+
+            monthly_report.append({
+                'student':      s,
+                'days_present': days_present,
+                'days_absent':  days_absent,
+                'total_days':   total_days,
+                'percentage':   pct,
+            })
+
+        report_data = monthly_report
+        stats['report_mode']    = 'monthly_all'
+        stats['month_name']     = month_name
+        stats['total_students'] = len(all_students)
+        stats['avg_percentage'] = (total_present_all / total_days_all * 100) if total_days_all > 0 else 0
+
     students = Student.query.all()
-    classes = AcademicClass.query.all()
-    return render_template('attendance/report.html', 
-                          report_data=report_data, 
-                          report_type=report_type,
-                          students=students,
-                          classes=classes,
-                          stats=stats,
-                          date_str=date_str,
-                          sort_by=sort_by)
+    classes  = AcademicClass.query.all()
+    streams  = Stream.query.all()
+    return render_template('attendance/report.html',
+                           report_data=report_data,
+                           report_type=report_type,
+                           students=students,
+                           classes=classes,
+                           streams=streams,
+                           stats=stats,
+                           date_str=date_str,
+                           sort_by=sort_by)
 
 @app.route('/attendance/early-exit/<int:id>', methods=['POST'])
 @staff_required

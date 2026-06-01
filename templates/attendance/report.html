@@ -5,179 +5,511 @@
 
 {% block content %}
 <div class="glass-card">
-    <!-- Filter Panel -->
-    <div style="margin-bottom: 2rem; background: rgba(0,0,0,0.02); padding: 2rem; border-radius: 15px;">
-        <form method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; align-items: flex-end;">
-            <div>
-                <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Report Type</label>
-                <select name="type" class="form-control">
-                    <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>Daily Class Summary</option>
-                    <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>Monthly Student Percentage</option>
-                </select>
-            </div>
-            <div>
-                <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Select Month/Date</label>
-                <input type="date" name="date" class="form-control" value="{{ date_str }}">
-            </div>
-            <div>
-                <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Student / Class</label>
-                <select name="student_id" class="form-control">
-                    <option value="">-- All Students / Select Student --</option>
-                    {% for student in students %}
-                    <option value="{{ student.id }}">{{ student.name }} ({{ student.student_id }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Class</label>
-                <select name="class_id" class="form-control">
-                    <option value="">-- All Classes / Select Class --</option>
-                    {% for c in classes %}
-                    <option value="{{ c.id }}">{{ c.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label style="font-size: 0.8rem; font-weight: 700; color: #475569;">Sort By (Daily)</label>
-                <select name="sort_by" class="form-control">
-                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Alphabetical (Name)</option>
-                    <option value="student_id" {% if sort_by == 'student_id' %}selected{% endif %}>Student ID</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary" style="height: 48px;"><i class="fas fa-sync"></i> Update Report</button>
-        </form>
-    </div>
 
-    <!-- Statistics Cards (Interactive) -->
+    <!-- ══════════════ FILTER PANEL ══════════════ -->
+    <div style="margin-bottom: 2rem; background: rgba(0,0,0,0.02); padding: 1.5rem; border-radius: 15px;">
+        <form method="GET" id="reportForm">
+            <div class="att-filter-grid">
+
+                <div>
+                    <label class="filter-label">Report Type</label>
+                    <select name="type" class="form-control" id="reportTypeSelect" onchange="toggleFields()">
+                        <option value="daily"   {% if report_type == 'daily'   %}selected{% endif %}>📋 Daily Class Register</option>
+                        <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>📅 Monthly Attendance</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="filter-label">Date / Month</label>
+                    <input type="date" name="date" class="form-control" value="{{ date_str }}">
+                </div>
+
+                <div>
+                    <label class="filter-label">Class</label>
+                    <select name="class_id" class="form-control" id="classSelect" onchange="clearStudent()">
+                        <option value="">-- All Classes --</option>
+                        {% for c in classes %}
+                        <option value="{{ c.id }}" {% if request.args.get('class_id')|int == c.id %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if streams %}
+                <div>
+                    <label class="filter-label">Stream</label>
+                    <select name="stream_id" class="form-control">
+                        <option value="">-- All Streams --</option>
+                        {% for s in streams %}
+                        <option value="{{ s.id }}" {% if request.args.get('stream_id')|int == s.id %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <div id="studentField">
+                    <label class="filter-label">Student (optional)</label>
+                    <select name="student_id" class="form-control">
+                        <option value="">-- All Students --</option>
+                        {% for student in students %}
+                        <option value="{{ student.id }}" {% if request.args.get('student_id')|int == student.id %}selected{% endif %}>
+                            {{ student.name }} ({{ student.student_id }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="filter-label">Sort By</label>
+                    <select name="sort_by" class="form-control">
+                        <option value="name"       {% if sort_by == 'name'       %}selected{% endif %}>Alphabetical (Name)</option>
+                        <option value="student_id" {% if sort_by == 'student_id' %}selected{% endif %}>Student ID</option>
+                    </select>
+                </div>
+
+            </div><!-- .att-filter-grid -->
+
+            <div style="display: flex; gap: 0.8rem; margin-top: 1.2rem; flex-wrap: wrap;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; min-width: 140px;">
+                    <i class="fas fa-sync"></i> Generate Report
+                </button>
+                {% if report_data %}
+                <button type="button" onclick="window.print()" class="btn no-print"
+                        style="background: #1e3a8a; color: white; flex: 1; min-width: 140px;">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div><!-- filter panel -->
+
+    <!-- ══════════════ STATS CARDS ══════════════ -->
     {% if stats %}
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="att-stats-grid no-print">
         {% if stats.class_percentage is defined %}
-        <div class="glass-card" style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; text-align: center;">
-            <p style="text-transform: uppercase; font-size: 0.7rem; font-weight: 700; opacity: 0.8;">Class Attendance Rate</p>
-            <h2 style="font-size: 2.5rem; font-weight: 800;">{{ "{:.1f}%".format(stats.class_percentage) }}</h2>
-            <p style="font-size: 0.8rem;">{{ stats.present }} Present / {{ stats.absent }} Absent</p>
+        <div class="att-stat-card" style="background: linear-gradient(135deg, #1e3a8a, #3b82f6);">
+            <p class="att-stat-label">Class Attendance Rate</p>
+            <h2 class="att-stat-value">{{ "{:.1f}%".format(stats.class_percentage) }}</h2>
+            <p class="att-stat-sub">{{ stats.present }} Present / {{ stats.absent }} Absent</p>
         </div>
         {% endif %}
-        
         {% if stats.monthly_percentage is defined %}
-        <div class="glass-card" style="background: linear-gradient(135deg, #b45309, #d97706); color: white; text-align: center;">
-            <p style="text-transform: uppercase; font-size: 0.7rem; font-weight: 700; opacity: 0.8;">Monthly Attendance (Avg)</p>
-            <h2 style="font-size: 2.5rem; font-weight: 800;">{{ "{:.1f}%".format(stats.monthly_percentage) }}</h2>
-            <p style="font-size: 0.8rem;">Individual Performance Record</p>
+        <div class="att-stat-card" style="background: linear-gradient(135deg, #b45309, #d97706);">
+            <p class="att-stat-label">Monthly Attendance</p>
+            <h2 class="att-stat-value">{{ "{:.1f}%".format(stats.monthly_percentage) }}</h2>
+            <p class="att-stat-sub">Individual Performance</p>
+        </div>
+        {% endif %}
+        {% if stats.report_mode == 'monthly_all' %}
+        <div class="att-stat-card" style="background: linear-gradient(135deg, #0f766e, #14b8a6);">
+            <p class="att-stat-label">Class Average — {{ stats.month_name }}</p>
+            <h2 class="att-stat-value">{{ "{:.1f}%".format(stats.avg_percentage) }}</h2>
+            <p class="att-stat-sub">{{ stats.total_students }} Students</p>
         </div>
         {% endif %}
     </div>
     {% endif %}
 
-    <!-- Printable Report Section -->
-    <div id="printableReport" style="background: white; padding: 40px; border: 1px solid #e2e8f0; border-radius: 10px; color: #1e293b;">
-        <!-- Professional Header -->
-        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #1e3a8a; padding-bottom: 20px; margin-bottom: 30px;">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" style="height: 70px;">
+    <!-- ══════════════ PRINTABLE REPORT ══════════════ -->
+    <div id="printableReport">
+
+        <!-- Official Header (always shown; styled differently on screen vs print) -->
+        <div class="report-official-header">
+            <div class="report-header-inner">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="JJC Logo">
                 <div>
-                    <h1 style="color: #1e3a8a; margin: 0; font-size: 1.6rem; font-weight: 800;">JAIN JUNIOR COLLEGE</h1>
-                    <p style="margin: 0; font-size: 0.8rem; font-weight: 700; color: #b45309; font-style: italic;">Excellence in Education, Integrity in Character</p>
+                    <h1>JAIN JUNIOR COLLEGE</h1>
+                    <p class="report-tagline">Excellence in Education, Integrity in Character</p>
                 </div>
             </div>
-            <div style="text-align: right;">
-                <h4 style="margin: 0; color: #1e3a8a;">ATTENDANCE REGISTER</h4>
-                <p style="margin: 0; font-size: 0.75rem; color: #64748b;">Generated: {{ date_str }}</p>
+            <div class="report-header-meta">
+                <strong>
+                    {% if report_type == 'daily' %}DAILY ATTENDANCE REGISTER
+                    {% elif stats.get('report_mode') == 'monthly_all' %}MONTHLY ATTENDANCE SUMMARY
+                    {% else %}ATTENDANCE REPORT
+                    {% endif %}
+                </strong>
+                <span>
+                    {% if stats.get('report_mode') == 'monthly_all' %}{{ stats.month_name }}
+                    {% else %}{{ date_str }}{% endif %}
+                </span>
             </div>
         </div>
 
         {% if report_data %}
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="text-align: left; background: #f8fafc; border-bottom: 2px solid #1e3a8a;">
-                    <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase;">Student / Date</th>
-                    <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase;">ID</th>
-                    <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase; text-align: center;">Status</th>
-                    <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase;">Early Exit Details</th>
-                    <th style="padding: 12px; font-size: 0.8rem; text-transform: uppercase; text-align: right;" class="no-print">Parent Notify</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for log in report_data %}
-                <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 15px; font-weight: 600;">{{ log.student.name if log.student else log.date }}</td>
-                    <td style="padding: 15px; color: #64748b;">{{ log.student.student_id if log.student else '' }}</td>
-                    <td style="padding: 15px; text-align: center;">
-                        <span style="padding: 4px 12px; border-radius: 50px; font-weight: 700; font-size: 0.75rem; 
-                                     background: {% if log.status == 'Present' %}#dcfce7{% else %}#fee2e2{% endif %};
-                                     color: {% if log.status == 'Present' %}#166534{% else %}#991b1b{% endif %};">
-                            {{ log.status }}
-                        </span>
-                    </td>
-                    <td style="padding: 15px; font-size: 0.85rem;">
-                        {% if log.exit_time %}
-                        <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 5px 10px; border-radius: 5px;">
-                            <i class="fas fa-clock" style="color: #b45309;"></i> <strong>{{ log.exit_time }}</strong>: {{ log.exit_reason }}
-                        </div>
-                        {% else %}
-                        <span style="color: #e2e8f0;">-</span>
-                        {% endif %}
-                    </td>
-                    <td style="padding: 15px; text-align: right;" class="no-print">
-                        {% if log.status == 'Absent' and log.student.parent_contact %}
-                        {% set msg = "Dear Parent, this is to inform you that your child " ~ log.student.name ~ " is marked ABSENT today (" ~ date_str ~ ") at Jain Junior College. - Admin JJC" %}
-                        <a href="https://wa.me/{{ log.student.parent_contact }}?text={{ msg | urlencode }}" target="_blank" class="btn" style="background: #25D366; color: white; padding: 0.4rem 0.8rem; font-size: 0.75rem; border-radius: 5px; text-decoration: none;">
-                            <i class="fab fa-whatsapp"></i> Notify
-                        </a>
-                        {% elif log.status == 'Present' %}
-                        <span style="color: #94a3b8; font-size: 0.7rem;">Validated</span>
-                        {% else %}
-                        <span style="color: #ef4444; font-size: 0.7rem;">No Parent No.</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p style="text-align: center; padding: 50px; color: #94a3b8;">No data available for the selected filter.</p>
-        {% endif %}
 
-        <div style="margin-top: 40px; display: flex; justify-content: space-between; border-top: 1px dashed #e2e8f0; padding-top: 20px;">
-            <div style="text-align: center; width: 200px;">
-                <p style="border-top: 1px solid #000; padding-top: 5px; font-size: 0.7rem;">Principal's Seal</p>
-            </div>
-            <div style="text-align: center; width: 200px;">
-                <p style="border-top: 1px solid #000; padding-top: 5px; font-size: 0.7rem;">System Admin Signature</p>
-            </div>
+        {# ── MONTHLY ALL-STUDENTS TABLE ── #}
+        {% if stats.get('report_mode') == 'monthly_all' %}
+
+        <div class="report-subheading">
+            Monthly Report — {{ stats.month_name }} &nbsp;|&nbsp; Sorted by: {{ 'Student ID' if sort_by == 'student_id' else 'Name' }}
         </div>
-    </div>
 
-    <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;" class="no-print">
-        {% if stats.class_percentage is defined %}
-        {% set summary_msg = "Attendance Summary for " ~ date_str ~ ": Total Students: " ~ (stats.present + stats.absent) ~ " | Present: " ~ stats.present ~ " | Absent: " ~ stats.absent ~ " | Attend. Rate: " ~ "{:.1f}%".format(stats.class_percentage) %}
-        <a href="https://wa.me/?text={{ summary_msg | urlencode }}" target="_blank" class="btn" style="background: #25D366; color: white; padding: 1rem 2rem; text-decoration: none; border-radius: 5px; font-weight: 700;">
-            <i class="fab fa-whatsapp"></i> Share Summary
-        </a>
+        <!-- Desktop / wide table -->
+        <div class="table-scroll no-mobile-print">
+            <table class="att-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Student Name</th>
+                        <th>Student ID</th>
+                        <th class="center">Working Days</th>
+                        <th class="center">Present</th>
+                        <th class="center">Absent</th>
+                        <th class="center">Attendance %</th>
+                        <th class="center no-print">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in report_data %}
+                    <tr class="{% if row.percentage < 75 %}low-att{% endif %}">
+                        <td>{{ loop.index }}</td>
+                        <td style="font-weight: 700;">{{ row.student.name }}</td>
+                        <td style="color: #64748b;">{{ row.student.student_id }}</td>
+                        <td class="center">{{ row.total_days }}</td>
+                        <td class="center"><span class="badge-present">{{ row.days_present }}</span></td>
+                        <td class="center"><span class="badge-absent">{{ row.days_absent }}</span></td>
+                        <td class="center">
+                            <span class="pct-pill {% if row.percentage >= 75 %}pct-good{% else %}pct-low{% endif %}">
+                                {{ "{:.1f}%".format(row.percentage) }}
+                            </span>
+                        </td>
+                        <td class="center no-print">
+                            {% if row.percentage >= 75 %}
+                            <span style="color: #166534; font-size: 0.75rem; font-weight: 700;">✔ Regular</span>
+                            {% else %}
+                            <span style="color: #991b1b; font-size: 0.75rem; font-weight: 700;">⚠ Low</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background: #f1f5f9; font-weight: 700;">
+                        <td colspan="3">Class Average</td>
+                        <td colspan="3"></td>
+                        <td class="center">
+                            <span class="pct-pill {% if stats.avg_percentage >= 75 %}pct-good{% else %}pct-low{% endif %}">
+                                {{ "{:.1f}%".format(stats.avg_percentage) }}
+                            </span>
+                        </td>
+                        <td class="no-print"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Mobile card list (shown on screen on mobile; also used when printing from mobile) -->
+        <div class="monthly-mobile-cards">
+            {% for row in report_data %}
+            <div class="monthly-card {% if row.percentage < 75 %}monthly-card-low{% endif %}">
+                <div class="monthly-card-top">
+                    <div>
+                        <div class="monthly-card-name">{{ loop.index }}. {{ row.student.name }}</div>
+                        <div class="monthly-card-id">{{ row.student.student_id }}</div>
+                    </div>
+                    <div class="pct-pill {% if row.percentage >= 75 %}pct-good{% else %}pct-low{% endif %}" style="font-size: 1rem; padding: 6px 14px;">
+                        {{ "{:.1f}%".format(row.percentage) }}
+                    </div>
+                </div>
+                <div class="monthly-card-stats">
+                    <div class="monthly-stat"><span class="ms-label">Working Days</span><span class="ms-val">{{ row.total_days }}</span></div>
+                    <div class="monthly-stat"><span class="ms-label">Present</span><span class="ms-val" style="color: #166534; font-weight: 800;">{{ row.days_present }}</span></div>
+                    <div class="monthly-stat"><span class="ms-label">Absent</span><span class="ms-val" style="color: #991b1b; font-weight: 800;">{{ row.days_absent }}</span></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {# ── DAILY / SINGLE-STUDENT MONTHLY TABLE ── #}
+        {% else %}
+        <div class="table-scroll">
+            <table class="att-table">
+                <thead>
+                    <tr>
+                        <th>Student / Date</th>
+                        <th>ID</th>
+                        <th class="center">Status</th>
+                        <th>Early Exit</th>
+                        <th class="no-print" style="text-align: right;">Notify</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in report_data %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ log.student.name if log.student else log.date }}</td>
+                        <td style="color: #64748b;">{{ log.student.student_id if log.student else '' }}</td>
+                        <td class="center">
+                            <span class="{% if log.status == 'Present' %}badge-present-full{% else %}badge-absent-full{% endif %}">
+                                {{ log.status }}
+                            </span>
+                        </td>
+                        <td style="font-size: 0.85rem;">
+                            {% if log.exit_time %}
+                            <div class="exit-badge">
+                                <i class="fas fa-clock"></i> <strong>{{ log.exit_time }}</strong>: {{ log.exit_reason }}
+                            </div>
+                            {% else %}<span style="color: #e2e8f0;">—</span>{% endif %}
+                        </td>
+                        <td class="no-print" style="text-align: right;">
+                            {% if log.status == 'Absent' and log.student.contact %}
+                            {% set msg = "Dear Parent, your child " ~ log.student.name ~ " is marked ABSENT on " ~ date_str ~ " at Jain Junior College. - Admin JJC" %}
+                            <a href="https://wa.me/{{ log.student.contact }}?text={{ msg | urlencode }}" target="_blank"
+                               class="btn" style="background: #25D366; color: white; padding: 0.35rem 0.8rem; font-size: 0.75rem; border-radius: 5px; text-decoration: none;">
+                                <i class="fab fa-whatsapp"></i> Notify
+                            </a>
+                            {% elif log.status == 'Present' %}
+                            <span style="color: #94a3b8; font-size: 0.7rem;">Validated</span>
+                            {% else %}
+                            <span style="color: #ef4444; font-size: 0.7rem;">No Contact</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% endif %}
-        <button onclick="window.print()" class="btn btn-primary" style="padding: 1rem 3rem;">
-            <i class="fas fa-print"></i> Print Official Report
-        </button>
-    </div>
-</div>
 
+        <!-- Official footer -->
+        <div class="report-footer">
+            <div class="report-sig"><p>Principal's Seal</p></div>
+            <div class="report-sig"><p>System Admin Signature</p></div>
+        </div>
+
+        <!-- WhatsApp share (daily summary) -->
+        {% if stats.class_percentage is defined %}
+        <div class="no-print" style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+            {% set summary_msg = "Attendance Summary " ~ date_str ~ ": Total=" ~ (stats.present + stats.absent) ~ " | Present=" ~ stats.present ~ " | Absent=" ~ stats.absent ~ " | Rate=" ~ "{:.1f}%".format(stats.class_percentage) %}
+            <a href="https://wa.me/?text={{ summary_msg | urlencode }}" target="_blank"
+               class="btn" style="background: #25D366; color: white; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 8px; font-weight: 700;">
+                <i class="fab fa-whatsapp"></i> Share Summary
+            </a>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div style="text-align: center; padding: 4rem; color: #94a3b8;">
+            <i class="fas fa-chart-bar" style="font-size: 3rem; opacity: 0.2; display: block; margin-bottom: 1rem;"></i>
+            <p>No data found. Select filters above and click <strong>Generate Report</strong>.</p>
+        </div>
+        {% endif %}
+
+    </div><!-- #printableReport -->
+
+</div><!-- .glass-card -->
+
+
+<!-- ══════════════ STYLES ══════════════ -->
 <style>
+/* Filter grid */
+.att-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    align-items: flex-end;
+}
+.filter-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 0.3rem;
+}
+
+/* Stats cards */
+.att-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+.att-stat-card {
+    padding: 1.2rem 1.5rem;
+    border-radius: 16px;
+    color: white;
+    text-align: center;
+}
+.att-stat-label { font-size: 0.7rem; font-weight: 700; opacity: 0.85; text-transform: uppercase; margin: 0; }
+.att-stat-value { font-size: 2.2rem; font-weight: 800; margin: 0.3rem 0; }
+.att-stat-sub   { font-size: 0.78rem; opacity: 0.8; margin: 0; }
+
+/* Official report header (screen) */
+.report-official-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid #1e3a8a;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.report-header-inner { display: flex; align-items: center; gap: 16px; }
+.report-header-inner img { height: 60px; }
+.report-header-inner h1 { color: #1e3a8a; margin: 0; font-size: 1.4rem; font-weight: 800; }
+.report-tagline { margin: 0.2rem 0 0; font-size: 0.78rem; font-weight: 700; color: #b45309; font-style: italic; }
+.report-header-meta { text-align: right; }
+.report-header-meta strong { display: block; color: #1e3a8a; font-size: 0.9rem; }
+.report-header-meta span { font-size: 0.75rem; color: #64748b; }
+.report-subheading {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #475569;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Tables */
+.table-scroll { overflow-x: auto; }
+.att-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.att-table th {
+    text-align: left; padding: 10px 12px;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;
+    background: #f8fafc; border-bottom: 2px solid #1e3a8a; color: #334155;
+}
+.att-table td { padding: 11px 12px; border-bottom: 1px solid #f1f5f9; }
+.att-table tr.low-att { background: #fff7f7; }
+.att-table tfoot td { border-top: 2px solid #e2e8f0; border-bottom: none; }
+.center { text-align: center; }
+
+/* Badges & pills */
+.badge-present { background: #dcfce7; color: #166534; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+.badge-absent  { background: #fee2e2; color: #991b1b; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+.badge-present-full { background: #dcfce7; color: #166534; padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+.badge-absent-full  { background: #fee2e2; color: #991b1b; padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+.pct-pill { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.82rem; }
+.pct-good { background: #dcfce7; color: #166534; }
+.pct-low  { background: #fee2e2; color: #991b1b; }
+
+/* Exit badge */
+.exit-badge { background: #fffbeb; border: 1px solid #fde68a; padding: 4px 10px; border-radius: 5px; display: inline-block; }
+
+/* Footer signatures */
+.report-footer {
+    margin-top: 3rem;
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 1.5rem;
+}
+.report-sig { text-align: center; width: 180px; }
+.report-sig p { border-top: 1px solid #000; padding-top: 5px; font-size: 0.7rem; margin: 0; }
+
+/* Monthly mobile cards — hidden on desktop screen, shown on mobile screen */
+.monthly-mobile-cards { display: none; }
+.monthly-card {
+    border: 1px solid #e2e8f0; border-radius: 14px;
+    margin-bottom: 0.8rem; overflow: hidden;
+    background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.monthly-card-low { border-color: #fca5a5; background: #fff7f7; }
+.monthly-card-top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+.monthly-card-name { font-weight: 800; font-size: 0.95rem; color: #0f172a; }
+.monthly-card-id   { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+.monthly-card-stats { display: flex; justify-content: space-around; padding: 0.7rem 1rem; }
+.monthly-stat { display: flex; flex-direction: column; align-items: center; }
+.ms-label { font-size: 0.65rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+.ms-val   { font-size: 1rem; font-weight: 800; color: #0f172a; margin-top: 2px; }
+
+/* ── Mobile screen adjustments ── */
+@media (max-width: 768px) {
+    .no-mobile-print { display: none !important; }
+    .monthly-mobile-cards { display: block; }
+    .att-filter-grid { grid-template-columns: 1fr; }
+    .report-official-header { flex-direction: column; align-items: flex-start; }
+    .report-header-meta { text-align: left; }
+    .report-footer { flex-direction: column; gap: 1.5rem; align-items: flex-start; }
+}
+
+/* ══════════════ PRINT STYLES ══════════════ */
 @media print {
-    @page {
-        size: A4 portrait;
-        margin: 0;
-    }
+    @page { size: A4 portrait; margin: 1.2cm 1cm; }
     body * { visibility: hidden; }
     #printableReport, #printableReport * { visibility: visible; }
-    #printableReport { 
-        position: absolute; 
-        left: 0; 
-        top: 0; 
-        width: 100%; 
-        padding: 1.5cm !important;
-        box-sizing: border-box;
+    #printableReport {
+        position: absolute; left: 0; top: 0; width: 100%;
+        background: white !important; padding: 0.8cm !important;
+        box-sizing: border-box; font-size: 10pt;
     }
-    .sidebar, .btn, header, .glass-card:not(#printableReport), .no-print { display: none !important; }
+    .sidebar, header, .glass-card > .att-stats-grid,
+    .no-print, .att-filter-grid, .glass-card > form,
+    .glass-card > div:first-child { display: none !important; }
+
+    /* Report header in print */
+    .report-official-header {
+        display: flex !important;
+        border-bottom: 2px solid #1e3a8a;
+        padding-bottom: 10px;
+        margin-bottom: 14px;
+    }
+    .report-header-inner img { height: 45px; }
+    .report-header-inner h1 { font-size: 13pt; }
+    .report-tagline { font-size: 7.5pt; }
+    .report-header-meta strong { font-size: 8pt; }
+    .report-header-meta span   { font-size: 7pt; }
+    .report-subheading { font-size: 7.5pt; padding: 4px 8px; margin-bottom: 8px; }
+
+    /* Table print */
+    .att-table { font-size: 8pt; }
+    .att-table th { font-size: 7pt; padding: 5px 7px; }
+    .att-table td { padding: 5px 7px; }
+    .pct-pill { font-size: 7.5pt; padding: 2px 8px; }
+    .badge-present, .badge-absent { font-size: 7pt; padding: 2px 7px; }
+    .badge-present-full, .badge-absent-full { font-size: 7pt; padding: 2px 8px; }
+
+    /* Monthly mobile cards — use for print (compact) */
+    .no-mobile-print { display: none !important; }
+    .monthly-mobile-cards { display: block !important; }
+    .monthly-card {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        border-radius: 6px !important;
+        margin-bottom: 5px !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+    }
+    .monthly-card-top { padding: 5px 8px !important; }
+    .monthly-card-name { font-size: 8.5pt !important; }
+    .monthly-card-id   { font-size: 7pt   !important; }
+    .monthly-card-stats { padding: 4px 8px !important; }
+    .ms-label { font-size: 6.5pt !important; }
+    .ms-val   { font-size: 8.5pt !important; }
+    .pct-pill { font-size: 8pt !important; padding: 2px 8px !important; }
+
+    /* Table row with monthly data on very narrow print */
+    .att-table td:last-child { display: none; }
+
+    /* Footer */
+    .report-footer {
+        margin-top: 1.5rem !important;
+        padding-top: 1rem !important;
+    }
+    .report-sig p { font-size: 7pt !important; }
 }
 </style>
+
+<script>
+function toggleFields() {
+    const type = document.getElementById('reportTypeSelect').value;
+    const studentField = document.getElementById('studentField');
+    // Monthly with class selected: student field becomes optional label
+    if (type === 'monthly') {
+        studentField.querySelector('label').textContent = 'Specific Student (optional)';
+    } else {
+        studentField.querySelector('label').textContent = 'Student (optional)';
+    }
+}
+function clearStudent() {
+    // When class changes, reset student dropdown
+    const sel = document.querySelector('select[name="student_id"]');
+    if (sel) sel.value = '';
+}
+document.addEventListener('DOMContentLoaded', toggleFields);
+</script>
 {% endblock %}
