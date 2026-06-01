@@ -174,30 +174,56 @@
 
 /* ======== PRINT STYLES ======== */
 @media print {
-    /* --- Common print resets --- */
-    body * { visibility: hidden; }
-    #printableGrid, #printableGrid * { visibility: visible; }
-    #printableGrid {
-        position: absolute; left: 0; top: 0; width: 100%;
-        border: none !important; box-shadow: none !important;
+    /* Hide layout chrome and non-printing sections natively */
+    .sidebar, .top-bar, .mobile-bottom-nav, .mobile-menu-overlay,
+    .main-content > header, header, .timetable-filter-form,
+    .timetable-action-btns, .no-print, .screen-header {
+        display: none !important;
+    }
+
+    /* Natural-flow printing resets */
+    body, html {
         background: white !important;
+        color: black !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: auto !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    .glass-card {
+        background: white !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    #printableGrid {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
         padding: 0.5cm !important;
+        border: none !important;
+        box-shadow: none !important;
         box-sizing: border-box;
     }
-    .main-content { padding: 0 !important; margin: 0 !important; }
-    .sidebar, header, .glass-card:first-child, .no-print, .screen-header { display: none !important; }
+
     .print-header { display: block !important; padding: 0 0 0.4rem 0 !important; }
-    .print-header > div { padding-bottom: 0.4rem !important; gap: 0.5rem !important; border-bottom-width: 1px !important; }
+    .print-header > div { padding-bottom: 0.4rem !important; gap: 0.5rem !important; border-bottom: 1px solid #1e3a8a !important; }
     .print-header img { width: 45px !important; height: 45px !important; }
     .print-header h1 { font-size: 1.1rem !important; margin: 0 !important; }
     .print-header p { font-size: 0.65rem !important; margin: 0 !important; }
 
-    /* --- WIDE PRINT (landscape / desktop): show desktop 6-column grid --- */
-    @page wide { size: A4 landscape; margin: 0; }
-
-    /* Default: landscape for desktop printing */
+    /* Default: wide A4 landscape for desktop printing */
     @page { size: A4 landscape; margin: 0; }
-
     .timetable-desktop-grid { display: block !important; }
     .timetable-mobile-view { display: none !important; }
     .timetable-grid { grid-template-columns: repeat(6, 1fr) !important; gap: 0 !important; }
@@ -211,8 +237,8 @@
     .timetable-slot div:nth-child(3) { font-size: 0.55rem !important; }
 }
 
-/* --- MOBILE/NARROW PRINT: portrait card layout --- */
-@media print and (max-width: 600px) {
+/* Portrait print rules for mobile viewports */
+@media print and (max-width: 768px), print and (max-device-width: 768px) {
     @page { size: A4 portrait; margin: 0.5cm; }
     .timetable-desktop-grid { display: none !important; }
     .timetable-mobile-view { display: block !important; padding: 0 !important; }
@@ -239,7 +265,43 @@
         padding: 0.35rem 0.7rem !important;
         font-size: 0.7rem !important;
     }
-    .print-btn { display: none !important; }
+}
+
+/* Force mobile cards in print if body has mobile-device class (via JS user-agent detection) */
+@media print {
+    body.mobile-device {
+        background: white !important;
+    }
+    body.mobile-device #printableGrid {
+        padding: 0 !important;
+    }
+    body.mobile-device .timetable-desktop-grid {
+        display: none !important;
+    }
+    body.mobile-device .timetable-mobile-view {
+        display: block !important;
+        padding: 0 !important;
+    }
+    body.mobile-device .tt-day-card {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        margin-bottom: 0.6rem !important;
+        border-radius: 6px !important;
+        border: 1px solid #1e3a8a !important;
+        box-shadow: none !important;
+    }
+    body.mobile-device .tt-day-header {
+        background: #1e3a8a !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        padding: 0.4rem 0.7rem !important;
+    }
+    body.mobile-device .tt-day-header h4 { font-size: 0.75rem !important; }
+    body.mobile-device .tt-day-header span { font-size: 0.6rem !important; }
+    body.mobile-device .tt-day-card > div > div {
+        padding: 0.35rem 0.7rem !important;
+        font-size: 0.7rem !important;
+    }
 }
 </style>
 
@@ -251,6 +313,11 @@ document.addEventListener("DOMContentLoaded", function() {
     if (d.getMonth() < 3) { year = year - 1; nextYear = (year + 1).toString().slice(-2); }
     const yearElem = document.getElementById("academicYearStr");
     if (yearElem) yearElem.innerText = `Academic Year ${year}-${nextYear}`;
+
+    // Add mobile-device class if user is on mobile to force stacked card layout in print preview
+    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        document.body.classList.add('mobile-device');
+    }
 });
 </script>
 {% endblock %}
