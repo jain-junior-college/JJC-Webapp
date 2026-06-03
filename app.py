@@ -556,12 +556,7 @@ def enroll():
             
             assigned_id = request.form.get('student_id')
             if not assigned_id or assigned_id == "":
-                class_obj = AcademicClass.query.get(class_id)
-                class_name = class_obj.name if class_obj else "XX"
-                year = datetime.now(timezone.utc).year
-                prefix = f"JJC{class_name}{year}"
-                count = Student.query.filter(Student.student_id.like(f"{prefix}%")).count()
-                assigned_id = f"{prefix}{str(count + 1).zfill(3)}"
+                assigned_id = _get_next_student_id(class_id)
 
             new_student = Student(
                 student_id=assigned_id,
@@ -618,16 +613,32 @@ def enroll():
         classes = []
     return render_template('students/enroll.html', streams=streams, classes=classes)
 
+def _get_next_student_id(class_id):
+    class_obj = AcademicClass.query.get(class_id)
+    class_name = class_obj.name if class_obj else "XX"
+    year = datetime.now(timezone.utc).year
+    prefix = f"JJC{class_name}{year}"
+    
+    existing_students = Student.query.filter(Student.student_id.like(f"{prefix}%")).all()
+    max_num = 0
+    for s in existing_students:
+        suffix = s.student_id[len(prefix):]
+        try:
+            val = int(suffix)
+            if val > max_num:
+                max_num = val
+        except ValueError:
+            pass
+            
+    next_num = max_num + 1
+    return f"{prefix}{str(next_num).zfill(3)}"
+
 @app.route('/api/next-student-id')
 @staff_required
 def get_next_student_id():
     class_id = request.args.get('class_id')
-    class_obj = AcademicClass.query.get(class_id)
-    class_name = class_obj.name if class_obj else "XX"
-    year = datetime.utcnow().year
-    prefix = f"JJC{class_name}{year}"
-    count = Student.query.filter(Student.student_id.like(f"{prefix}%")).count()
-    return {"next_id": f"{prefix}{str(count + 1).zfill(3)}"}
+    next_id = _get_next_student_id(class_id)
+    return {"next_id": next_id}
 
 @app.route('/masters', methods=['GET', 'POST'])
 @staff_required
@@ -1091,6 +1102,15 @@ def fee_receipt(id):
     total_paid = sum(f.amount_paid for f in student.fees)
     balance = student.total_fees - total_paid
     return render_template('fees/receipt.html', fee=fee, student=student, total_paid=total_paid, balance=balance)
+
+@app.route('/fees/delete/<int:id>')
+@staff_required
+def delete_fee(id):
+    fee = Fee.query.get_or_404(id)
+    db.session.delete(fee)
+    db.session.commit()
+    flash('Fee payment record deleted successfully!', 'success')
+    return redirect(url_for('collect_fees'))
 
 @app.route('/fees/report')
 @staff_required
