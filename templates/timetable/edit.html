@@ -144,7 +144,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
 window.onload = function() {
-    handleSubjectChange();
+    handleSubjectChange(true);
     flatpickr(".timepicker", {
         enableTime: true,
         noCalendar: true,
@@ -155,7 +155,7 @@ window.onload = function() {
     });
 };
 
-async function handleSubjectChange() {
+async function handleSubjectChange(isInitialLoad = false) {
     const select = document.getElementById('subject_select');
     const selectedText = select.options[select.selectedIndex].text;
     const teacherContainer = document.getElementById('teacher_container');
@@ -164,18 +164,27 @@ async function handleSubjectChange() {
     if (selectedText === 'Break') {
         teacherContainer.style.display = 'none';
         teacherSelect.required = false;
+        teacherSelect.value = "";
     } else {
         teacherContainer.style.display = 'block';
         teacherSelect.required = true;
-        autoAssignTeacher();
+        if (!isInitialLoad) {
+            autoAssignTeacher();
+        }
     }
 }
 
 async function autoAssignTeacher() {
     const subjectId = document.getElementById('subject_select').value;
-    if (!subjectId) return;
-    
+    const teacherSelect = document.getElementById('teacher_select');
     const statusLabel = document.getElementById('assignment_status');
+    
+    if (!subjectId) {
+        teacherSelect.value = "";
+        statusLabel.innerText = "";
+        return;
+    }
+    
     statusLabel.innerText = "Finding teacher...";
     
     try {
@@ -183,7 +192,7 @@ async function autoAssignTeacher() {
         const data = await response.json();
         
         if (data.id) {
-            document.getElementById('teacher_select').value = data.id;
+            teacherSelect.value = data.id;
             statusLabel.innerText = "✓ Automatically assigned " + data.name;
         } else {
             statusLabel.innerText = "⚠ No preferred teacher found for this subject.";

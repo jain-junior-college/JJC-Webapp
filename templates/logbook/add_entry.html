@@ -227,7 +227,7 @@
                 <div class="form-group">
                     <label>Date of Class *</label>
                     <input type="date" name="date" id="field-date"
-                           value="{{ prefill.get('date', '') }}" required>
+                           value="{{ prefill.get('date', '') }}" required style="max-width: 250px;">
                 </div>
             </div>
 
@@ -262,4 +262,71 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const streamSelect = document.getElementById("field-stream");
+    const subjectSelect = document.getElementById("field-subject");
+    const teacherSelect = document.getElementById("field-teacher");
+
+    // Store prefill subject ID
+    const prefillSubjectId = "{{ prefill.get('subject_id', '') }}";
+
+    function fetchSubjects(preselectedId = null) {
+        const streamId = streamSelect.value;
+        subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+
+        if (!streamId) {
+            teacherSelect.value = "";
+            return;
+        }
+
+        fetch(`/api/subjects/${streamId}`)
+            .then(r => r.json())
+            .then(subjects => {
+                subjects.forEach(s => {
+                    const opt = document.createElement("option");
+                    opt.value = s.id;
+                    opt.textContent = s.name;
+                    if (preselectedId && String(s.id) === String(preselectedId)) {
+                        opt.selected = true;
+                    }
+                    subjectSelect.appendChild(opt);
+                });
+                // Automatically select the teacher based on the selected subject (either prefilled or default empty)
+                fetchAndSelectTeacher();
+            });
+    }
+
+    function fetchAndSelectTeacher() {
+        const subjectId = subjectSelect.value;
+        if (!subjectId) {
+            teacherSelect.value = "";
+            return;
+        }
+
+        fetch(`/api/get-subject-teacher/${subjectId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.id) {
+                    teacherSelect.value = data.id;
+                } else {
+                    teacherSelect.value = "";
+                }
+            });
+    }
+
+    // Event Listeners
+    streamSelect.addEventListener("change", function() {
+        fetchSubjects();
+    });
+
+    subjectSelect.addEventListener("change", fetchAndSelectTeacher);
+
+    // Initial load prefill handling
+    if (streamSelect.value) {
+        fetchSubjects(prefillSubjectId);
+    }
+});
+</script>
 {% endblock %}
