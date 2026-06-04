@@ -302,7 +302,7 @@
         <header>
             <div class="welcome-text">
                 <h1>{% block header_title %}Welcome!{% endblock %}</h1>
-                <p>Student Portal • Class of 2026</p>
+                <p>Student Portal • Class of {{ current_academic_year }}</p>
             </div>
             <div class="user-profile">
                 <div class="user-avatar">{{ session.username[0] if session.username else 'S' }}</div>

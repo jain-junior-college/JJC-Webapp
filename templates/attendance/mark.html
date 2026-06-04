@@ -33,6 +33,16 @@
     </form>
 
     {% if students %}
+
+    {# Check if any student already has attendance saved for this date #}
+    {% set already_saved = existing_attendance | length > 0 %}
+    {% if already_saved %}
+    <div style="display: flex; align-items: center; gap: 0.75rem; background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 10px; padding: 0.85rem 1.25rem; margin-bottom: 1.5rem;">
+        <i class="fas fa-circle-check" style="color: #059669; font-size: 1.2rem;"></i>
+        <span style="color: #065f46; font-weight: 600;">Attendance already saved for this date — pre-filled below. You can edit and save again.</span>
+    </div>
+    {% endif %}
+
     <form method="POST">
         <div class="table-container">
             <table style="width: 100%;">
@@ -41,11 +51,12 @@
                         <th style="width: 60px;">Photo</th>
                         <th style="width: 150px;">Student ID</th>
                         <th>Name</th>
-                        <th style="width: 250px; text-align: center;">Attendance Status</th>
+                        <th style="width: 280px; text-align: center;">Attendance Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for student in students %}
+                    {% set saved = existing_attendance.get(student.id) %}
                     <tr>
                         <td>
                             {% if student.photo_url %}
@@ -57,28 +68,53 @@
                             {% endif %}
                         </td>
                         <td style="font-weight: 700;">{{ student.student_id }}</td>
-                        <td style="font-weight: 600;">{{ student.name }}</td>
+                        <td style="font-weight: 600;">
+                            {{ student.name }}
+                            {% if saved %}
+                            <span style="display: inline-block; margin-left: 0.5rem; background: #d1fae5; color: #065f46; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; vertical-align: middle;">
+                                <i class="fas fa-check"></i> Saved
+                            </span>
+                            {% endif %}
+                        </td>
                         <td style="text-align: center;">
                             <div style="display: flex; gap: 1rem; justify-content: center;">
                                 <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                    <input type="radio" name="status_{{ student.id }}" value="Present" checked> 
+                                    <input type="radio" name="status_{{ student.id }}" value="Present"
+                                        {% if saved %}
+                                            {% if saved.status == 'Present' %}checked{% endif %}
+                                        {% else %}
+                                            checked
+                                        {% endif %}>
                                     <span style="color: #059669; font-weight: 600;">Present</span>
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                    <input type="radio" name="status_{{ student.id }}" value="Absent"> 
+                                    <input type="radio" name="status_{{ student.id }}" value="Absent"
+                                        {% if saved and saved.status == 'Absent' %}checked{% endif %}>
                                     <span style="color: #dc2626; font-weight: 600;">Absent</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="radio" name="status_{{ student.id }}" value="Late"
+                                        {% if saved and saved.status == 'Late' %}checked{% endif %}>
+                                    <span style="color: #d97706; font-weight: 600;">Late</span>
                                 </label>
                             </div>
                             
                             <!-- Early Leave Section -->
                             <div style="margin-top: 1rem; border-top: 1px dashed rgba(0,0,0,0.05); padding-top: 0.5rem;">
-                                <details style="font-size: 0.8rem; background: rgba(0,0,0,0.02); padding: 0.5rem; border-radius: 5px;">
+                                <details style="font-size: 0.8rem; background: rgba(0,0,0,0.02); padding: 0.5rem; border-radius: 5px;"
+                                    {% if saved and saved.exit_time %}open{% endif %}>
                                     <summary style="cursor: pointer; color: #b45309; font-weight: 700;">
                                         <i class="fas fa-running"></i> Student Left Early?
                                     </summary>
                                     <div style="margin-top: 0.5rem;">
-                                        <input type="text" name="exit_time_{{ student.id }}" placeholder="Time (e.g. 11:30 AM)" style="width: 100%; margin-bottom: 0.5rem; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
-                                        <input type="text" name="exit_reason_{{ student.id }}" placeholder="Reason (e.g. Medical)" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
+                                        <input type="text" name="exit_time_{{ student.id }}" 
+                                               placeholder="Time (e.g. 11:30 AM)" 
+                                               value="{{ saved.exit_time if saved and saved.exit_time else '' }}"
+                                               style="width: 100%; margin-bottom: 0.5rem; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
+                                        <input type="text" name="exit_reason_{{ student.id }}" 
+                                               placeholder="Reason (e.g. Medical)" 
+                                               value="{{ saved.exit_reason if saved and saved.exit_reason else '' }}"
+                                               style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
                                     </div>
                                 </details>
                             </div>

@@ -118,7 +118,7 @@
     <section id="hall-of-fame" style="background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%); color: white; overflow: hidden;">
         <div class="section-title">
             <h2 style="color: var(--secondary);">HSC Hall of Fame</h2>
-            <p style="color: rgba(255,255,255,0.8); margin-top: 0.5rem;">Celebrating Academic Excellence - Class of 2026</p>
+            <p style="color: rgba(255,255,255,0.8); margin-top: 0.5rem;">Celebrating Academic Excellence - Class of {{ current_academic_year }}</p>
             <div class="underline" style="background: var(--secondary);"></div>
         </div>
         
@@ -279,7 +279,7 @@
             <a href="{{ url_for('login') }}" style="color: var(--secondary); text-decoration: none; font-size: 0.9rem; border-bottom: 1px dashed var(--secondary); padding-bottom: 3px;"><i class="fas fa-lock" style="margin-right: 5px;"></i>Admin / Staff Portal</a>
         </div>
         <div class="copyright">
-            <p>&copy; 2026 VISHWAKALYAN EDUCATION SOCIETY'S JAIN JUNIOR COLLEGE. All Rights Reserved.</p>
+            <p>&copy; {{ now.year }} VISHWAKALYAN EDUCATION SOCIETY'S JAIN JUNIOR COLLEGE. All Rights Reserved.</p>
             <p>Designed and Maintained for Excellence.</p>
         </div>
     </footer>

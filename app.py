@@ -211,8 +211,14 @@ def make_session_permanent():
 # --- Context Processors ---
 @app.context_processor
 def inject_now():
-    """Inject current datetime into all templates."""
-    return {'now': datetime.now()}
+    """Inject current datetime and academic year into all templates."""
+    now = datetime.now()
+    # Academic year: June onwards = new year (e.g. June 2026 → "2026-27")
+    base = now.year if now.month >= 6 else now.year - 1
+    if base < 2026:
+        base = 2026
+    academic_year = f"{base}-{str(base + 1)[-2:]}"
+    return {'now': now, 'current_academic_year': academic_year}
 
 # Database Auto-Initialization
 def auto_init_db():
@@ -867,8 +873,15 @@ def mark_attendance():
         flash('Attendance updated successfully!')
 
     students = []
+    existing_attendance = {}
     if selected_class and selected_stream:
         students = Student.query.filter_by(class_id=selected_class, stream_id=selected_stream).all()
+        # Fetch any already-saved attendance for this date so the form can pre-fill
+        records = Attendance.query.filter(
+            Attendance.date == attendance_date,
+            Attendance.student_id.in_([s.id for s in students])
+        ).all()
+        existing_attendance = {r.student_id: r for r in records}
     
     classes = AcademicClass.query.all()
     streams = Stream.query.all()
@@ -878,7 +891,8 @@ def mark_attendance():
                          streams=streams,
                          selected_class=int(selected_class) if selected_class else None,
                          selected_stream=int(selected_stream) if selected_stream else None,
-                         date_str=date_str)
+                         date_str=date_str,
+                         existing_attendance=existing_attendance)
 
 @app.route('/attendance/report')
 @staff_required
