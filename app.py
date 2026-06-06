@@ -1369,13 +1369,17 @@ def test_list():
         grouped_tests[key].append(t)
         
     
-    lectures = ExamAdditionalLecture.query.all()
-    grouped_lectures = {}
-    for l in lectures:
-        key = (l.academic_class.name, l.stream_obj.name, l.exam_type)
-        if key not in grouped_lectures:
-            grouped_lectures[key] = []
-        grouped_lectures[key].append(l)
+    try:
+        lectures = ExamAdditionalLecture.query.all()
+        grouped_lectures = {}
+        for l in lectures:
+            key = (l.academic_class.name, l.stream_obj.name, l.exam_type)
+            if key not in grouped_lectures:
+                grouped_lectures[key] = []
+            grouped_lectures[key].append(l)
+    except Exception:
+        db.session.rollback()
+        grouped_lectures = {}
         
     return render_template('academics/test_list.html', grouped_tests=grouped_tests, tests=tests, grouped_lectures=grouped_lectures)
 
