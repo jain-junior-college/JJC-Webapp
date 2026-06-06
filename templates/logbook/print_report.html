@@ -194,10 +194,15 @@
 
     <div class="print-page">
         <!-- Header -->
-        <div class="rpt-header">
-            <div>
-                <div class="rpt-college-name">Jain Junior College</div>
-                <div class="rpt-college-sub">Log Book Report — Subject-wise Daily Topics Record</div>
+        <div class="rpt-header" style="align-items: center; border-bottom: 3px solid #1e3a8a; padding-bottom: 1.5rem; margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" style="width: 70px; height: 70px; object-fit: contain;">
+                <div>
+                    <p style="margin: 0; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; font-weight: 700;">VISHWAKALYAN EDUCATION SOCIETY'S</p>
+                    <div class="rpt-college-name" style="color: #1e3a8a; margin: 0.1rem 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; line-height: 1;">JAIN JUNIOR COLLEGE</div>
+                    <p style="margin: 0.1rem 0; color: #b45309; font-size: 0.85rem; font-weight: 700; font-family: 'Noto Sans Devanagari', sans-serif;">॥ ज्ञान संस्कारेण मनुष्य शोभते ॥</p>
+                    <div class="rpt-college-sub" style="margin-top: 0.2rem;">Log Book Report — Subject-wise Daily Topics Record</div>
+                </div>
             </div>
             <div style="text-align:right;">
                 <span class="rpt-type-badge badge-{{ report_type }}">

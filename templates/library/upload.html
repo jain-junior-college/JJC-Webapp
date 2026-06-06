@@ -38,7 +38,9 @@
                 <select name="subject_id" class="form-control">
                     <option value="">General / Extra-Curricular</option>
                     {% for s in subjects %}
+                    {% if s.stream %}
                     <option value="{{ s.id }}">{{ s.name }} ({{ s.stream.name }})</option>
+                    {% endif %}
                     {% endfor %}
                 </select>
             </div>
@@ -46,8 +48,9 @@
             <div class="form-group" style="grid-column: span 2;">
                 <label>Uploader (Teacher)</label>
                 <select name="teacher_id" class="form-control">
+                    <option value="">-- Select Teacher --</option>
                     {% for t in teachers %}
-                    <option value="{{ t.id }}">{{ t.name }}</constraint>
+                    <option value="{{ t.id }}">{{ t.name }}</option>
                     {% endfor %}
                 </select>
             </div>

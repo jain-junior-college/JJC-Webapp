@@ -801,6 +801,58 @@ def delete_teacher(id):
     flash('Teacher record deleted successfully.')
     return redirect(url_for('manage_teachers'))
 
+@app.route('/subjects/report')
+@staff_required
+def subject_wise_report():
+    selected_class_id = request.args.get('class_id', type=int)
+    selected_stream_id = request.args.get('stream_id', type=int)
+    sort_by = request.args.get('sort_by', 'name')
+    
+    classes = AcademicClass.query.all()
+    streams = Stream.query.all()
+    
+    query = Subject.query
+    if selected_stream_id:
+        query = query.filter_by(stream_id=selected_stream_id)
+        
+    subjects = query.all()
+    
+    report_data = []
+    for sub in subjects:
+        students = sub.students
+        if selected_class_id:
+            students = [s for s in students if s.class_id == selected_class_id]
+            
+        class_counts = {}
+        for s in students:
+            c_name = s.academic_class.name if s.academic_class else "Unassigned"
+            class_counts[c_name] = class_counts.get(c_name, 0) + 1
+            
+        report_data.append({
+            'subject': sub,
+            'total_count': len(students),
+            'class_counts': class_counts,
+            'students': sorted(students, key=lambda x: x.name)
+        })
+        
+    if sort_by == 'count':
+        report_data = sorted(report_data, key=lambda x: x['total_count'], reverse=True)
+    else:
+        report_data = sorted(report_data, key=lambda x: x['subject'].name.lower())
+        
+    class_obj = AcademicClass.query.get(selected_class_id) if selected_class_id else None
+    stream_obj = Stream.query.get(selected_stream_id) if selected_stream_id else None
+    
+    return render_template('subjects/report.html',
+                           report_data=report_data,
+                           classes=classes,
+                           streams=streams,
+                           selected_class_id=selected_class_id,
+                           selected_stream_id=selected_stream_id,
+                           class_obj=class_obj,
+                           stream_obj=stream_obj,
+                           sort_by=sort_by)
+
 @app.route('/subjects', methods=['GET', 'POST'])
 @staff_required
 def manage_subjects():
