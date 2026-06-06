@@ -1400,13 +1400,22 @@ def test_list():
         
     
     try:
-        lectures = ExamAdditionalLecture.query.order_by(ExamAdditionalLecture.lecture_date.asc(), ExamAdditionalLecture.time_slot.asc()).all()
+        lectures = ExamAdditionalLecture.query.order_by(ExamAdditionalLecture.lecture_date.asc()).all()
         grouped_lectures = {}
         for l in lectures:
             key = (l.academic_class.name, l.stream_obj.name, l.exam_type)
             if key not in grouped_lectures:
                 grouped_lectures[key] = []
             grouped_lectures[key].append(l)
+
+        # Sort each lecture group by date then parsed time_slot (free-text)
+        for key in grouped_lectures:
+            grouped_lectures[key].sort(
+                key=lambda l: (
+                    l.lecture_date if l.lecture_date else __import__('datetime').date.min,
+                    _parse_time(l.time_slot)
+                )
+            )
     except Exception:
         db.session.rollback()
         grouped_lectures = {}
