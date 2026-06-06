@@ -198,6 +198,24 @@ class TimetableEntry(db.Model):
     subject = db.relationship('Subject', backref='timetable_slots')
     teacher = db.relationship('Teacher', backref='timetable_slots', foreign_keys=[teacher_id])
 
+class LectureTimetableNote(db.Model):
+    """Stores additional lecture / special-schedule notes for a class+stream.
+    One row per note entry; multiple notes can exist for the same class+stream.
+    """
+    __tablename__ = 'lecture_timetable_note'
+    id = db.Column(db.Integer, primary_key=True)
+    class_id  = db.Column(db.Integer, db.ForeignKey('academic_class.id'), nullable=False)
+    stream_id = db.Column(db.Integer, db.ForeignKey('stream.id'), nullable=False)
+    day       = db.Column(db.String(20), nullable=False)       # Monday … Saturday / All
+    period    = db.Column(db.String(50))                        # e.g. "Period 1" or "9:00–10:00"
+    subject   = db.Column(db.String(100), nullable=False)      # Subject / activity label
+    teacher   = db.Column(db.String(100))                      # Teacher name (free-text)
+    note      = db.Column(db.Text)                             # Optional extra remark
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    academic_class = db.relationship('AcademicClass', backref='lecture_notes')
+    stream_obj     = db.relationship('Stream', backref='lecture_notes')
+
 class Enquiry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)

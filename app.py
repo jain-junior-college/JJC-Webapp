@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee, ScheduledTest, TestMark, TimetableEntry, TestSupervision, Topper, LogBook
+from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee, ScheduledTest, TestMark, TimetableEntry, TestSupervision, Topper, LogBook, LectureTimetableNote
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone, timedelta
 import cloudinary
@@ -335,6 +335,17 @@ def sync_db():
                 academic_year VARCHAR(20) NOT NULL,
                 topics_covered TEXT NOT NULL,
                 remarks TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS lecture_timetable_note (
+                id SERIAL PRIMARY KEY,
+                class_id INTEGER NOT NULL REFERENCES academic_class(id),
+                stream_id INTEGER NOT NULL REFERENCES stream(id),
+                day VARCHAR(20) NOT NULL,
+                period VARCHAR(50),
+                subject VARCHAR(100) NOT NULL,
+                teacher VARCHAR(100),
+                note TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )"""
         ]
@@ -1490,11 +1501,16 @@ def timetable_view():
     stream_id = request.args.get('stream_id')
     
     entries = []
+    lecture_notes = []
     if class_id and stream_id:
         # Sort by start_time string
         entries = TimetableEntry.query.filter_by(class_id=class_id, stream_id=stream_id).order_by(TimetableEntry.start_time).all()
+        lecture_notes = LectureTimetableNote.query.filter_by(class_id=class_id, stream_id=stream_id).order_by(LectureTimetableNote.id).all()
         
-    return render_template('timetable/view.html', entries=entries, classes=classes, streams=streams, selected_class=int(class_id) if class_id else None, selected_stream=int(stream_id) if stream_id else None)
+    return render_template('timetable/view.html', entries=entries, classes=classes, streams=streams,
+                           selected_class=int(class_id) if class_id else None,
+                           selected_stream=int(stream_id) if stream_id else None,
+                           lecture_notes=lecture_notes)
 
 @app.route('/timetable/manage', methods=['GET', 'POST'])
 @staff_required
@@ -1624,6 +1640,47 @@ def timetable_delete_all():
     
     flash("Schedule for the selected class has been cleared!")
     return redirect(url_for('timetable_view'))
+
+# --- Lecture Timetable Notes ---
+
+@app.route('/timetable/lecture-notes/add', methods=['POST'])
+@staff_required
+def add_lecture_note():
+    class_id  = request.form.get('class_id')
+    stream_id = request.form.get('stream_id')
+    day       = request.form.get('day', '').strip()
+    period    = request.form.get('period', '').strip()
+    subject   = request.form.get('subject', '').strip()
+    teacher   = request.form.get('teacher', '').strip()
+    note      = request.form.get('note', '').strip()
+
+    if not (class_id and stream_id and day and subject):
+        flash('Day and Subject are required for a lecture note.', 'danger')
+        return redirect(url_for('timetable_view', class_id=class_id, stream_id=stream_id))
+
+    ln = LectureTimetableNote(
+        class_id=class_id, stream_id=stream_id,
+        day=day, period=period,
+        subject=subject, teacher=teacher, note=note
+    )
+    db.session.add(ln)
+    db.session.commit()
+    flash('Lecture note added!', 'success')
+    return redirect(url_for('timetable_view', class_id=class_id, stream_id=stream_id))
+
+
+@app.route('/timetable/lecture-notes/delete/<int:note_id>')
+@staff_required
+def delete_lecture_note(note_id):
+    ln = LectureTimetableNote.query.get_or_404(note_id)
+    class_id  = ln.class_id
+    stream_id = ln.stream_id
+    db.session.delete(ln)
+    db.session.commit()
+    flash('Lecture note removed.', 'success')
+    return redirect(url_for('timetable_view', class_id=class_id, stream_id=stream_id))
+
+# -------------------------------------------------------
 
 @app.route('/timetable/edit/<int:id>', methods=['GET', 'POST'])
 @staff_required
