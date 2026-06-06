@@ -217,19 +217,24 @@
 
 <style>
 /* Base print style */
-@media screen {
-    #print-container { display: none; }
-}
 @media print {
-    body > *:not(#print-container) { display: none !important; }
-    #print-container { 
-        display: block !important; 
-        width: 100%; 
-        margin: 0; 
-        padding: 0;
+    body * { visibility: hidden; }
+    .print-active, .print-active * { visibility: visible; }
+    .print-active {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border: none !important;
+        box-shadow: none !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box;
     }
+    .main-content { padding: 0 !important; margin: 0 !important; }
+    .sidebar, .screen-header, .no-print { display: none !important; }
     .print-header { display: block !important; }
-    .no-print { display: none !important; }
     
     .exam-table th, .exam-table td {
         border: 1px solid #cbd5e1 !important;
@@ -271,38 +276,25 @@ document.addEventListener("DOMContentLoaded", function() {
 function printExam(examCardId, orientation, isStudentCopy) {
     const card = document.getElementById(examCardId);
     
-    // Create print container if it doesn't exist
-    let printContainer = document.getElementById('print-container');
-    if (!printContainer) {
-        printContainer = document.createElement('div');
-        printContainer.id = 'print-container';
-        document.body.appendChild(printContainer);
-    }
-    
-    // Clone the card so we can modify it for printing without affecting the screen
-    const clone = card.cloneNode(true);
-    
-    // Handle Student Copy toggle on the clone
+    // Handle Student Copy toggle
     if (isStudentCopy) {
-        clone.querySelectorAll('.supervision-detail').forEach(el => el.style.display = 'none');
-        const timeHeader = clone.querySelector('.time-header');
+        card.querySelectorAll('.supervision-detail').forEach(el => el.style.display = 'none');
+        const timeHeader = card.querySelector('.time-header');
         if (timeHeader) {
+            timeHeader.dataset.original = timeHeader.innerText;
             timeHeader.innerText = 'Exam Time';
         }
     }
-    
-    // Remove box-shadow and borders from the cloned card for cleaner printing
-    clone.style.boxShadow = 'none';
-    clone.style.border = 'none';
-    clone.style.marginBottom = '0';
 
-    // Clear previous contents and append clone
-    printContainer.innerHTML = '';
-    printContainer.appendChild(clone);
+    // Reset any previous print classes
+    document.body.classList.remove('print-landscape', 'print-portrait');
+    document.querySelectorAll('.printable-card').forEach(c => c.classList.remove('print-active'));
     
     // Set the requested orientation class on body
-    document.body.classList.remove('print-landscape', 'print-portrait');
     document.body.classList.add('print-' + orientation);
+    
+    // Activate the specific exam card for printing
+    card.classList.add('print-active');
     
     // Trigger print
     window.print();
@@ -310,7 +302,16 @@ function printExam(examCardId, orientation, isStudentCopy) {
     // Clean up after print dialog is closed
     setTimeout(() => {
         document.body.classList.remove('print-landscape', 'print-portrait');
-        printContainer.innerHTML = '';
+        card.classList.remove('print-active');
+        
+        // Restore visibility if it was hidden for student copy
+        if (isStudentCopy) {
+            card.querySelectorAll('.supervision-detail').forEach(el => el.style.display = '');
+            const timeHeader = card.querySelector('.time-header');
+            if (timeHeader && timeHeader.dataset.original) {
+                timeHeader.innerText = timeHeader.dataset.original;
+            }
+        }
     }, 500);
 }
 
