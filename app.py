@@ -353,11 +353,13 @@ def sync_db():
                 class_id INTEGER NOT NULL REFERENCES academic_class(id),
                 stream_id INTEGER NOT NULL REFERENCES stream(id),
                 exam_type VARCHAR(50) NOT NULL,
+                lecture_date DATE,
                 day VARCHAR(50) NOT NULL,
                 time_slot VARCHAR(50) NOT NULL,
                 subject VARCHAR(100) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )"""
+            )""",
+            "ALTER TABLE exam_additional_lecture ADD COLUMN IF NOT EXISTS lecture_date DATE"
         ]
         
         for q in queries:
@@ -1385,18 +1387,24 @@ def add_exam_lecture():
     class_id = request.form.get('class_id')
     stream_id = request.form.get('stream_id')
     exam_type = request.form.get('exam_type')
-    day = request.form.get('day', '').strip()
+    lecture_date_str = request.form.get('lecture_date', '').strip()
     time_slot = request.form.get('time_slot', '').strip()
     subject = request.form.get('subject', '').strip()
     
-    if not (class_id and stream_id and exam_type and day and time_slot and subject):
+    if not (class_id and stream_id and exam_type and lecture_date_str and time_slot and subject):
         flash('All fields are required for additional lecture.', 'danger')
         return redirect(url_for('test_list'))
+    
+    from datetime import date as date_type
+    lecture_date = datetime.strptime(lecture_date_str, '%Y-%m-%d').date()
+    # Auto-derive day name from the date
+    day = lecture_date.strftime('%A')  # e.g., "Monday", "Saturday"
         
     el = ExamAdditionalLecture(
         class_id=class_id,
         stream_id=stream_id,
         exam_type=exam_type,
+        lecture_date=lecture_date,
         day=day,
         time_slot=time_slot,
         subject=subject

@@ -119,6 +119,7 @@
             <table style="width: 100%; border-collapse: collapse;" class="exam-table">
                 <thead>
                     <tr style="text-align: left; background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #475569; font-size: 0.85rem;">
+                        <th style="padding: 0.75rem 1rem;">Date</th>
                         <th style="padding: 0.75rem 1rem;">Day</th>
                         <th style="padding: 0.75rem 1rem;">Time</th>
                         <th style="padding: 0.75rem 1rem;">Subject</th>
@@ -128,7 +129,8 @@
                 <tbody>
                     {% for l in card_lectures %}
                     <tr style="border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.85rem;">
-                        <td style="padding: 0.75rem 1rem; font-weight: 700; color: #334155;">{{ l.day }}</td>
+                        <td style="padding: 0.75rem 1rem; font-weight: 700; color: #334155;">{{ l.lecture_date.strftime('%d-%m-%Y') if l.lecture_date else '—' }}</td>
+                        <td style="padding: 0.75rem 1rem; color: #64748b; font-weight: 600;">{{ l.day }}</td>
                         <td style="padding: 0.75rem 1rem; color: #64748b; font-weight: 500;">{{ l.time_slot }}</td>
                         <td style="padding: 0.75rem 1rem; font-weight: 700; color: var(--primary-color);">{{ l.subject }}</td>
                         <td style="padding: 0.75rem 1rem; text-align: right;" class="no-print">
@@ -158,18 +160,33 @@
                     <input type="hidden" name="stream_id" value="{{ test_rep.stream_id }}">
                     <input type="hidden" name="exam_type" value="{{ exam_type }}">
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; align-items: end;">
+                        <!-- Date (auto-derives Day) -->
                         <div class="form-group" style="margin-bottom: 0;">
-                            <label style="font-size: 0.75rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.3rem;">Day</label>
-                            <input type="text" name="day" class="form-control" placeholder="e.g. Saturday or Monday" required style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.3rem;">Date</label>
+                            <input type="date" name="lecture_date" class="form-control lec-date-input" required
+                                   style="font-size: 0.85rem; padding: 0.4rem 0.8rem;"
+                                   onchange="updateDayFromDate(this)">
                         </div>
+                        <!-- Day (auto-filled, read-only) -->
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.3rem;">Day <span style="color:#94a3b8; font-weight:400;">(auto)</span></label>
+                            <input type="text" class="form-control lec-day-output" readonly placeholder="Auto"
+                                   style="font-size: 0.85rem; padding: 0.4rem 0.8rem; background: rgba(0,0,0,0.03); cursor: not-allowed; font-weight: 700; color: #1e293b;">
+                        </div>
+                        <!-- Time -->
                         <div class="form-group" style="margin-bottom: 0;">
                             <label style="font-size: 0.75rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.3rem;">Time</label>
                             <input type="text" name="time_slot" class="form-control" placeholder="e.g. 8.00 AM - 9.15 AM" required style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
                         </div>
+                        <!-- Subject Dropdown -->
                         <div class="form-group" style="margin-bottom: 0;">
                             <label style="font-size: 0.75rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.3rem;">Subject</label>
-                            <input type="text" name="subject" class="form-control" placeholder="e.g. Mathematics" required style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                            <select name="subject" class="form-control lec-subject-select" required
+                                    style="font-size: 0.85rem; padding: 0.4rem 0.8rem;"
+                                    data-stream-id="{{ test_rep.stream_id }}">
+                                <option value="">Loading subjects...</option>
+                            </select>
                         </div>
                     </div>
                     <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
@@ -286,7 +303,48 @@ function printExam(examCardId, orientation, isStudentCopy) {
 function toggleLectureForm(formId) {
     const form = document.getElementById(formId);
     if (form) {
-        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        const isOpening = form.style.display === 'none';
+        form.style.display = isOpening ? 'block' : 'none';
+        
+        // Lazy-load subjects dropdown on first open
+        if (isOpening) {
+            const select = form.querySelector('.lec-subject-select');
+            if (select && select.dataset.loaded !== 'true') {
+                const streamId = select.dataset.streamId;
+                if (streamId) {
+                    fetch(`/api/subjects/${streamId}`)
+                        .then(r => r.json())
+                        .then(subjects => {
+                            select.innerHTML = '<option value="">-- Select Subject --</option>';
+                            subjects.forEach(s => {
+                                const opt = document.createElement('option');
+                                opt.value = s.name;
+                                opt.textContent = s.name + (s.is_compulsory ? ' ★' : '');
+                                select.appendChild(opt);
+                            });
+                            select.dataset.loaded = 'true';
+                        })
+                        .catch(() => {
+                            select.innerHTML = '<option value="">Error loading subjects</option>';
+                        });
+                }
+            }
+        }
+    }
+}
+
+// Auto-fills the Day (read-only) field from the date picker
+function updateDayFromDate(dateInput) {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const formDiv = dateInput.closest('[id^="form_"]');
+    const dayOutput = formDiv ? formDiv.querySelector('.lec-day-output') : null;
+    if (dayOutput && dateInput.value) {
+        // Parse as local date to avoid timezone offset issues
+        const [y, m, d] = dateInput.value.split('-').map(Number);
+        const date = new Date(y, m - 1, d);
+        dayOutput.value = days[date.getDay()];
+    } else if (dayOutput) {
+        dayOutput.value = '';
     }
 }
 </script>

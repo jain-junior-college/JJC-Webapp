@@ -261,7 +261,8 @@ class ExamAdditionalLecture(db.Model):
     class_id = db.Column(db.Integer, db.ForeignKey('academic_class.id'), nullable=False)
     stream_id = db.Column(db.Integer, db.ForeignKey('stream.id'), nullable=False)
     exam_type = db.Column(db.String(50), nullable=False)  # e.g., "Unit Test - I"
-    day = db.Column(db.String(50), nullable=False)        # e.g., "Saturday" or "Monday"
+    lecture_date = db.Column(db.Date, nullable=True)      # specific date of the lecture
+    day = db.Column(db.String(50), nullable=False)        # auto-generated from date e.g., "Saturday"
     time_slot = db.Column(db.String(50), nullable=False)  # e.g., "8.00 AM - 9.15 AM"
     subject = db.Column(db.String(100), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
