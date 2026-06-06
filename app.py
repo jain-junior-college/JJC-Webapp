@@ -1400,7 +1400,15 @@ def add_exam_lecture():
         return redirect(url_for('test_list'))
     
     from datetime import date as date_type
-    lecture_date = datetime.strptime(lecture_date_str, '%Y-%m-%d').date()
+    try:
+        lecture_date = datetime.strptime(lecture_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        try:
+            lecture_date = datetime.strptime(lecture_date_str, '%d-%m-%Y').date()
+        except ValueError:
+            flash('Invalid date format. Please try again.', 'danger')
+            return redirect(url_for('test_list'))
+            
     # Auto-derive day name from the date
     day = lecture_date.strftime('%A')  # e.g., "Monday", "Saturday"
         
@@ -1413,9 +1421,15 @@ def add_exam_lecture():
         time_slot=time_slot,
         subject=subject
     )
-    db.session.add(el)
-    db.session.commit()
-    flash('Additional lecture scheduled successfully!', 'success')
+    
+    try:
+        db.session.add(el)
+        db.session.commit()
+        flash('Additional lecture scheduled successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Database error: Please ensure you have run /sync-database. ({str(e)})', 'danger')
+        
     return redirect(url_for('test_list'))
 
 @app.route('/academics/tests/lecture/delete/<int:lecture_id>')
