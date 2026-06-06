@@ -830,9 +830,20 @@ def subject_wise_report():
     
     report_data = []
     for sub in subjects:
-        students = sub.students
-        if selected_class_id:
-            students = [s for s in students if s.class_id == selected_class_id]
+        if sub.is_compulsory:
+            # Compulsory subjects: every student in the subject's stream
+            # (they don't need explicit enrollment in student_subject)
+            s_query = Student.query
+            if sub.stream_id:
+                s_query = s_query.filter_by(stream_id=sub.stream_id)
+            if selected_class_id:
+                s_query = s_query.filter_by(class_id=selected_class_id)
+            students = s_query.all()
+        else:
+            # Optional subjects: use explicit enrollment records
+            students = sub.students
+            if selected_class_id:
+                students = [s for s in students if s.class_id == selected_class_id]
             
         class_counts = {}
         for s in students:
