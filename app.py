@@ -1370,7 +1370,7 @@ def test_list():
         
     
     try:
-        lectures = ExamAdditionalLecture.query.all()
+        lectures = ExamAdditionalLecture.query.order_by(ExamAdditionalLecture.lecture_date.asc(), ExamAdditionalLecture.time_slot.asc()).all()
         grouped_lectures = {}
         for l in lectures:
             key = (l.academic_class.name, l.stream_obj.name, l.exam_type)
