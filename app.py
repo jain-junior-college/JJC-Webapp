@@ -1653,16 +1653,13 @@ def timetable_view():
     stream_id = request.args.get('stream_id')
     
     entries = []
-    lecture_notes = []
     if class_id and stream_id:
         # Sort by start_time string
         entries = TimetableEntry.query.filter_by(class_id=class_id, stream_id=stream_id).order_by(TimetableEntry.start_time).all()
-        lecture_notes = LectureTimetableNote.query.filter_by(class_id=class_id, stream_id=stream_id).order_by(LectureTimetableNote.id).all()
         
     return render_template('timetable/view.html', entries=entries, classes=classes, streams=streams,
                            selected_class=int(class_id) if class_id else None,
-                           selected_stream=int(stream_id) if stream_id else None,
-                           lecture_notes=lecture_notes)
+                           selected_stream=int(stream_id) if stream_id else None)
 
 @app.route('/timetable/manage', methods=['GET', 'POST'])
 @staff_required
