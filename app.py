@@ -1359,7 +1359,31 @@ def consolidated_report():
 @staff_required
 def test_list():
     tests = ScheduledTest.query.order_by(ScheduledTest.test_date.asc()).all()
-    
+
+    def _parse_time(time_str):
+        """Parse a free-text time like '9.30 AM', '10:30 am', '11.30 AM' into a
+        comparable datetime.time.  Returns time.min on failure so the sort is
+        stable even for missing / malformed values."""
+        import re as _re
+        from datetime import time as _time
+        if not time_str:
+            return _time.min
+        s = time_str.strip().upper().replace('.', ':')
+        # extract the first hh:mm or h:mm block
+        m = _re.search(r'(\d{1,2}):(\d{2})\s*(AM|PM)?', s)
+        if not m:
+            return _time.min
+        hour, minute = int(m.group(1)), int(m.group(2))
+        period = m.group(3)
+        if period == 'PM' and hour != 12:
+            hour += 12
+        elif period == 'AM' and hour == 12:
+            hour = 0
+        try:
+            return _time(hour, minute)
+        except ValueError:
+            return _time.min
+
     # Group tests by (class, stream, exam_type)
     grouped_tests = {}
     for t in tests:
@@ -1367,6 +1391,12 @@ def test_list():
         if key not in grouped_tests:
             grouped_tests[key] = []
         grouped_tests[key].append(t)
+
+    # Sort each group by date then by start_time (parsed from free text)
+    for key in grouped_tests:
+        grouped_tests[key].sort(
+            key=lambda t: (t.test_date, _parse_time(t.start_time))
+        )
         
     
     try:
