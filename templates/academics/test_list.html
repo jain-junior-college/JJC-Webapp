@@ -114,6 +114,7 @@
         </h5>
         
         {% set card_lectures = grouped_lectures.get((class_name, stream_name, exam_type), []) if grouped_lectures else [] %}
+        {% set outer_loop_index = loop.index %}
         {% if card_lectures %}
         <div class="table-container" style="margin-bottom: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
             <table style="width: 100%; border-collapse: collapse;" class="exam-table">
@@ -134,6 +135,9 @@
                         <td style="padding: 0.75rem 1rem; color: #64748b; font-weight: 500;">{{ l.time_slot }}</td>
                         <td style="padding: 0.75rem 1rem; font-weight: 700; color: var(--primary-color);">{{ l.subject }}</td>
                         <td style="padding: 0.75rem 1rem; text-align: right;" class="no-print">
+                            <button type="button" onclick="duplicateLecture('form_{{ outer_loop_index }}', '{{ l.time_slot }}', '{{ l.subject }}')" class="btn btn-sm" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: none; padding: 0.3rem 0.6rem; border-radius: 5px; font-size: 0.75rem; margin-right: 0.3rem; cursor: pointer;">
+                                <i class="fas fa-copy"></i> Duplicate
+                            </button>
                             <a href="{{ url_for('delete_exam_lecture', lecture_id=l.id) }}" onclick="return confirm('Delete this lecture?')" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; text-decoration: none; padding: 0.3rem 0.6rem; border-radius: 5px; font-size: 0.75rem;">
                                 <i class="fas fa-trash-alt"></i> Delete
                             </a>
@@ -345,6 +349,49 @@ function updateDayFromDate(dateInput) {
         dayOutput.value = days[date.getDay()];
     } else if (dayOutput) {
         dayOutput.value = '';
+    }
+}
+
+function duplicateLecture(formId, timeSlot, subject) {
+    const formDiv = document.getElementById(formId);
+    if (formDiv) {
+        // Ensure form is visible
+        if (formDiv.style.display === 'none') {
+            toggleLectureForm(formId);
+        }
+        
+        // Wait a small delay for subjects to load if they were lazy-loaded
+        setTimeout(() => {
+            const timeInput = formDiv.querySelector('input[name="time_slot"]');
+            const subjectSelect = formDiv.querySelector('select[name="subject"]');
+            const dateInput = formDiv.querySelector('input[name="lecture_date"]');
+            
+            if (timeInput) timeInput.value = timeSlot;
+            
+            if (subjectSelect) {
+                // Find matching option
+                for (let i = 0; i < subjectSelect.options.length; i++) {
+                    if (subjectSelect.options[i].value === subject) {
+                        subjectSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Clear date and focus it so user knows what to fill
+            if (dateInput) {
+                dateInput.value = '';
+                dateInput.focus();
+                updateDayFromDate(dateInput);
+            }
+            
+            // Highlight the form briefly
+            formDiv.style.transition = 'box-shadow 0.3s ease';
+            formDiv.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.5)';
+            setTimeout(() => {
+                formDiv.style.boxShadow = 'none';
+            }, 1000);
+        }, 100);
     }
 }
 </script>
