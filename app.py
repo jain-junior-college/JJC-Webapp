@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee, ScheduledTest, TestMark, TimetableEntry, TestSupervision, Topper, LogBook, LectureTimetableNote
+from models import db, User, Student, Fee, Exam, Enquiry, Stream, AcademicClass, Subject, Teacher, Attendance, Resource, ClassStreamFee, ScheduledTest, TestMark, TimetableEntry, TestSupervision, Topper, LogBook, LectureTimetableNote, ExamAdditionalLecture
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone, timedelta
 import cloudinary
@@ -346,6 +346,16 @@ def sync_db():
                 subject VARCHAR(100) NOT NULL,
                 teacher VARCHAR(100),
                 note TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS exam_additional_lecture (
+                id SERIAL PRIMARY KEY,
+                class_id INTEGER NOT NULL REFERENCES academic_class(id),
+                stream_id INTEGER NOT NULL REFERENCES stream(id),
+                exam_type VARCHAR(50) NOT NULL,
+                day VARCHAR(50) NOT NULL,
+                time_slot VARCHAR(50) NOT NULL,
+                subject VARCHAR(100) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )"""
         ]
@@ -841,9 +851,28 @@ def subject_wise_report():
             students = s_query.all()
         else:
             # Optional subjects: use explicit enrollment records
-            students = sub.students
+            explicit_students = sub.students
             if selected_class_id:
-                students = [s for s in students if s.class_id == selected_class_id]
+                explicit_students = [s for s in explicit_students if s.class_id == selected_class_id]
+                
+            sub_stream = Stream.query.get(sub.stream_id) if sub.stream_id else None
+            if sub_stream and sub_stream.name == 'Science':
+                s_query = Student.query.filter_by(stream_id=sub.stream_id)
+                if selected_class_id:
+                    s_query = s_query.filter_by(class_id=selected_class_id)
+                all_science_students = s_query.all()
+                
+                students_set = set(explicit_students)
+                for s in all_science_students:
+                    has_explicit_maths = any('math' in x.name.lower() for x in s.subjects)
+                    has_explicit_biology = any('bio' in x.name.lower() for x in s.subjects)
+                    
+                    if 'math' in sub.name.lower():
+                        if has_explicit_maths or not has_explicit_biology:
+                            students_set.add(s)
+                students = list(students_set)
+            else:
+                students = explicit_students
             
         class_counts = {}
         for s in students:
@@ -1337,7 +1366,54 @@ def test_list():
             grouped_tests[key] = []
         grouped_tests[key].append(t)
         
-    return render_template('academics/test_list.html', grouped_tests=grouped_tests, tests=tests)
+    
+    lectures = ExamAdditionalLecture.query.all()
+    grouped_lectures = {}
+    for l in lectures:
+        key = (l.academic_class.name, l.stream_obj.name, l.exam_type)
+        if key not in grouped_lectures:
+            grouped_lectures[key] = []
+        grouped_lectures[key].append(l)
+        
+    return render_template('academics/test_list.html', grouped_tests=grouped_tests, tests=tests, grouped_lectures=grouped_lectures)
+
+# --- Exam Additional Lectures ---
+
+@app.route('/academics/tests/lecture/add', methods=['POST'])
+@staff_required
+def add_exam_lecture():
+    class_id = request.form.get('class_id')
+    stream_id = request.form.get('stream_id')
+    exam_type = request.form.get('exam_type')
+    day = request.form.get('day', '').strip()
+    time_slot = request.form.get('time_slot', '').strip()
+    subject = request.form.get('subject', '').strip()
+    
+    if not (class_id and stream_id and exam_type and day and time_slot and subject):
+        flash('All fields are required for additional lecture.', 'danger')
+        return redirect(url_for('test_list'))
+        
+    el = ExamAdditionalLecture(
+        class_id=class_id,
+        stream_id=stream_id,
+        exam_type=exam_type,
+        day=day,
+        time_slot=time_slot,
+        subject=subject
+    )
+    db.session.add(el)
+    db.session.commit()
+    flash('Additional lecture scheduled successfully!', 'success')
+    return redirect(url_for('test_list'))
+
+@app.route('/academics/tests/lecture/delete/<int:lecture_id>')
+@staff_required
+def delete_exam_lecture(lecture_id):
+    el = ExamAdditionalLecture.query.get_or_404(lecture_id)
+    db.session.delete(el)
+    db.session.commit()
+    flash('Additional lecture removed.', 'success')
+    return redirect(url_for('test_list'))
 
 @app.route('/academics/tests/schedule', methods=['GET', 'POST'])
 @staff_required

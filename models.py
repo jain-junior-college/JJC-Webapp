@@ -254,3 +254,19 @@ class LogBook(db.Model):
     stream         = db.relationship('Stream', backref='log_entries')
     subject        = db.relationship('Subject', backref='log_entries')
     teacher        = db.relationship('Teacher', backref='log_entries')
+
+class ExamAdditionalLecture(db.Model):
+    __tablename__ = 'exam_additional_lecture'
+    id = db.Column(db.Integer, primary_key=True)
+    class_id = db.Column(db.Integer, db.ForeignKey('academic_class.id'), nullable=False)
+    stream_id = db.Column(db.Integer, db.ForeignKey('stream.id'), nullable=False)
+    exam_type = db.Column(db.String(50), nullable=False)  # e.g., "Unit Test - I"
+    day = db.Column(db.String(50), nullable=False)        # e.g., "Saturday" or "Monday"
+    time_slot = db.Column(db.String(50), nullable=False)  # e.g., "8.00 AM - 9.15 AM"
+    subject = db.Column(db.String(100), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    academic_class = db.relationship('AcademicClass', backref='exam_lectures')
+    stream_obj = db.relationship('Stream', backref='exam_lectures')
+
