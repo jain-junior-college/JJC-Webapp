@@ -842,39 +842,10 @@ def subject_wise_report():
     
     report_data = []
     for sub in subjects:
-        if sub.is_compulsory:
-            # Compulsory subjects: every student in the subject's stream
-            # (they don't need explicit enrollment in student_subject)
-            s_query = Student.query
-            if sub.stream_id:
-                s_query = s_query.filter_by(stream_id=sub.stream_id)
-            if selected_class_id:
-                s_query = s_query.filter_by(class_id=selected_class_id)
-            students = s_query.all()
-        else:
-            # Optional subjects: use explicit enrollment records
-            explicit_students = sub.students
-            if selected_class_id:
-                explicit_students = [s for s in explicit_students if s.class_id == selected_class_id]
-                
-            sub_stream = Stream.query.get(sub.stream_id) if sub.stream_id else None
-            if sub_stream and sub_stream.name == 'Science':
-                s_query = Student.query.filter_by(stream_id=sub.stream_id)
-                if selected_class_id:
-                    s_query = s_query.filter_by(class_id=selected_class_id)
-                all_science_students = s_query.all()
-                
-                students_set = set(explicit_students)
-                for s in all_science_students:
-                    has_explicit_maths = any('math' in x.name.lower() for x in s.subjects)
-                    has_explicit_biology = any('bio' in x.name.lower() for x in s.subjects)
-                    
-                    if 'math' in sub.name.lower():
-                        if has_explicit_maths or not has_explicit_biology:
-                            students_set.add(s)
-                students = list(students_set)
-            else:
-                students = explicit_students
+        # Use explicit enrollment records for all subjects
+        students = sub.students
+        if selected_class_id:
+            students = [s for s in students if s.class_id == selected_class_id]
             
         class_counts = {}
         for s in students:
