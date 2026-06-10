@@ -840,12 +840,51 @@ def subject_wise_report():
         
     subjects = query.all()
     
+    # Pre-compute Maths students (Science students without explicit Biology + explicit Maths students)
+    science_stream = Stream.query.filter_by(name='Science').first()
+    maths_students_set = set()
+    
+    # 1. Science students without Biology
+    if science_stream:
+        s_query = Student.query.filter_by(stream_id=science_stream.id)
+        if selected_class_id:
+            s_query = s_query.filter_by(class_id=selected_class_id)
+            
+        for s in s_query.all():
+            has_bio = any('bio' in x.name.lower() for x in s.subjects)
+            if not has_bio:
+                maths_students_set.add(s)
+                
+    # 2. Any explicit Maths students (just in case they are in a different stream or PCMB)
+    explicit_math_query = Student.query
+    if selected_class_id:
+        explicit_math_query = explicit_math_query.filter_by(class_id=selected_class_id)
+    for s in explicit_math_query.all():
+        if any('math' in x.name.lower() for x in s.subjects):
+            maths_students_set.add(s)
+
     report_data = []
     for sub in subjects:
-        # Use explicit enrollment records for all subjects
-        students = sub.students
+        students_set = set(sub.students)
         if selected_class_id:
-            students = [s for s in students if s.class_id == selected_class_id]
+            students_set = {s for s in students_set if s.class_id == selected_class_id}
+            
+        # Add compulsory students
+        if sub.is_compulsory:
+            c_query = Student.query
+            if sub.stream_id:
+                c_query = c_query.filter_by(stream_id=sub.stream_id)
+            if selected_class_id:
+                c_query = c_query.filter_by(class_id=selected_class_id)
+            for s in c_query.all():
+                students_set.add(s)
+                
+        sub_name = sub.name.lower()
+        # Maths students also have Geography and Mathematics
+        if 'math' in sub_name or 'geography' in sub_name:
+            students_set.update(maths_students_set)
+            
+        students = list(students_set)
             
         class_counts = {}
         for s in students:
