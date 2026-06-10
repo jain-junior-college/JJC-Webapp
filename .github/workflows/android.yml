@@ -47,13 +47,9 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Make gradlew executable
-        run: chmod +x android_app/gradlew
-        continue-on-error: true
-
       - name: Build with Gradle
         working-directory: android_app
-        run: ./gradlew assembleDebug --no-daemon
+        run: gradle assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
