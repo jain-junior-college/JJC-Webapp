@@ -1462,6 +1462,36 @@ def delete_exam_lecture(lecture_id):
     flash('Additional lecture removed.', 'success')
     return redirect(url_for('test_list'))
 
+@app.route('/academics/tests/lecture/edit/<int:lecture_id>', methods=['GET', 'POST'])
+@staff_required
+def edit_exam_lecture(lecture_id):
+    el = ExamAdditionalLecture.query.get_or_404(lecture_id)
+    if request.method == 'POST':
+        el.exam_type = request.form.get('exam_type')
+        el.time_slot = request.form.get('time_slot')
+        el.subject = request.form.get('subject')
+        
+        date_str = request.form.get('lecture_date')
+        if date_str:
+            try:
+                el.lecture_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                el.day = el.lecture_date.strftime('%A')
+            except ValueError:
+                pass
+                
+        try:
+            db.session.commit()
+            flash('Additional lecture updated successfully!', 'success')
+            return redirect(url_for('test_list'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating lecture: {str(e)}', 'danger')
+            
+    classes = AcademicClass.query.all()
+    streams = Stream.query.all()
+    subjects = Subject.query.all()
+    return render_template('academics/edit_exam_lecture.html', lecture=el, classes=classes, streams=streams, subjects=subjects)
+
 @app.route('/academics/tests/schedule', methods=['GET', 'POST'])
 @staff_required
 def schedule_test():

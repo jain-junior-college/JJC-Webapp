@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Additional Lecture{% endblock %}
+{% block header_title %}Edit Additional Lecture{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="glass-card">
+        <h3 style="font-weight: 700; margin-bottom: 2rem;">Edit Special Class Details</h3>
+        <form method="POST">
+            <div class="form-group">
+                <label>Class & Stream</label>
+                <input type="text" class="form-control" value="{{ lecture.academic_class.name }} - {{ lecture.stream_obj.name }}" disabled>
+            </div>
+            <div class="form-group">
+                <label>Exam Type / Lecture Type</label>
+                <input type="text" name="exam_type" class="form-control" value="{{ lecture.exam_type }}" required>
+            </div>
+            <div class="form-group">
+                <label>Subject</label>
+                <input type="text" name="subject" class="form-control" value="{{ lecture.subject }}" required>
+            </div>
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="lecture_date" class="form-control" value="{% if lecture.lecture_date %}{{ lecture.lecture_date.strftime('%Y-%m-%d') }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label>Time Slot</label>
+                <input type="text" name="time_slot" class="form-control" value="{{ lecture.time_slot }}" required placeholder="e.g., 9.30 AM to 10.30 AM">
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <a href="{{ url_for('test_list') }}" class="btn" style="flex: 1; text-align: center; background: #e5e7eb; color: #374151; text-decoration: none; border-radius: 5px;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
