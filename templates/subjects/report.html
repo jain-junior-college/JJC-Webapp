@@ -4,34 +4,80 @@
 {% block header_title %}Subject Reports{% endblock %}
 
 {% block content %}
+
+<!-- ─── Filter Panel ─── -->
 <div class="glass-card screen-only" style="margin-bottom: 2rem;">
-    <form method="GET" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
-        <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
-            <label style="font-weight: 700; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; display: block;">Filter Class</label>
-            <select name="class_id" class="form-control">
-                <option value="">-- All Classes --</option>
-                {% for c in classes %}
-                <option value="{{ c.id }}" {% if selected_class_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+    <form method="GET" id="report-form">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; align-items: end; flex-wrap: wrap;">
+
+            <!-- Class -->
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-weight: 700; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; display: block;">Filter Class</label>
+                <select name="class_id" class="form-control">
+                    <option value="">-- All Classes --</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}" {% if selected_class_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Stream -->
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-weight: 700; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; display: block;">Filter Stream</label>
+                <select name="stream_id" class="form-control">
+                    <option value="">-- All Streams --</option>
+                    {% for s in streams %}
+                    <option value="{{ s.id }}" {% if selected_stream_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Sort rows -->
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-weight: 700; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; display: block;">Sort Subjects By</label>
+                <select name="sort_by" class="form-control">
+                    <option value="name"  {% if sort_by  == 'name'  %}selected{% endif %}>Subject Name (A–Z)</option>
+                    <option value="count" {% if sort_by  == 'count' %}selected{% endif %}>Student Count (Highest First)</option>
+                </select>
+            </div>
+
+            <!-- Sort students -->
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-weight: 700; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; display: block;">Sort Students By</label>
+                <select name="student_sort" class="form-control">
+                    <option value="name" {% if student_sort == 'name' %}selected{% endif %}>Alphabetically (Name)</option>
+                    <option value="id"   {% if student_sort == 'id'   %}selected{% endif %}>Student ID (Ascending)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Subject multi-select pills -->
+        {% if all_subjects %}
+        <div style="margin-top: 1.2rem;">
+            <label style="font-weight: 700; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem; display: block;">
+                Filter Specific Subjects <span style="font-weight: 400; color: #94a3b8;">(leave blank for all)</span>
+            </label>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;" id="subject-pill-container">
+                {% for sub in all_subjects %}
+                <label style="cursor: pointer;">
+                    <input type="checkbox" name="subject_ids" value="{{ sub.id }}"
+                           {% if sub.id in selected_subject_ids %}checked{% endif %}
+                           style="display: none;" class="subj-cb" onchange="updatePills()">
+                    <span class="subj-pill" data-id="{{ sub.id }}"
+                          style="display: inline-block; padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+                                 border: 1.5px solid {% if sub.is_compulsory %}#059669{% else %}#6366f1{% endif %};
+                                 background: {% if sub.id in selected_subject_ids %}{% if sub.is_compulsory %}#059669{% else %}#6366f1{% endif %}{% else %}transparent{% endif %};
+                                 color: {% if sub.id in selected_subject_ids %}#fff{% elif sub.is_compulsory %}#059669{% else %}#6366f1{% endif %};
+                                 transition: all 0.15s ease; user-select: none;">
+                        {{ sub.name }}
+                    </span>
+                </label>
                 {% endfor %}
-            </select>
+            </div>
         </div>
-        <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
-            <label style="font-weight: 700; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; display: block;">Filter Stream</label>
-            <select name="stream_id" class="form-control">
-                <option value="">-- All Streams --</option>
-                {% for s in streams %}
-                <option value="{{ s.id }}" {% if selected_stream_id == s.id %}selected{% endif %}>{{ s.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
-            <label style="font-weight: 700; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; display: block;">Sort By</label>
-            <select name="sort_by" class="form-control">
-                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Subject Name</option>
-                <option value="count" {% if sort_by == 'count' %}selected{% endif %}>Student Count (Highest First)</option>
-            </select>
-        </div>
-        <div style="display: flex; gap: 0.5rem; width: 100%; margin-top: 1.2rem; flex-wrap: wrap;">
+        {% endif %}
+
+        <div style="display: flex; gap: 0.5rem; margin-top: 1.2rem; flex-wrap: wrap;">
             <button type="submit" class="btn btn-primary" style="flex: 1; min-width: 140px;"><i class="fas fa-filter"></i> Generate Report</button>
             <button type="button" onclick="window.print()" class="btn" style="background: #1e3a8a; color: white; flex: 1; min-width: 140px;"><i class="fas fa-print"></i> Print Report</button>
             <a href="{{ url_for('manage_subjects') }}" class="btn" style="background: white; border: 1px solid #cbd5e1; color: #475569; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1; min-width: 140px;"><i class="fas fa-arrow-left"></i> Back to Subjects</a>
@@ -39,138 +85,207 @@
     </form>
 </div>
 
+<!-- ─── Report Card ─── -->
 <div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
+
     <!-- Print Official Header -->
     <div class="print-header" style="display: none; padding: 2rem 2rem 0 2rem;">
         <div style="display: flex; align-items: center; gap: 1.5rem; border-bottom: 2px solid #1e3a8a; padding-bottom: 1.5rem;">
             <img src="{{ url_for('static', filename='images/logo.png') }}" style="width: 80px; height: 80px; object-fit: contain;">
             <div>
                 <p style="margin: 0; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; font-weight: 700;">VISHWAKALYAN EDUCATION SOCIETY'S</p>
-                <h1 style="color: #1e3a8a; margin: 0.1rem 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px;">JAIN JUNIOR COLLEGE</h1>
+                <h1 style="color: #1e3a8a; margin: 0.1rem 0; font-size: 1.8rem; font-weight: 800;">JAIN JUNIOR COLLEGE</h1>
                 <p style="margin: 0.1rem 0; color: #b45309; font-size: 0.9rem; font-weight: 700; font-family: 'Noto Sans Devanagari', sans-serif;">॥ ज्ञान संस्कारेण मनुष्य शोभते ॥</p>
                 <p style="margin: 0.3rem 0 0; color: #64748b; font-size: 0.8rem; font-weight: 600;">
                     Subject-wise Student Enrollment Report
-                    {% if class_obj or stream_obj %}
-                        | 
-                        {% if class_obj %}{{ class_obj.name }}{% endif %}
-                        {% if stream_obj %} - {{ stream_obj.name }}{% endif %}
-                    {% endif %}
+                    {% if class_obj or stream_obj %}| {% if class_obj %}{{ class_obj.name }}{% endif %}{% if stream_obj %} – {{ stream_obj.name }}{% endif %}{% endif %}
                 </p>
             </div>
         </div>
     </div>
 
-    <div style="background: #f8fafc; padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;" class="screen-only">
+    <!-- Screen sub-header -->
+    <div style="background: #f8fafc; padding: 1.25rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;" class="screen-only">
         <h3 style="margin: 0; font-weight: 800; color: #1e3a8a;">
             Subject Enrollment Summary
             {% if class_obj or stream_obj %}
-                <span style="font-size: 0.9rem; color: #64748b; font-weight: 600;">
-                    ({% if class_obj %}{{ class_obj.name }}{% endif %}{% if stream_obj %} - {{ stream_obj.name }}{% endif %})
-                </span>
+            <span style="font-size: 0.9rem; color: #64748b; font-weight: 600;">
+                ({% if class_obj %}{{ class_obj.name }}{% endif %}{% if stream_obj %} – {{ stream_obj.name }}{% endif %})
+            </span>
             {% endif %}
         </h3>
+        <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">
+            {{ report_data | length }} subject(s) &bull; Sorted by {{ 'Student ID' if student_sort == 'id' else 'Name' }}
+        </span>
     </div>
 
-    <div class="table-container" style="padding: 2rem;">
-        <table style="width: 100%; border-collapse: collapse;">
+    <!-- Summary table -->
+    <div style="padding: 0 2rem 1rem;">
+        <table style="width: 100%; border-collapse: collapse;" id="summary-table">
             <thead>
                 <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
-                    <th style="padding: 1rem; color: #475569; width: 40%; font-weight: 700;">Subject Name</th>
-                    <th style="padding: 1rem; color: #475569; width: 20%; font-weight: 700;">Stream</th>
-                    <th style="padding: 1rem; color: #475569; width: 20%; font-weight: 700;">Type</th>
-                    <th style="padding: 1rem; color: #475569; text-align: center; width: 20%; font-weight: 700;">Student Count</th>
+                    <th style="padding: 1rem 0.5rem; color: #475569; width: 4%; font-weight: 700; font-size: 0.8rem;">#</th>
+                    <th style="padding: 1rem; color: #475569; width: 38%; font-weight: 700;">Subject Name</th>
+                    <th style="padding: 1rem; color: #475569; width: 18%; font-weight: 700;">Stream</th>
+                    <th style="padding: 1rem; color: #475569; width: 15%; font-weight: 700;">Type</th>
+                    <th style="padding: 1rem; color: #475569; text-align: center; width: 10%; font-weight: 700;">Total</th>
+                    <th style="padding: 1rem; color: #475569; width: 15%; font-weight: 700;" class="screen-only">Class Breakdown</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in report_data %}
-                <tr style="border-bottom: 1px solid #f1f5f9; cursor: pointer;" onclick="toggleDetails('details_{{ loop.index }}')">
-                    <td style="padding: 1rem; font-weight: 700; color: #1e293b;">
-                        <i class="fas fa-chevron-right details-chevron" id="chevron_details_{{ loop.index }}" style="margin-right: 8px; font-size: 0.8rem; color: #94a3b8; transition: transform 0.2s;"></i>
+                <!-- Summary Row -->
+                <tr class="summary-row" style="border-bottom: 1px solid #f1f5f9; cursor: pointer;"
+                    onclick="toggleDetails('details_{{ loop.index }}')">
+                    <td style="padding: 0.85rem 0.5rem; color: #94a3b8; font-size: 0.8rem; font-weight: 600;">{{ loop.index }}</td>
+                    <td style="padding: 0.85rem 1rem; font-weight: 700; color: #1e293b;">
+                        <i class="fas fa-chevron-right details-chevron" id="chevron_details_{{ loop.index }}"
+                           style="margin-right: 8px; font-size: 0.75rem; color: #94a3b8; transition: transform 0.2s;"></i>
                         {{ item.subject.name }}
                     </td>
-                    <td style="padding: 1rem; color: #64748b;">{{ item.subject.stream.name if item.subject.stream else 'General' }}</td>
-                    <td style="padding: 1rem;">
+                    <td style="padding: 0.85rem 1rem; color: #64748b;">{{ item.subject.stream.name if item.subject.stream else '—' }}</td>
+                    <td style="padding: 0.85rem 1rem;">
                         {% if item.subject.is_compulsory %}
-                        <span style="color: #059669; font-weight: 700; font-size: 0.8rem;"><i class="fas fa-lock"></i> Compulsory</span>
+                        <span style="color: #059669; font-weight: 700; font-size: 0.78rem;"><i class="fas fa-lock"></i> Compulsory</span>
                         {% else %}
-                        <span style="color: #6366f1; font-weight: 700; font-size: 0.8rem;"><i class="fas fa-hand-pointer"></i> Optional</span>
+                        <span style="color: #6366f1; font-weight: 700; font-size: 0.78rem;"><i class="fas fa-hand-pointer"></i> Optional</span>
                         {% endif %}
                     </td>
-                    <td style="padding: 1rem; text-align: center; font-weight: 800; font-size: 1.1rem; color: #1e3a8a;">
+                    <td style="padding: 0.85rem 1rem; text-align: center; font-weight: 800; font-size: 1.15rem; color: #1e3a8a;">
                         {{ item.total_count }}
                     </td>
+                    <td style="padding: 0.85rem 1rem; font-size: 0.78rem; color: #64748b;" class="screen-only">
+                        {% for cls, cnt in item.class_counts.items() %}
+                        <span style="background: #e0f2fe; color: #0369a1; padding: 0.1rem 0.4rem; border-radius: 4px; margin-right: 3px; font-weight: 600;">{{ cls }}: {{ cnt }}</span>
+                        {% endfor %}
+                    </td>
                 </tr>
-                <!-- Enrolled Students Detail Row -->
+
+                <!-- Expandable Student List Row -->
                 <tr id="details_{{ loop.index }}" style="display: none; background: #faf5ff;">
-                    <td colspan="4" style="padding: 1.5rem 2rem; border-bottom: 1px solid #f1f5f9;">
-                        <h5 style="margin-bottom: 0.8rem; color: #6b21a8; font-weight: 800; font-size: 0.9rem;">Enrolled Students List ({{ item.total_count }} total)</h5>
-                        {% if item.students %}
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.8rem;">
-                            {% for s in item.students %}
-                            <div style="background: white; border: 1px solid #e9d5ff; padding: 0.5rem 0.8rem; border-radius: 8px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                                <span style="font-weight: 700; color: #3b0764;">{{ s.name }}</span>
-                                <span style="color: #a21caf; font-size: 0.75rem; font-weight: 600;">{{ s.student_id }}</span>
-                            </div>
-                            {% endfor %}
+                    <td colspan="6" style="padding: 1.5rem 2rem; border-bottom: 2px solid #ede9fe;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h5 style="margin: 0; color: #6b21a8; font-weight: 800; font-size: 0.9rem;">
+                                <i class="fas fa-users"></i> {{ item.subject.name }} — {{ item.total_count }} Student{{ 's' if item.total_count != 1 }}
+                                <span style="color: #9333ea; font-weight: 500; font-size: 0.78rem; margin-left: 0.5rem;">
+                                    (sorted by {{ 'Student ID' if student_sort == 'id' else 'Name' }})
+                                </span>
+                            </h5>
                         </div>
+
+                        {% if item.students %}
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                            <thead>
+                                <tr style="background: #f3e8ff; border-bottom: 1px solid #ddd6fe;">
+                                    <th style="padding: 0.5rem 0.75rem; color: #6b21a8; font-weight: 700; width: 5%; text-align: right;">#</th>
+                                    <th style="padding: 0.5rem 0.75rem; color: #6b21a8; font-weight: 700; width: 18%;">Student ID</th>
+                                    <th style="padding: 0.5rem 0.75rem; color: #6b21a8; font-weight: 700; width: 42%;">Name</th>
+                                    <th style="padding: 0.5rem 0.75rem; color: #6b21a8; font-weight: 700; width: 18%;">Class</th>
+                                    <th style="padding: 0.5rem 0.75rem; color: #6b21a8; font-weight: 700; width: 17%;">Stream</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in item.students %}
+                                <tr style="border-bottom: 1px solid #f3e8ff; {% if loop.index is odd %}background: #fdf4ff;{% else %}background: #fff;{% endif %}">
+                                    <td style="padding: 0.45rem 0.75rem; color: #9333ea; font-weight: 600; text-align: right;">{{ loop.index }}</td>
+                                    <td style="padding: 0.45rem 0.75rem; color: #a21caf; font-weight: 700; font-family: monospace;">{{ s.student_id }}</td>
+                                    <td style="padding: 0.45rem 0.75rem; color: #3b0764; font-weight: 600;">{{ s.name }}</td>
+                                    <td style="padding: 0.45rem 0.75rem; color: #64748b;">{{ s.academic_class.name if s.academic_class else '—' }}</td>
+                                    <td style="padding: 0.45rem 0.75rem; color: #64748b;">{{ s.stream.name if s.stream else '—' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                         {% else %}
-                        <p style="color: #94a3b8; font-size: 0.85rem; font-style: italic;">No students enrolled in this subject.</p>
+                        <p style="color: #94a3b8; font-size: 0.85rem; font-style: italic; margin: 0;">No students explicitly enrolled in this subject.</p>
                         {% endif %}
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="4" style="text-align: center; padding: 2rem; color: #64748b;">No subjects found.</td>
+                    <td colspan="6" style="text-align: center; padding: 3rem; color: #94a3b8;">
+                        <i class="fas fa-search" style="font-size: 2rem; display: block; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        No subjects found. Try adjusting your filters.
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
+
+            <!-- Grand total footer -->
+            {% if report_data %}
+            <tfoot>
+                <tr style="background: #1e3a8a; color: white;">
+                    <td colspan="4" style="padding: 1rem 1.5rem; font-weight: 800; font-size: 0.9rem;">
+                        TOTAL ENROLLMENT ACROSS {{ report_data | length }} SUBJECT(S)
+                    </td>
+                    <td style="padding: 1rem; text-align: center; font-weight: 900; font-size: 1.2rem;">
+                        {{ report_data | sum(attribute='total_count') }}
+                    </td>
+                    <td class="screen-only"></td>
+                </tr>
+            </tfoot>
+            {% endif %}
         </table>
     </div>
 </div>
 
 <style>
+/* ── Print Styles ── */
 @media print {
     @page { size: A4 portrait; margin: 1.2cm 1cm; }
     body * { visibility: hidden; }
     .glass-card:last-of-type, .glass-card:last-of-type * { visibility: visible; }
     .glass-card:last-of-type {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        box-shadow: none !important;
-        border: none !important;
-        background: white !important;
-        padding: 0 !important;
-        margin: 0 !important;
+        position: absolute; left: 0; top: 0; width: 100%;
+        box-shadow: none !important; border: none !important;
+        background: white !important; padding: 0 !important; margin: 0 !important;
     }
     .sidebar, header, .screen-only, .btn { display: none !important; }
     .main-content { padding: 0 !important; margin: 0 !important; }
     .print-header { display: block !important; padding: 0 0 1.5rem 0 !important; }
-    .table-container { padding: 0 !important; }
-    th, td { padding: 0.6rem !important; font-size: 0.85rem; border-bottom: 1px solid #cbd5e1 !important; }
+    th, td { padding: 0.5rem !important; font-size: 0.82rem; border-bottom: 1px solid #cbd5e1 !important; }
     .details-chevron { display: none !important; }
-    
-    /* Force enrolled student list to print nicely */
     tr[id^="details_"] { display: table-row !important; background: white !important; }
-    tr[id^="details_"] td { padding: 0.5rem 1rem !important; }
-    tr[id^="details_"] h5 { font-size: 8pt !important; margin-bottom: 4px !important; }
-    tr[id^="details_"] div { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; }
-    tr[id^="details_"] div > div { padding: 2px 6px !important; border: 1px solid #ddd !important; border-radius: 4px !important; font-size: 7.5pt !important; box-shadow: none !important; background: white !important; }
+    tr[id^="details_"] table { font-size: 8pt !important; }
+    tr[id^="details_"] thead tr { background: #f3f4f6 !important; }
+    tfoot tr { background: #1e3a8a !important; -webkit-print-color-adjust: exact; }
+    tfoot tr td { color: white !important; }
 }
+
+/* ── Screen hover ── */
+.summary-row:hover { background: #faf5ff !important; }
+
+/* ── Pill toggle JS helper ── */
+.subj-pill.active { color: #fff !important; }
 </style>
 
 <script>
+// Toggle student detail rows
 function toggleDetails(rowId) {
     const row = document.getElementById(rowId);
     const chevron = document.getElementById('chevron_' + rowId);
-    if (row.style.display === 'none') {
-        row.style.display = 'table-row';
-        if (chevron) chevron.style.transform = 'rotate(90deg)';
-    } else {
-        row.style.display = 'none';
-        if (chevron) chevron.style.transform = 'rotate(0deg)';
-    }
+    if (!row) return;
+    const opening = row.style.display === 'none';
+    row.style.display = opening ? 'table-row' : 'none';
+    if (chevron) chevron.style.transform = opening ? 'rotate(90deg)' : 'rotate(0deg)';
 }
+
+// Subject pill toggle visual feedback
+function updatePills() {
+    document.querySelectorAll('.subj-cb').forEach(function(cb) {
+        const pill = cb.nextElementSibling;
+        if (!pill) return;
+        if (cb.checked) {
+            pill.style.color = '#fff';
+            pill.style.background = pill.style.borderColor.includes('059669') ? '#059669' : '#6366f1';
+        } else {
+            pill.style.background = 'transparent';
+            pill.style.color = pill.style.borderColor.includes('059669') ? '#059669' : '#6366f1';
+        }
+    });
+}
+// Apply on load for pre-checked state
+document.addEventListener('DOMContentLoaded', updatePills);
 </script>
+
 {% endblock %}

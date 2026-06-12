@@ -827,66 +827,76 @@ def delete_teacher(id):
 @app.route('/subjects/report')
 @staff_required
 def subject_wise_report():
-    selected_class_id = request.args.get('class_id', type=int)
+    selected_class_id  = request.args.get('class_id',  type=int)
     selected_stream_id = request.args.get('stream_id', type=int)
-    sort_by = request.args.get('sort_by', 'name')
-    
-    classes = AcademicClass.query.all()
-    streams = Stream.query.all()
-    
-    query = Subject.query
+    sort_by            = request.args.get('sort_by', 'name')      # 'name' | 'count'
+    student_sort       = request.args.get('student_sort', 'name') # 'name' | 'id'
+    selected_subject_ids = request.args.getlist('subject_ids', type=int)
+
+    classes  = AcademicClass.query.order_by(AcademicClass.name).all()
+    streams  = Stream.query.order_by(Stream.name).all()
+
+    # Build subject filter
+    subject_query = Subject.query
     if selected_stream_id:
-        query = query.filter_by(stream_id=selected_stream_id)
-        
-    subjects = query.all()
-    
+        subject_query = subject_query.filter_by(stream_id=selected_stream_id)
+    all_subjects = subject_query.order_by(Subject.name).all()
+
+    # If specific subjects were selected, narrow further
+    if selected_subject_ids:
+        subjects = [s for s in all_subjects if s.id in selected_subject_ids]
+    else:
+        subjects = all_subjects
+
     report_data = []
     for sub in subjects:
-        students_set = set(sub.students)
+        # SINGLE SOURCE OF TRUTH: only students explicitly linked via student_subject
+        students = list(sub.students)
+
+        # Further filter by class if requested
         if selected_class_id:
-            students_set = {s for s in students_set if s.class_id == selected_class_id}
-            
-        # Add compulsory students
-        if sub.is_compulsory:
-            c_query = Student.query
-            if sub.stream_id:
-                c_query = c_query.filter_by(stream_id=sub.stream_id)
-            if selected_class_id:
-                c_query = c_query.filter_by(class_id=selected_class_id)
-            for s in c_query.all():
-                students_set.add(s)
-                
-        students = list(students_set)
-            
+            students = [s for s in students if s.class_id == selected_class_id]
+
+        # Sort students
+        if student_sort == 'id':
+            students = sorted(students, key=lambda s: s.student_id or '')
+        else:
+            students = sorted(students, key=lambda s: s.name.lower())
+
+        # Class breakdown counts
         class_counts = {}
         for s in students:
-            c_name = s.academic_class.name if s.academic_class else "Unassigned"
+            c_name = s.academic_class.name if s.academic_class else 'Unassigned'
             class_counts[c_name] = class_counts.get(c_name, 0) + 1
-            
+
         report_data.append({
-            'subject': sub,
-            'total_count': len(students),
+            'subject':      sub,
+            'total_count':  len(students),
             'class_counts': class_counts,
-            'students': sorted(students, key=lambda x: x.name)
+            'students':     students,
         })
-        
+
+    # Sort report rows
     if sort_by == 'count':
-        report_data = sorted(report_data, key=lambda x: x['total_count'], reverse=True)
+        report_data.sort(key=lambda x: x['total_count'], reverse=True)
     else:
-        report_data = sorted(report_data, key=lambda x: x['subject'].name.lower())
-        
-    class_obj = AcademicClass.query.get(selected_class_id) if selected_class_id else None
+        report_data.sort(key=lambda x: x['subject'].name.lower())
+
+    class_obj  = AcademicClass.query.get(selected_class_id)  if selected_class_id  else None
     stream_obj = Stream.query.get(selected_stream_id) if selected_stream_id else None
-    
+
     return render_template('subjects/report.html',
                            report_data=report_data,
+                           all_subjects=all_subjects,
                            classes=classes,
                            streams=streams,
                            selected_class_id=selected_class_id,
                            selected_stream_id=selected_stream_id,
+                           selected_subject_ids=selected_subject_ids,
                            class_obj=class_obj,
                            stream_obj=stream_obj,
-                           sort_by=sort_by)
+                           sort_by=sort_by,
+                           student_sort=student_sort)
 
 @app.route('/subjects', methods=['GET', 'POST'])
 @staff_required
