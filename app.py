@@ -1412,41 +1412,47 @@ def add_exam_lecture():
     class_id = request.form.get('class_id')
     stream_id = request.form.get('stream_id')
     exam_type = request.form.get('exam_type')
-    lecture_date_str = request.form.get('lecture_date', '').strip()
+    lecture_dates_str = request.form.get('lecture_date', '').strip()
     time_slot = request.form.get('time_slot', '').strip()
     subject = request.form.get('subject', '').strip()
     
-    if not (class_id and stream_id and exam_type and lecture_date_str and time_slot and subject):
+    if not (class_id and stream_id and exam_type and lecture_dates_str and time_slot and subject):
         flash('All fields are required for additional lecture.', 'danger')
         return redirect(url_for('test_list'))
     
-    from datetime import date as date_type
-    try:
-        lecture_date = datetime.strptime(lecture_date_str, '%Y-%m-%d').date()
-    except ValueError:
-        try:
-            lecture_date = datetime.strptime(lecture_date_str, '%d-%m-%Y').date()
-        except ValueError:
-            flash('Invalid date format. Please try again.', 'danger')
-            return redirect(url_for('test_list'))
-            
-    # Auto-derive day name from the date
-    day = lecture_date.strftime('%A')  # e.g., "Monday", "Saturday"
-        
-    el = ExamAdditionalLecture(
-        class_id=class_id,
-        stream_id=stream_id,
-        exam_type=exam_type,
-        lecture_date=lecture_date,
-        day=day,
-        time_slot=time_slot,
-        subject=subject
-    )
+    dates_list = [d.strip() for d in lecture_dates_str.split(',') if d.strip()]
     
     try:
-        db.session.add(el)
-        db.session.commit()
-        flash('Additional lecture scheduled successfully!', 'success')
+        added_count = 0
+        for date_str in dates_list:
+            try:
+                lecture_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                try:
+                    lecture_date = datetime.strptime(date_str, '%d-%m-%Y').date()
+                except ValueError:
+                    continue  # skip invalid dates
+                    
+            day = lecture_date.strftime('%A')
+            
+            el = ExamAdditionalLecture(
+                class_id=class_id,
+                stream_id=stream_id,
+                exam_type=exam_type,
+                lecture_date=lecture_date,
+                day=day,
+                time_slot=time_slot,
+                subject=subject
+            )
+            db.session.add(el)
+            added_count += 1
+            
+        if added_count > 0:
+            db.session.commit()
+            flash(f'{added_count} additional lecture(s) scheduled successfully!', 'success')
+        else:
+            flash('No valid dates were provided.', 'danger')
+            
     except Exception as e:
         db.session.rollback()
         flash(f'Database error: Please ensure you have run /sync-database. ({str(e)})', 'danger')

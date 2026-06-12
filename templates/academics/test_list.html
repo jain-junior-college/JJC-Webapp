@@ -179,12 +179,12 @@
                     <input type="hidden" name="exam_type" value="{{ exam_type }}">
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; align-items: end;">
-                        <!-- Date (auto-derives Day) -->
+                        <!-- Date(s): flatpickr multi-select -->
                         <div class="form-group" style="margin-bottom: 0;">
-                            <label style="font-size: 0.75rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.3rem;">Date</label>
-                            <input type="date" name="lecture_date" class="form-control lec-date-input" required
-                                   style="font-size: 0.85rem; padding: 0.4rem 0.8rem;"
-                                   onchange="updateDayFromDate(this)">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.3rem;">Date(s) <span style="color:#94a3b8; font-weight:400;">(pick one or more)</span></label>
+                            <input type="text" name="lecture_date" class="form-control lec-date-input" required
+                                   placeholder="Select date(s)"
+                                   style="font-size: 0.85rem; padding: 0.4rem 0.8rem; cursor: pointer;">
                         </div>
                         <!-- Day (auto-filled, read-only) -->
                         <div class="form-group" style="margin-bottom: 0;">
@@ -347,6 +347,26 @@ function toggleLectureForm(formId) {
                         });
                 }
             }
+
+            // Initialize flatpickr multi-date on the date input
+            const dateInput = form.querySelector('.lec-date-input');
+            if (dateInput && !dateInput._flatpickr) {
+                const dayOutput = form.querySelector('.lec-day-output');
+                flatpickr(dateInput, {
+                    mode: 'multiple',
+                    dateFormat: 'Y-m-d',
+                    onChange: function(selectedDates) {
+                        if (!dayOutput) return;
+                        if (selectedDates.length === 0) { dayOutput.value = ''; }
+                        else if (selectedDates.length === 1) {
+                            const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+                            dayOutput.value = dayNames[selectedDates[0].getDay()];
+                        } else {
+                            dayOutput.value = 'Multiple Days';
+                        }
+                    }
+                });
+            }
         }
     }
 }
@@ -357,56 +377,153 @@ function updateDayFromDate(dateInput) {
     const formDiv = dateInput.closest('[id^="form_"]');
     const dayOutput = formDiv ? formDiv.querySelector('.lec-day-output') : null;
     if (dayOutput && dateInput.value) {
-        // Parse as local date to avoid timezone offset issues
-        const [y, m, d] = dateInput.value.split('-').map(Number);
-        const date = new Date(y, m - 1, d);
-        dayOutput.value = days[date.getDay()];
+        const dateStrs = dateInput.value.split(',');
+        if (dateStrs.length > 1) {
+            dayOutput.value = "Multiple Days";
+        } else {
+            // Parse as local date to avoid timezone offset issues
+            const parts = dateStrs[0].trim().split('-');
+            if (parts.length === 3) {
+                const [y, m, d] = parts.map(Number);
+                const date = new Date(y, m - 1, d);
+                dayOutput.value = days[date.getDay()];
+            }
+        }
     } else if (dayOutput) {
         dayOutput.value = '';
     }
 }
 
+// ───── Duplicate Repeat Modal ─────
+let _dupFormId = null;
+let _dupFlatpickr = null;
+
 function duplicateLecture(formId, timeSlot, subject) {
-    const formDiv = document.getElementById(formId);
-    if (formDiv) {
-        // Ensure form is visible
-        if (formDiv.style.display === 'none') {
-            toggleLectureForm(formId);
-        }
-        
-        // Wait a small delay for subjects to load if they were lazy-loaded
-        setTimeout(() => {
-            const timeInput = formDiv.querySelector('input[name="time_slot"]');
-            const subjectSelect = formDiv.querySelector('select[name="subject"]');
-            const dateInput = formDiv.querySelector('input[name="lecture_date"]');
-            
-            if (timeInput) timeInput.value = timeSlot;
-            
-            if (subjectSelect) {
-                // Find matching option
-                for (let i = 0; i < subjectSelect.options.length; i++) {
-                    if (subjectSelect.options[i].value === subject) {
-                        subjectSelect.selectedIndex = i;
-                        break;
-                    }
-                }
-            }
-            
-            // Clear date and focus it so user knows what to fill
-            if (dateInput) {
-                dateInput.value = '';
-                dateInput.focus();
-                updateDayFromDate(dateInput);
-            }
-            
-            // Highlight the form briefly
-            formDiv.style.transition = 'box-shadow 0.3s ease';
-            formDiv.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.5)';
-            setTimeout(() => {
-                formDiv.style.boxShadow = 'none';
-            }, 1000);
-        }, 100);
+    _dupFormId = formId;
+    document.getElementById('dup-time-display').textContent = timeSlot;
+    document.getElementById('dup-subject-display').textContent = subject;
+    document.getElementById('dup-time-value').value = timeSlot;
+    document.getElementById('dup-subject-value').value = subject;
+
+    // Carry over hidden fields from the parent lecture add-form
+    const parentForm = document.getElementById(formId);
+    if (parentForm) {
+        document.getElementById('dup-class-id').value  = parentForm.querySelector('input[name="class_id"]')?.value  || '';
+        document.getElementById('dup-stream-id').value = parentForm.querySelector('input[name="stream_id"]')?.value || '';
+        document.getElementById('dup-exam-type').value = parentForm.querySelector('input[name="exam_type"]')?.value || '';
     }
+
+    // Reset selected dates display
+    document.getElementById('dup-selected-tags').innerHTML = '';
+    document.getElementById('dup-dates-hidden').value = '';
+    document.getElementById('dup-no-dates').style.display = 'block';
+
+    // Init or re-init flatpickr on the modal calendar input
+    if (_dupFlatpickr) _dupFlatpickr.destroy();
+    _dupFlatpickr = flatpickr('#dup-calendar-input', {
+        mode: 'multiple',
+        dateFormat: 'Y-m-d',
+        inline: true,
+        onChange: function(selectedDates, dateStr) {
+            // Update hidden input (comma-separated)
+            document.getElementById('dup-dates-hidden').value = selectedDates.map(d => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth()+1).padStart(2,'0');
+                const dd = String(d.getDate()).padStart(2,'0');
+                return `${y}-${m}-${dd}`;
+            }).join(',');
+
+            // Render tag pills
+            const tagsEl = document.getElementById('dup-selected-tags');
+            const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            tagsEl.innerHTML = selectedDates.map(d => {
+                const label = `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()} (${days[d.getDay()]})`;
+                return `<span style="display:inline-block;background:rgba(79,70,229,0.1);color:var(--primary-color);border-radius:20px;padding:0.2rem 0.7rem;font-size:0.75rem;font-weight:600;margin:0.15rem;">${label}</span>`;
+            }).join('');
+
+            document.getElementById('dup-no-dates').style.display = selectedDates.length ? 'none' : 'block';
+        }
+    });
+
+    // Show modal
+    document.getElementById('dup-modal-overlay').style.display = 'flex';
 }
+
+function closeDupModal() {
+    document.getElementById('dup-modal-overlay').style.display = 'none';
+    if (_dupFlatpickr) { _dupFlatpickr.destroy(); _dupFlatpickr = null; }
+}
+
+function submitDupModal() {
+    const dates = document.getElementById('dup-dates-hidden').value;
+    if (!dates) {
+        alert('Please select at least one date.');
+        return;
+    }
+    document.getElementById('dup-repeat-form').submit();
+}
+
+// Close modal on overlay click
+document.addEventListener('DOMContentLoaded', function(){
+    document.getElementById('dup-modal-overlay').addEventListener('click', function(e){
+        if (e.target === this) closeDupModal();
+    });
+});
 </script>
+
+<!-- Flatpickr -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<!-- Duplicate-Repeat Modal -->
+<div id="dup-modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center; padding:1rem;">
+  <div style="background:#fff; border-radius:16px; max-width:520px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.25); overflow:hidden;">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg, #4f46e5, #7c3aed); padding:1.25rem 1.5rem; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h3 style="color:#fff; margin:0; font-size:1.05rem; font-weight:700;"><i class="fas fa-copy"></i> Repeat Lecture on Multiple Dates</h3>
+        <p style="color:rgba(255,255,255,0.8); margin:0.25rem 0 0; font-size:0.8rem;">
+          <span id="dup-subject-display" style="font-weight:700;"></span> &bull; <span id="dup-time-display"></span>
+        </p>
+      </div>
+      <button onclick="closeDupModal()" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:50%; width:32px; height:32px; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:1.5rem;">
+      <p style="font-size:0.8rem; color:#64748b; margin:0 0 1rem;">Click on the calendar to select one or more dates for this subject and time.</p>
+
+      <!-- Inline calendar -->
+      <div style="display:flex; justify-content:center; margin-bottom:1rem;">
+        <input id="dup-calendar-input" type="text" style="display:none;">
+      </div>
+
+      <!-- Selected date tags -->
+      <div style="min-height:36px; margin-bottom:1rem;">
+        <p id="dup-no-dates" style="font-size:0.8rem; color:#94a3b8; font-style:italic;">No dates selected yet.</p>
+        <div id="dup-selected-tags"></div>
+      </div>
+
+      <!-- Hidden form -->
+      <form id="dup-repeat-form" method="POST" action="{{ url_for('add_exam_lecture') }}">
+        <input type="hidden" id="dup-class-id"      name="class_id">
+        <input type="hidden" id="dup-stream-id"     name="stream_id">
+        <input type="hidden" id="dup-exam-type"     name="exam_type">
+        <input type="hidden" id="dup-dates-hidden"  name="lecture_date">
+        <input type="hidden" id="dup-time-value"    name="time_slot">
+        <input type="hidden" id="dup-subject-value" name="subject">
+      </form>
+
+      <!-- Actions -->
+      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:0.5rem;">
+        <button type="button" onclick="closeDupModal()" style="background:#f1f5f9; color:#475569; border:none; border-radius:8px; padding:0.55rem 1.2rem; font-size:0.85rem; cursor:pointer; font-weight:600;">Cancel</button>
+        <button type="button" onclick="submitDupModal()" style="background:linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; border:none; border-radius:8px; padding:0.55rem 1.4rem; font-size:0.85rem; cursor:pointer; font-weight:700;">
+          <i class="fas fa-check"></i> Save All Lectures
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
