@@ -47,6 +47,7 @@
                 <select name="student_sort" class="form-control">
                     <option value="name" {% if student_sort == 'name' %}selected{% endif %}>Alphabetically (Name)</option>
                     <option value="id"   {% if student_sort == 'id'   %}selected{% endif %}>Student ID (Ascending)</option>
+                    <option value="class" {% if student_sort == 'class' %}selected{% endif %}>Class</option>
                 </select>
             </div>
         </div>
@@ -115,7 +116,7 @@
             {% endif %}
         </h3>
         <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">
-            {{ report_data | length }} subject(s) &bull; Sorted by {{ 'Student ID' if student_sort == 'id' else 'Name' }}
+            {{ report_data | length }} subject(s) &bull; Sorted by {% if student_sort == 'id' %}Student ID{% elif student_sort == 'class' %}Class{% else %}Name{% endif %}
         </span>
     </div>
 
@@ -168,7 +169,7 @@
                             <h5 style="margin: 0; color: #6b21a8; font-weight: 800; font-size: 0.9rem;">
                                 <i class="fas fa-users"></i> {{ item.subject.name }} — {{ item.total_count }} Student{{ 's' if item.total_count != 1 }}
                                 <span style="color: #9333ea; font-weight: 500; font-size: 0.78rem; margin-left: 0.5rem;">
-                                    (sorted by {{ 'Student ID' if student_sort == 'id' else 'Name' }})
+                                    (sorted by {% if student_sort == 'id' %}Student ID{% elif student_sort == 'class' %}Class{% else %}Name{% endif %})
                                 </span>
                             </h5>
                         </div>

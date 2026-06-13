@@ -860,6 +860,8 @@ def subject_wise_report():
         # Sort students
         if student_sort == 'id':
             students = sorted(students, key=lambda s: s.student_id or '')
+        elif student_sort == 'class':
+            students = sorted(students, key=lambda s: (s.academic_class.name if s.academic_class else '', s.name.lower()))
         else:
             students = sorted(students, key=lambda s: s.name.lower())
 
