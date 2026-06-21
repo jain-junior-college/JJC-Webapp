@@ -4,7 +4,7 @@
 {% block header_title %}Official Payment Receipt{% endblock %}
 
 {% block content %}
-<div class="glass-card" style="max-width: 700px; margin: 0 auto; background: white; color: #1e293b; border: 1px solid #e2e8f0;">
+<div class="glass-card" id="receiptContent" style="max-width: 700px; margin: 0 auto; background: white; color: #1e293b; border: 1px solid #e2e8f0;">
     <!-- Receipt Header -->
     <div style="border-bottom: 2px solid #f1f5f9; padding-bottom: 2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center; gap: 1.5rem;">
@@ -81,12 +81,15 @@
             <div style="height: 50px;"></div>
             <p style="border-top: 1px solid #1e293b; padding-top: 0.5rem; font-size: 0.8rem; font-weight: 700;">Authorized Signatory</p>
         </div>
-        <div>
-            <a href="{{ url_for('dashboard' if session.get('role') in ['admin', 'staff'] else 'student_fees') }}" class="btn" style="background: #f1f5f9; color: #64748b; margin-right: 1rem; text-decoration: none; padding: 0.8rem 1.5rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem;">
+        <div class="screen-only" style="display: flex; gap: 10px;">
+            <a href="{{ url_for('dashboard' if session.get('role') in ['admin', 'staff'] else 'student_fees') }}" class="btn" style="background: #f1f5f9; color: #64748b; text-decoration: none; padding: 0.8rem 1.5rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem;">
                 <i class="fas fa-arrow-left"></i> Back
             </a>
+            <button type="button" onclick="downloadPDF('receiptContent', 'Fee_Receipt_{{ fee.receipt_no if fee.receipt_no else fee.id }}.pdf')" class="btn" style="background: #e2e8f0; color: #334155; padding: 0.8rem 1.5rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem;">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
             <button onclick="window.print()" class="btn btn-primary" id="printBtn">
-                <i class="fas fa-print"></i> Print / Save PDF
+                <i class="fas fa-print"></i> Print Official Receipt
             </button>
         </div>
     </div>

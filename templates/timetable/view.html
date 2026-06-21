@@ -75,6 +75,7 @@
                 <a href="{{ url_for('timetable_delete_all', class_id=selected_class, stream_id=selected_stream) }}" class="btn" style="background: #ef4444; color: white; text-decoration: none; font-size: 0.8rem;" onclick="return confirm('DANGER: This will erase the ENTIRE schedule. Are you sure?')"><i class="fas fa-trash-alt"></i> Clear</a>
                 <a href="{{ url_for('timetable_export_csv', class_id=selected_class, stream_id=selected_stream) }}" class="btn" style="background: #166534; color: white; text-decoration: none; font-size: 0.8rem;"><i class="fas fa-file-excel"></i> Excel</a>
                 <a href="{{ url_for('timetable_manage') }}" class="btn" style="background: #1e3a8a; color: white; text-decoration: none; font-size: 0.8rem;"><i class="fas fa-tools"></i> Builder</a>
+                <button type="button" onclick="downloadPDF('printableGrid', 'Timetable.pdf')" class="btn" style="background: #e2e8f0; color: #334155; font-size: 0.8rem;"><i class="fas fa-file-pdf"></i> PDF</button>
                 <button onclick="window.print()" class="btn print-btn" style="background: white; border: 1px solid #cbd5e1; font-size: 0.8rem;"><i class="fas fa-print"></i> Print</button>
             </div>
         </div>
@@ -106,6 +107,7 @@
     <div class="timetable-mobile-view" style="padding: 1rem;">
         <!-- Mobile Print Button -->
         <div class="no-print" style="margin-bottom: 1rem; display: flex; gap: 0.6rem; flex-wrap: wrap;">
+            <button type="button" onclick="downloadPDF('printableGrid', 'Timetable.pdf')" class="btn" style="background: #e2e8f0; color: #334155; font-size: 0.85rem; flex: 1;"><i class="fas fa-file-pdf"></i> Download PDF</button>
             <button onclick="window.print()" class="btn print-btn" style="background: #1e3a8a; color: white; font-size: 0.85rem; flex: 1;"><i class="fas fa-print"></i> Print Timetable</button>
             <a href="{{ url_for('timetable_export_csv', class_id=selected_class, stream_id=selected_stream) }}" class="btn" style="background: #166534; color: white; text-decoration: none; font-size: 0.85rem; flex: 1; display:flex; align-items:center; justify-content:center; gap:6px;"><i class="fas fa-file-excel"></i> Export CSV</a>
         </div>

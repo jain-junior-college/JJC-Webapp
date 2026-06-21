@@ -51,6 +51,7 @@
             <p style="margin: 0.2rem 0 0 0; font-size: 0.9rem; color: #64748b; font-weight: 600;">{{ class_name }} &bull; {{ stream_name }}</p>
         </div>
         <div class="no-print" style="display: flex; gap: 0.5rem;">
+            <button type="button" onclick="downloadPDF('exam_{{ loop.index }}', 'Test_Schedule.pdf')" class="btn" style="background: white; border: 1px solid #cbd5e1; color: #475569; font-size: 0.8rem;"><i class="fas fa-file-pdf"></i> Download PDF</button>
             <button onclick="printExam('exam_{{ loop.index }}', 'portrait', false)" class="btn" style="background: white; border: 1px solid #cbd5e1; color: #475569; font-size: 0.8rem;"><i class="fas fa-print"></i> Portrait</button>
             <button onclick="printExam('exam_{{ loop.index }}', 'landscape', false)" class="btn" style="background: white; border: 1px solid #cbd5e1; color: #475569; font-size: 0.8rem;"><i class="fas fa-print"></i> Landscape</button>
             <button onclick="printExam('exam_{{ loop.index }}', 'portrait', true)" class="btn" style="background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1; font-size: 0.8rem; font-weight: 700;"><i class="fas fa-user-graduate"></i> Student Copy</button>

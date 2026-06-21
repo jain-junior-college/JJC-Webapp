@@ -41,3 +41,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Global PDF Download Utility
+function downloadPDF(elementId, filename) {
+    const element = document.getElementById(elementId);
+    if (!element) {
+        console.error("PDF download failed: Element not found - " + elementId);
+        return;
+    }
+    
+    // Configure html2pdf
+    const opt = {
+        margin:       [0.5, 0.5, 0.5, 0.5], // top, left, bottom, right in inches
+        filename:     filename || 'Report.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+    
+    // Add loading state to button if clicked from an event
+    const btn = event && event.target ? event.target.closest('button') : null;
+    let originalText = '';
+    if (btn) {
+        originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        btn.disabled = true;
+    }
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }).catch(err => {
+        console.error("PDF Generation Error:", err);
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+        alert("An error occurred while generating the PDF.");
+    });
+}

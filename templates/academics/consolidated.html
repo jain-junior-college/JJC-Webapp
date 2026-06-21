@@ -38,7 +38,7 @@
 </div>
 
 {% if selected_class_id and selected_stream_id %}
-<div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
+<div class="glass-card" id="reportContent" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
     <!-- Print Official Header -->
     <div class="print-only" style="display: none; padding: 2rem 2rem 0 2rem;">
         <div style="display: flex; align-items: center; gap: 1.5rem; border-bottom: 3px solid #1e3a8a; padding-bottom: 1.5rem;">
@@ -54,7 +54,10 @@
 
     <div style="background: #f8fafc; padding: 1.5rem 2rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;" class="screen-only">
         <h3 style="margin: 0; font-weight: 800; color: #1e3a8a;">{{ class_obj.name }} - {{ stream_obj.name }} Report</h3>
-        <button onclick="window.print()" class="btn btn-primary" style="font-size: 0.8rem;"><i class="fas fa-print"></i> Print Master Sheet</button>
+        <div style="display: flex; gap: 1rem;">
+            <button type="button" onclick="downloadPDF('reportContent', 'Consolidated_Report.pdf')" class="btn" style="background: #e2e8f0; color: #334155; font-size: 0.8rem; font-weight: 600;"><i class="fas fa-file-pdf"></i> Download PDF</button>
+            <button onclick="window.print()" class="btn btn-primary" style="font-size: 0.8rem;"><i class="fas fa-print"></i> Print Master Sheet</button>
+        </div>
     </div>
 
     <div class="table-container" style="padding: 2rem;">

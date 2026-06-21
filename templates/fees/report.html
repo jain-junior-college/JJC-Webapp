@@ -4,7 +4,7 @@
 {% block header_title %}Student Fee Reports{% endblock %}
 
 {% block content %}
-<div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
+<div class="glass-card" id="feeReportContent" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
     <!-- Print Official Header -->
     <div class="print-header" style="display: none; padding: 2rem 2rem 0 2rem;">
         <div style="display: flex; align-items: center; gap: 1.5rem; border-bottom: 2px solid #1e3a8a; padding-bottom: 1.5rem;">
@@ -28,6 +28,7 @@
                     <option value="student_id" {% if sort_by == 'student_id' %}selected{% endif %}>Student ID</option>
                 </select>
             </form>
+            <button type="button" onclick="downloadPDF('feeReportContent', 'Fee_Balance_Report.pdf')" class="btn" style="background: #e2e8f0; color: #334155; font-size: 0.8rem; height: 36px; display: flex; align-items: center;"><i class="fas fa-file-pdf"></i> Download PDF</button>
             <button onclick="window.print()" class="btn btn-primary" style="font-size: 0.8rem; height: 36px; display: flex; align-items: center;"><i class="fas fa-print"></i> Print Report</button>
             <a href="{{ url_for('collect_fees') }}" class="btn" style="background: white; border: 1px solid #cbd5e1; font-size: 0.8rem; color: #1e293b; text-decoration: none; height: 36px; display: inline-flex; align-items: center; box-sizing: border-box; justify-content: center;"><i class="fas fa-arrow-left"></i> Back to Collection</a>
         </div>

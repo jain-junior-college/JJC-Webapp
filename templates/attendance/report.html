@@ -73,6 +73,10 @@
                     <i class="fas fa-sync"></i> Generate Report
                 </button>
                 {% if report_data %}
+                <button type="button" onclick="downloadPDF('printableReport', 'Attendance_Report.pdf')" class="btn no-print"
+                        style="background: #e2e8f0; color: #334155; flex: 1; min-width: 140px;">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </button>
                 <button type="button" onclick="window.print()" class="btn no-print"
                         style="background: #1e3a8a; color: white; flex: 1; min-width: 140px;">
                     <i class="fas fa-print"></i> Print Report

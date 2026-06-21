@@ -6,6 +6,9 @@
     <title>Log Book Report — Jain Junior College</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <style>
         /* ── Base Reset ── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -187,12 +190,15 @@
         <a href="{{ url_for('logbook_view') }}" class="btn-back">
             ← Back to Log Book
         </a>
+        <button type="button" class="btn-print" style="background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1;" onclick="downloadPDF('printReportContent', 'Log_Book_Report.pdf')">
+            <i class="fas fa-file-pdf"></i> Download PDF
+        </button>
         <button class="btn-print" onclick="window.print()">
             🖨️ Print / Save as PDF
         </button>
     </div>
 
-    <div class="print-page">
+    <div class="print-page" id="printReportContent">
         <!-- Header -->
         <div class="rpt-header" style="align-items: center; border-bottom: 3px solid #1e3a8a; padding-bottom: 1.5rem; margin-bottom: 2rem;">
             <div style="display: flex; align-items: center; gap: 1.5rem;">

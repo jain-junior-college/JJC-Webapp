@@ -4,7 +4,7 @@
 {% block header_title %}Academic Report Card{% endblock %}
 
 {% block content %}
-<div class="glass-card" style="max-width: 900px; margin: 0 auto; background: white; color: #0f172a; padding: 0; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+<div class="glass-card" id="reportCardContent" style="max-width: 900px; margin: 0 auto; background: white; color: #0f172a; padding: 0; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
     
     <!-- Report Header with Logo (Matching Landing Page Style) -->
     <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 3rem; color: white; border-radius: 15px 15px 0 0; text-align: center; position: relative;">
@@ -105,9 +105,12 @@
     </div>
 
     <!-- Print Action -->
-    <div style="padding: 2rem; background: #f8fafc; text-align: center; border-radius: 0 0 15px 15px;">
-        <button onclick="window.print()" class="btn btn-primary" id="printBtn" style="padding: 1rem 3rem; border-radius: 50px;">
-            <i class="fas fa-print"></i> Download / Print Official Report Card
+    <div style="padding: 2rem; background: #f8fafc; text-align: center; border-radius: 0 0 15px 15px; display: flex; justify-content: center; gap: 1rem;" class="screen-only">
+        <button type="button" onclick="downloadPDF('reportCardContent', 'ReportCard_{{ student.student_id }}.pdf')" class="btn" style="background: #e2e8f0; color: #334155; padding: 1rem 2rem; border-radius: 50px; font-weight: 600;">
+            <i class="fas fa-file-pdf"></i> Download PDF
+        </button>
+        <button onclick="window.print()" class="btn btn-primary" id="printBtn" style="padding: 1rem 2rem; border-radius: 50px;">
+            <i class="fas fa-print"></i> Print Official Report Card
         </button>
     </div>
 </div>
