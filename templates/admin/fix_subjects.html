@@ -1,0 +1,366 @@
+{% extends "layout.html" %}
+
+{% block title %}Fix Student Subjects - Admin{% endblock %}
+{% block header_title %}Fix Student Subject Assignments{% endblock %}
+
+{% block content %}
+<style>
+  .fix-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .stat-badges {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .stat-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    min-width: 100px;
+    font-weight: 700;
+  }
+  .stat-badge .count { font-size: 2rem; line-height: 1; }
+  .stat-badge .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; }
+  .badge-danger { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+  .badge-success { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+  .badge-info { background: rgba(99,102,241,0.12); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); }
+
+  .student-fix-card {
+    background: rgba(239,68,68,0.04);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .student-fix-card .student-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .student-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+  .student-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.15rem;
+  }
+  .count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .count-badge.wrong { background: rgba(239,68,68,0.15); color: #ef4444; }
+  .count-badge.right { background: rgba(16,185,129,0.15); color: #10b981; }
+
+  .optional-checkboxes {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .optional-check-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .optional-check-label:hover { border-color: #6366f1; background: rgba(99,102,241,0.05); }
+  .optional-check-label input:checked + span { color: #6366f1; font-weight: 700; }
+  .optional-check-label input[type="checkbox"] { accent-color: #6366f1; width: 15px; height: 15px; }
+
+  .compulsory-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+  .compulsory-tag {
+    padding: 0.2rem 0.6rem;
+    background: rgba(16,185,129,0.1);
+    color: #10b981;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid rgba(16,185,129,0.25);
+  }
+  .section-divider {
+    border: none;
+    border-top: 2px solid rgba(0,0,0,0.06);
+    margin: 2rem 0;
+  }
+  .ok-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-size: 0.85rem;
+  }
+  .ok-list-item:last-child { border-bottom: none; }
+  .subject-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .subject-pill {
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  .pill-compulsory { background: rgba(99,102,241,0.1); color: #6366f1; }
+  .pill-optional { background: rgba(245,158,11,0.1); color: #d97706; }
+  .info-box {
+    background: rgba(99,102,241,0.05);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+    color: var(--text-secondary);
+  }
+  .info-box strong { color: var(--text-primary); }
+  .btn-auto-fix {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .btn-auto-fix:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+  .btn-save-all {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+  }
+  .btn-save-all:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
+</style>
+
+<!-- Header Stats -->
+<div class="fix-header">
+  <div>
+    <h2 style="margin: 0; font-weight: 800;">📋 Subject Assignment Validator</h2>
+    <p style="margin: 0.25rem 0 0; color: var(--text-secondary); font-size: 0.9rem;">
+      Each student should have exactly <strong>6 subjects</strong> (4 compulsory + 2 optional)
+    </p>
+  </div>
+  <div class="stat-badges">
+    <div class="stat-badge badge-info">
+      <span class="count">{{ total }}</span>
+      <span class="label">Total Students</span>
+    </div>
+    <div class="stat-badge badge-danger">
+      <span class="count">{{ problem_count }}</span>
+      <span class="label">Need Fix</span>
+    </div>
+    <div class="stat-badge badge-success">
+      <span class="count">{{ total - problem_count }}</span>
+      <span class="label">Correct</span>
+    </div>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div style="padding: 0.9rem 1.2rem; border-radius: 10px; margin-bottom: 1.5rem;
+                background: {% if category == 'success' %}rgba(16,185,129,0.1){% else %}rgba(239,68,68,0.1){% endif %};
+                color: {% if category == 'success' %}#10b981{% else %}#ef4444{% endif %};
+                border: 1px solid {% if category == 'success' %}rgba(16,185,129,0.3){% else %}rgba(239,68,68,0.3){% endif %};">
+      <i class="fas fa-{% if category == 'success' %}check-circle{% else %}exclamation-triangle{% endif %}" style="margin-right: 0.5rem;"></i>
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endwith %}
+
+{% if problem_count > 0 %}
+<!-- Auto-fix option -->
+<div class="info-box">
+  <strong>⚡ Auto-Fix:</strong> Click "Auto-Fix All" to automatically assign the first 2 optional subjects to students who currently have all 3 (or none). 
+  Students who already have 2 optional subjects will not be changed. Use manual fix below to choose specific subjects per student.
+  <form method="POST" style="display: inline; margin-left: 1rem;" onsubmit="return confirm('Auto-fix will modify {{ problem_count }} student(s). This keeps the first 2 optional subjects students already have. Continue?');">
+    <input type="hidden" name="action" value="auto_fix_all">
+    <button type="submit" class="btn-auto-fix">
+      <i class="fas fa-magic"></i> Auto-Fix All ({{ problem_count }} students)
+    </button>
+  </form>
+</div>
+
+<!-- Manual Fix Form -->
+<form method="POST">
+  <input type="hidden" name="action" value="fix_selected">
+  <h3 style="font-weight: 700; margin-bottom: 1.25rem; color: #ef4444;">
+    <i class="fas fa-exclamation-circle"></i> Students Needing Correction ({{ problem_count }})
+  </h3>
+
+  {% for entry in problem_students %}
+  {% set student = entry.student %}
+  <div class="student-fix-card">
+    <div class="student-header">
+      <div>
+        <div class="student-name">{{ student.name }}</div>
+        <div class="student-meta">
+          ID: {{ student.student_id }} &nbsp;|&nbsp;
+          Stream: {{ student.stream.name if student.stream else 'N/A' }} &nbsp;|&nbsp;
+          Class: {{ student.academic_class.name if student.academic_class else 'N/A' }}
+        </div>
+      </div>
+      <span class="count-badge wrong">
+        <i class="fas fa-times-circle"></i>
+        {{ entry.current_count }}/{{ entry.expected }} subjects
+      </span>
+    </div>
+
+    <!-- Compulsory subjects (informational) -->
+    <div style="margin-bottom: 0.75rem;">
+      <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Compulsory (auto-assigned):</span>
+      <div class="compulsory-tags" style="margin-top: 0.35rem;">
+        {% for sub in student.subjects if sub.is_compulsory %}
+          <span class="compulsory-tag"><i class="fas fa-lock" style="font-size: 0.65rem;"></i> {{ sub.name }}</span>
+        {% else %}
+          <span style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic;">No compulsory subjects assigned</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Optional subject selection -->
+    <div>
+      <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+        Choose exactly 2 optional subjects:
+      </span>
+      <div class="optional-checkboxes" style="margin-top: 0.5rem;">
+        {% for opt in entry.stream_optionals %}
+          <label class="optional-check-label">
+            <input type="checkbox"
+                   name="subjects_{{ student.id }}"
+                   value="{{ opt.id }}"
+                   {% if opt in entry.current_optional %}checked{% endif %}
+                   onchange="validateOptionals(this, {{ student.id }})">
+            <span>{{ opt.name }}</span>
+          </label>
+        {% else %}
+          <span style="font-size: 0.85rem; color: var(--text-secondary);">No optional subjects for this stream</span>
+        {% endfor %}
+      </div>
+      <div id="warning_{{ student.id }}" style="display:none; color: #ef4444; font-size: 0.78rem; margin-top: 0.4rem;">
+        <i class="fas fa-exclamation-triangle"></i> Please select exactly 2 optional subjects.
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
+    <button type="submit" class="btn-save-all" id="saveBtn">
+      <i class="fas fa-save"></i> Save Selected Fixes
+    </button>
+  </div>
+</form>
+
+<hr class="section-divider">
+{% else %}
+<div style="text-align: center; padding: 3rem; background: rgba(16,185,129,0.05); border-radius: 16px; border: 1px solid rgba(16,185,129,0.2); margin-bottom: 2rem;">
+  <i class="fas fa-check-circle" style="font-size: 3rem; color: #10b981; margin-bottom: 1rem; display: block;"></i>
+  <h3 style="font-weight: 700; color: #10b981; margin: 0;">All students have correct subject counts!</h3>
+  <p style="color: var(--text-secondary); margin: 0.5rem 0 0;">Every student has exactly 6 subjects (4 compulsory + 2 optional).</p>
+</div>
+{% endif %}
+
+<!-- Students who are already OK -->
+{% if ok_students %}
+<h3 style="font-weight: 700; margin-bottom: 1rem; color: #10b981;">
+  <i class="fas fa-check-circle"></i> Students with Correct Subject Count ({{ ok_students|length }})
+</h3>
+<div class="glass-card" style="padding: 0;">
+  <div style="padding: 0 1rem;">
+    {% for entry in ok_students %}
+    {% set student = entry.student %}
+    <div class="ok-list-item">
+      <div>
+        <strong>{{ student.name }}</strong>
+        <span style="color: var(--text-secondary); font-size: 0.8rem; margin-left: 0.5rem;">
+          ({{ student.student_id }} | {{ student.stream.name if student.stream else '—' }})
+        </span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div class="subject-pills">
+          {% for sub in student.subjects %}
+            <span class="subject-pill {% if sub.is_compulsory %}pill-compulsory{% else %}pill-optional{% endif %}">
+              {{ sub.name }}
+            </span>
+          {% endfor %}
+        </div>
+        <span class="count-badge right">
+          <i class="fas fa-check"></i> {{ entry.current_count }}
+        </span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div style="text-align: right; margin-top: 1.5rem;">
+  <a href="{{ url_for('subjects/report') if false else url_for('subject_wise_report') }}" class="btn" style="background: rgba(99,102,241,0.1); color: #6366f1; text-decoration: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; margin-right: 0.5rem;">
+    <i class="fas fa-chart-bar"></i> View Subject-wise Report
+  </a>
+  <a href="{{ url_for('student_list') }}" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-secondary); text-decoration: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem;">
+    <i class="fas fa-arrow-left"></i> Back to Students
+  </a>
+</div>
+
+<script>
+function validateOptionals(checkbox, studentId) {
+  const checkboxes = document.querySelectorAll(`input[name="subjects_${studentId}"]`);
+  const checked = Array.from(checkboxes).filter(c => c.checked);
+  const warning = document.getElementById(`warning_${studentId}`);
+  
+  if (checked.length > 2) {
+    checkbox.checked = false; // Prevent checking more than 2
+    warning.style.display = 'block';
+    warning.textContent = '⚠ You can only select exactly 2 optional subjects. Uncheck one first.';
+  } else if (checked.length === 2) {
+    warning.style.display = 'none';
+  } else {
+    warning.style.display = 'block';
+    warning.textContent = `⚠ Please select exactly 2 optional subjects (currently: ${checked.length}).`;
+  }
+}
+</script>
+{% endblock %}

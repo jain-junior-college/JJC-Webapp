@@ -952,6 +952,110 @@ def delete_subject(id):
     flash('Subject deleted successfully.')
     return redirect(url_for('manage_subjects'))
 
+@app.route('/admin/fix-student-subjects', methods=['GET', 'POST'])
+@staff_required
+def fix_student_subjects():
+    """Admin route to view and fix students whose subject count != 6."""
+    streams = Stream.query.all()
+    all_students = Student.query.order_by(Student.student_id).all()
+
+    if request.method == 'POST':
+        action = request.form.get('action', 'fix_selected')
+
+        if action == 'fix_selected':
+            # Fix individually submitted student subjects
+            fixed_count = 0
+            for student in all_students:
+                key = f'subjects_{student.id}'
+                submitted_ids = request.form.getlist(key)
+                if not submitted_ids:
+                    continue  # No change submitted for this student
+
+                stream_id = student.stream_id
+                compulsory = Subject.query.filter_by(stream_id=stream_id, is_compulsory=True).all()
+                compulsory_ids = {str(cs.id) for cs in compulsory}
+                final_ids = compulsory_ids | set(submitted_ids)
+
+                student.subjects = []
+                for sid in final_ids:
+                    subj = Subject.query.get(sid)
+                    if subj:
+                        student.subjects.append(subj)
+                fixed_count += 1
+
+            db.session.commit()
+            flash(f'Updated subjects for {fixed_count} student(s)!', 'success')
+            return redirect(url_for('fix_student_subjects'))
+
+        elif action == 'auto_fix_all':
+            # For each student with wrong count: keep compulsory + whatever optionals they already have (up to 2)
+            fixed = 0
+            for student in all_students:
+                stream_id = student.stream_id
+                if not stream_id:
+                    continue
+                compulsory = Subject.query.filter_by(stream_id=stream_id, is_compulsory=True).all()
+                optional_all = Subject.query.filter_by(stream_id=stream_id, is_compulsory=False).all()
+                current_optional = [s for s in student.subjects if not s.is_compulsory]
+
+                target_count = len(compulsory) + 2  # e.g. 4 + 2 = 6
+
+                if len(student.subjects) == target_count:
+                    continue  # Already correct
+
+                # Keep compulsory subjects always
+                new_subjects = list(compulsory)
+
+                # Keep up to 2 optional subjects from what student already has
+                kept_optional = current_optional[:2]
+                new_subjects += kept_optional
+
+                # If student had no optional at all, add first 2 optional subjects from stream
+                if len(kept_optional) == 0:
+                    new_subjects += optional_all[:2]
+
+                student.subjects = new_subjects
+                fixed += 1
+
+            db.session.commit()
+            flash(f'Auto-fixed subjects for {fixed} student(s). Please verify and manually correct where needed.', 'success')
+            return redirect(url_for('fix_student_subjects'))
+
+    # Build report of students with wrong subject counts
+    problem_students = []
+    ok_students = []
+    for student in all_students:
+        stream_id = student.stream_id
+        if stream_id:
+            compulsory_count = Subject.query.filter_by(stream_id=stream_id, is_compulsory=True).count()
+            expected = compulsory_count + 2  # e.g. 6
+        else:
+            expected = 6  # fallback
+
+        current_count = len(student.subjects)
+        current_optional = [s for s in student.subjects if not s.is_compulsory]
+        stream_optionals = Subject.query.filter_by(stream_id=stream_id, is_compulsory=False).all() if stream_id else []
+
+        entry = {
+            'student': student,
+            'current_count': current_count,
+            'expected': expected,
+            'is_ok': current_count == expected,
+            'current_optional': current_optional,
+            'stream_optionals': stream_optionals,
+        }
+        if current_count != expected:
+            problem_students.append(entry)
+        else:
+            ok_students.append(entry)
+
+    return render_template('admin/fix_subjects.html',
+                           problem_students=problem_students,
+                           ok_students=ok_students,
+                           streams=streams,
+                           total=len(all_students),
+                           problem_count=len(problem_students))
+
 # Attendance Routes
 @app.route('/attendance/mark', methods=['GET', 'POST'])
 @staff_required

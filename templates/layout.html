@@ -93,6 +93,8 @@
                 <a href="{{ url_for('attendance_report') }}"><i class="fas fa-chart-line"></i> Attendance Reports</a>
                 <a href="{{ url_for('logbook_view') }}"><i class="fas fa-book-open"></i> Log Book</a>
                 <a href="{{ url_for('manage_subjects') }}"><i class="fas fa-book-open"></i> Subjects</a>
+                <a href="{{ url_for('subject_wise_report') }}"><i class="fas fa-chart-bar"></i> Subject Report</a>
+                <a href="{{ url_for('fix_student_subjects') }}"><i class="fas fa-tools"></i> Fix Subjects</a>
                 <a href="{{ url_for('manage_teachers') }}"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
                 <a href="{{ url_for('manage_toppers') }}"><i class="fas fa-trophy"></i> Hall of Fame</a>
                 <a href="{{ url_for('masters') }}"><i class="fas fa-layer-group"></i> Masters</a>
@@ -124,6 +126,8 @@
                 <li><a href="{{ url_for('timetable_view') }}" class="{% if request.endpoint == 'timetable_view' %}active{% endif %}"><i class="fas fa-clock"></i> Timetable</a></li>
                 <li><a href="{{ url_for('library_list') }}" class="{% if request.endpoint == 'library_list' %}active{% endif %}"><i class="fas fa-book-reader"></i> Digital Library</a></li>
                 <li><a href="{{ url_for('manage_subjects') }}" class="{% if request.endpoint == 'manage_subjects' %}active{% endif %}"><i class="fas fa-book-open"></i> Subject Master</a></li>
+                <li><a href="{{ url_for('subject_wise_report') }}" class="{% if request.endpoint == 'subject_wise_report' %}active{% endif %}"><i class="fas fa-chart-bar"></i> Subject Report</a></li>
+                <li><a href="{{ url_for('fix_student_subjects') }}" class="{% if request.endpoint == 'fix_student_subjects' %}active{% endif %}"><i class="fas fa-tools"></i> Fix Subjects</a></li>
                 <li><a href="{{ url_for('mark_attendance') }}" class="{% if request.endpoint == 'mark_attendance' %}active{% endif %}"><i class="fas fa-calendar-check"></i> Mark Attendance</a></li>
                 <li><a href="{{ url_for('attendance_report') }}" class="{% if request.endpoint == 'attendance_report' %}active{% endif %}"><i class="fas fa-chart-line"></i> Attendance Reports</a></li>
                 <li><a href="{{ url_for('logbook_view') }}" class="{% if request.endpoint in ['logbook_view','logbook_add','logbook_edit','logbook_print'] %}active{% endif %}"><i class="fas fa-journal-whills"></i> Log Book</a></li>
