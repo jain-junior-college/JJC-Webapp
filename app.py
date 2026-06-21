@@ -522,6 +522,12 @@ def edit_student(id):
         
         # Handle Subjects
         selected_subject_ids = set(request.form.getlist('selected_subjects'))
+        
+        # Always enforce compulsory subjects for the student's stream
+        compulsory_subjects = Subject.query.filter_by(stream_id=student.stream_id, is_compulsory=True).all()
+        for cs in compulsory_subjects:
+            selected_subject_ids.add(str(cs.id))
+            
         student.subjects = [] # Clear current
         for sid in selected_subject_ids:
             subj = Subject.query.get(sid)
@@ -620,6 +626,12 @@ def enroll():
             # Handle Subject Selection
             # Use set() to remove duplicates (prevents UniqueViolation errors)
             selected_subject_ids = set(request.form.getlist('selected_subjects'))
+            
+            # Always enforce compulsory subjects for the student's stream
+            compulsory_subjects = Subject.query.filter_by(stream_id=stream_id, is_compulsory=True).all()
+            for cs in compulsory_subjects:
+                selected_subject_ids.add(str(cs.id))
+                
             for sid in selected_subject_ids:
                 subj = Subject.query.get(sid)
                 if subj:
