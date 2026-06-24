@@ -875,13 +875,22 @@ def subject_wise_report():
                 return st.name.strip().split()[-1].lower()
             return ''
 
+        # Helper for gender sorting (Boys first, then Girls)
+        def get_gender_rank(st):
+            g = st.gender.lower() if st and st.gender else ''
+            if g.startswith('m') or g == 'boy':
+                return 0
+            elif g.startswith('f') or g == 'girl':
+                return 1
+            return 2
+
         # Sort students
         if student_sort == 'id':
-            students = sorted(students, key=lambda s: s.student_id or '')
+            students = sorted(students, key=lambda s: (get_gender_rank(s), s.student_id or ''))
         elif student_sort == 'class':
-            students = sorted(students, key=lambda s: (s.academic_class.name if s.academic_class else '', get_surname(s), s.name.lower() if s.name else ''))
+            students = sorted(students, key=lambda s: (s.academic_class.name if s.academic_class else '', get_gender_rank(s), get_surname(s), s.name.lower() if s.name else ''))
         else:
-            students = sorted(students, key=lambda s: (get_surname(s), s.name.lower() if s.name else ''))
+            students = sorted(students, key=lambda s: (get_gender_rank(s), get_surname(s), s.name.lower() if s.name else ''))
 
         # Class breakdown counts
         class_counts = {}

@@ -243,7 +243,20 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {% set ns = namespace(last_gender='') %}
                                 {% for s in item.students %}
+                                  {% set current_gender = 'Boys' if s.gender and (s.gender.lower().startswith('m') or s.gender.lower() == 'boy') else ('Girls' if s.gender and (s.gender.lower().startswith('f') or s.gender.lower() == 'girl') else 'Other') %}
+                                  {% if current_gender != ns.last_gender %}
+                                    {% set ns.last_gender = current_gender %}
+                                    <tr class="sub-group-hdr">
+                                      <td colspan="3">
+                                        <span class="sub-group-label" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #6b21a8; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; padding: 0.2rem 0;">
+                                          <i class="fas {% if current_gender == 'Boys' %}fa-male{% elif current_gender == 'Girls' %}fa-female{% else %}fa-users{% endif %}" style="opacity: 0.7; font-size: 0.85rem;"></i>
+                                          {{ current_gender }}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  {% endif %}
                                   <tr style="border-bottom: 1px solid #f3e8ff; {% if loop.index is odd %}background: #fdf4ff;{% else %}background: #fff;{% endif %}">
                                       <td style="padding: 0.45rem 0.75rem; color: #9333ea; font-weight: 600; text-align: right;">{{ loop.index }}</td>
                                       <td style="padding: 0.45rem 0.75rem; color: #a21caf; font-weight: 700; font-family: monospace;">{{ s.student_id }}</td>
