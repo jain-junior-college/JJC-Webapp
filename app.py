@@ -869,13 +869,19 @@ def subject_wise_report():
         if selected_class_id:
             students = [s for s in students if s.class_id == selected_class_id]
 
+        # Helper for surname sorting
+        def get_surname(st):
+            if st and st.name and st.name.strip():
+                return st.name.strip().split()[-1].lower()
+            return ''
+
         # Sort students
         if student_sort == 'id':
             students = sorted(students, key=lambda s: s.student_id or '')
         elif student_sort == 'class':
-            students = sorted(students, key=lambda s: (s.academic_class.name if s.academic_class else '', s.name.lower()))
+            students = sorted(students, key=lambda s: (s.academic_class.name if s.academic_class else '', get_surname(s), s.name.lower() if s.name else ''))
         else:
-            students = sorted(students, key=lambda s: s.name.lower())
+            students = sorted(students, key=lambda s: (get_surname(s), s.name.lower() if s.name else ''))
 
         # Class breakdown counts
         class_counts = {}
@@ -1234,14 +1240,17 @@ def early_exit(id):
 @app.route('/students')
 @staff_required
 def student_list():
+    from sqlalchemy import case
     sort_by = request.args.get('sort_by', 'name')
-    
+
     query = Student.query
     if sort_by == 'student_id':
-        students = query.order_by(Student.student_id).all()
+        # Group by class+stream first, then by student_id within the group
+        students = query.order_by(Student.class_id, Student.stream_id, Student.student_id).all()
     else:
-        students = query.order_by(Student.name).all()
-        
+        # Group by class+stream first, then alphabetically by name within the group
+        students = query.order_by(Student.class_id, Student.stream_id, Student.name).all()
+
     return render_template('students/list.html', students=students, current_sort=sort_by)
 
 # Digital Library Routes

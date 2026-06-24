@@ -126,25 +126,43 @@
             <thead>
                 <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
                     <th style="padding: 1rem 0.5rem; color: #475569; width: 4%; font-weight: 700; font-size: 0.8rem;">#</th>
-                    <th style="padding: 1rem; color: #475569; width: 38%; font-weight: 700;">Subject Name</th>
-                    <th style="padding: 1rem; color: #475569; width: 18%; font-weight: 700;">Stream</th>
-                    <th style="padding: 1rem; color: #475569; width: 15%; font-weight: 700;">Type</th>
+                    <th style="padding: 1rem; color: #475569; width: 45%; font-weight: 700;">Subject Name</th>
+                    <th style="padding: 1rem; color: #475569; width: 18%; font-weight: 700;">Type</th>
                     <th style="padding: 1rem; color: #475569; text-align: center; width: 10%; font-weight: 700;">Total</th>
-                    <th style="padding: 1rem; color: #475569; width: 15%; font-weight: 700;" class="screen-only">Class Breakdown</th>
+                    <th style="padding: 1rem; color: #475569; width: 23%; font-weight: 700;" class="screen-only">Class Breakdown</th>
                 </tr>
             </thead>
             <tbody>
+                {% set sum_ns = namespace(last_stream='', idx=0) %}
                 {% for item in report_data %}
+                {# Stream group header #}
+                {% set stream_name = item.subject.stream.name if item.subject.stream else '—' %}
+                {% if stream_name != sum_ns.last_stream %}
+                  {% set sum_ns.last_stream = stream_name %}
+                  {% set sum_ns.idx = 0 %}
+                  <tr>
+                    <td colspan="5" style="padding: 0.5rem 1rem; background: linear-gradient(90deg, rgba(30,58,138,0.07), rgba(30,58,138,0.02));
+                                           border-top: 2px solid rgba(30,58,138,0.18); border-bottom: 1px solid rgba(30,58,138,0.1);">
+                      <span style="font-size: 0.73rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
+                                   color: #1e3a8a; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-stream" style="opacity:0.6; font-size:0.65rem;"></i>
+                        Stream &nbsp;<span style="background:#1e3a8a; color:white; border-radius:20px;
+                                                   padding:0.1rem 0.6rem; font-size:0.68rem; font-weight:700;">{{ stream_name }}</span>
+                      </span>
+                    </td>
+                  </tr>
+                {% endif %}
+                {% set sum_ns.idx = sum_ns.idx + 1 %}
+
                 <!-- Summary Row -->
                 <tr class="summary-row" style="border-bottom: 1px solid #f1f5f9; cursor: pointer;"
                     onclick="toggleDetails('details_{{ loop.index }}')">
-                    <td style="padding: 0.85rem 0.5rem; color: #94a3b8; font-size: 0.8rem; font-weight: 600;">{{ loop.index }}</td>
+                    <td style="padding: 0.85rem 0.5rem; color: #94a3b8; font-size: 0.8rem; font-weight: 600;">{{ sum_ns.idx }}</td>
                     <td style="padding: 0.85rem 1rem; font-weight: 700; color: #1e293b;">
                         <i class="fas fa-chevron-right details-chevron" id="chevron_details_{{ loop.index }}"
                            style="margin-right: 8px; font-size: 0.75rem; color: #94a3b8; transition: transform 0.2s;"></i>
                         {{ item.subject.name }}
                     </td>
-                    <td style="padding: 0.85rem 1rem; color: #64748b;">{{ item.subject.stream.name if item.subject.stream else '—' }}</td>
                     <td style="padding: 0.85rem 1rem;">
                         {% if item.subject.is_compulsory %}
                         <span style="color: #059669; font-weight: 700; font-size: 0.78rem;"><i class="fas fa-lock"></i> Compulsory</span>
@@ -163,11 +181,26 @@
                 </tr>
 
                 <!-- Expandable Student List Row -->
+
                 <tr id="details_{{ loop.index }}" style="display: none; background: #faf5ff;">
                     <td colspan="6" style="padding: 1.5rem 2rem; border-bottom: 2px solid #ede9fe;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            {% set unique_classes = [] %}
+                            {% set unique_streams = [] %}
+                            {% for s in item.students %}
+                                {% set c_name = s.academic_class.name if s.academic_class else '—' %}
+                                {% set st_name = s.stream.name if s.stream else '—' %}
+                                {% if c_name not in unique_classes %}{% set _ = unique_classes.append(c_name) %}{% endif %}
+                                {% if st_name not in unique_streams %}{% set _ = unique_streams.append(st_name) %}{% endif %}
+                            {% endfor %}
                             <h5 style="margin: 0; color: #6b21a8; font-weight: 800; font-size: 0.9rem;">
-                                <i class="fas fa-users"></i> {{ item.subject.name }} — {{ item.total_count }} Student{{ 's' if item.total_count != 1 }}
+                                <i class="fas fa-users"></i> {{ item.subject.name }}
+                                {% if unique_classes %}
+                                    <span style="opacity: 0.9; font-weight: 600; margin: 0 0.2rem;">
+                                        ({% for c in unique_classes %}{{ c }}{% if not loop.last %}, {% endif %}{% endfor %}{% if unique_streams|length == 1 %} {{ unique_streams[0] }}{% endif %})
+                                    </span>
+                                {% endif %}
+                                — {{ item.total_count }} Student{{ 's' if item.total_count != 1 }}
                                 <span style="color: #9333ea; font-weight: 500; font-size: 0.78rem; margin-left: 0.5rem;">
                                     (sorted by {% if student_sort == 'id' %}Student ID{% elif student_sort == 'class' %}Class{% else %}Name{% endif %})
                                 </span>
@@ -175,28 +208,51 @@
                         </div>
 
                         {% if item.students %}
+                        <style>
+                          .sub-group-hdr td {
+                            background: linear-gradient(90deg, rgba(109,40,217,0.10), rgba(139,92,246,0.05));
+                            padding: 0.35rem 0.75rem !important;
+                            border-top: 1.5px solid rgba(109,40,217,0.2);
+                            border-bottom: 1px solid rgba(109,40,217,0.1);
+                          }
+                          .sub-group-label {
+                            font-size: 0.72rem;
+                            font-weight: 800;
+                            text-transform: uppercase;
+                            letter-spacing: 0.07em;
+                            color: #6b21a8;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 0.4rem;
+                          }
+                          .sub-class-badge {
+                            background: #7c3aed;
+                            color: white;
+                            border-radius: 20px;
+                            padding: 0.1rem 0.55rem;
+                            font-size: 0.68rem;
+                            font-weight: 700;
+                          }
+                        </style>
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
                             <thead>
                                 <tr style="background: #f3e8ff; border-bottom: 1px solid #ddd6fe;">
                                     <th style="padding: 0.5rem 0.75rem; color: #6b21a8; font-weight: 700; width: 5%; text-align: right;">#</th>
-                                    <th style="padding: 0.5rem 0.75rem; color: #6b21a8; font-weight: 700; width: 18%;">Student ID</th>
-                                    <th style="padding: 0.5rem 0.75rem; color: #6b21a8; font-weight: 700; width: 42%;">Name</th>
-                                    <th style="padding: 0.5rem 0.75rem; color: #6b21a8; font-weight: 700; width: 18%;">Class</th>
-                                    <th style="padding: 0.5rem 0.75rem; color: #6b21a8; font-weight: 700; width: 17%;">Stream</th>
+                                    <th style="padding: 0.5rem 0.75rem; color: #6b21a8; font-weight: 700; width: 22%;">Student ID</th>
+                                    <th style="padding: 0.5rem 0.75rem; color: #6b21a8; font-weight: 700;">Name</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for s in item.students %}
-                                <tr style="border-bottom: 1px solid #f3e8ff; {% if loop.index is odd %}background: #fdf4ff;{% else %}background: #fff;{% endif %}">
-                                    <td style="padding: 0.45rem 0.75rem; color: #9333ea; font-weight: 600; text-align: right;">{{ loop.index }}</td>
-                                    <td style="padding: 0.45rem 0.75rem; color: #a21caf; font-weight: 700; font-family: monospace;">{{ s.student_id }}</td>
-                                    <td style="padding: 0.45rem 0.75rem; color: #3b0764; font-weight: 600;">{{ s.name }}</td>
-                                    <td style="padding: 0.45rem 0.75rem; color: #64748b;">{{ s.academic_class.name if s.academic_class else '—' }}</td>
-                                    <td style="padding: 0.45rem 0.75rem; color: #64748b;">{{ s.stream.name if s.stream else '—' }}</td>
-                                </tr>
+                                  <tr style="border-bottom: 1px solid #f3e8ff; {% if loop.index is odd %}background: #fdf4ff;{% else %}background: #fff;{% endif %}">
+                                      <td style="padding: 0.45rem 0.75rem; color: #9333ea; font-weight: 600; text-align: right;">{{ loop.index }}</td>
+                                      <td style="padding: 0.45rem 0.75rem; color: #a21caf; font-weight: 700; font-family: monospace;">{{ s.student_id }}</td>
+                                      <td style="padding: 0.45rem 0.75rem; color: #3b0764; font-weight: 600;">{{ s.name }}</td>
+                                  </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
+
                         {% else %}
                         <p style="color: #94a3b8; font-size: 0.85rem; font-style: italic; margin: 0;">No students explicitly enrolled in this subject.</p>
                         {% endif %}
