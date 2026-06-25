@@ -1178,10 +1178,12 @@ def attendance_report():
 
         days_present = sum(1 for v in day_status.values() if v == 'Present')
         days_absent  = sum(1 for v in day_status.values() if v == 'Absent')
-        total_days   = days_present + days_absent
-        stats['monthly_percentage'] = (days_present / total_days * 100) if total_days > 0 else 0
+        days_late    = sum(1 for v in day_status.values() if v == 'Late')
+        total_days   = days_present + days_absent + days_late
+        stats['monthly_percentage'] = ((days_present + days_late) / total_days * 100) if total_days > 0 else 0
         stats['days_present'] = days_present
         stats['days_absent']  = days_absent
+        stats['days_late']    = days_late
 
         # Calendar grid: list of weeks, each week a list of day numbers (0=blank)
         first_weekday, num_days = calendar.monthrange(year, month)
