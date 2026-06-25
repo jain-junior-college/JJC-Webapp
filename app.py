@@ -1161,7 +1161,8 @@ def attendance_report():
             stats['absent']  = total_students - present_count
 
     elif report_type == 'monthly' and student_id:
-        # Single-student monthly breakdown
+        # Single-student monthly breakdown – calendar view
+        import calendar
         month = attendance_date.month
         year  = attendance_date.year
         all_month_attendance = Attendance.query.filter(
@@ -1170,10 +1171,37 @@ def attendance_report():
             Attendance.student_id == student_id
         ).all()
 
-        days_present = sum(1 for a in all_month_attendance if a.status == 'Present')
-        total_days   = len(all_month_attendance)
+        # Build a dict: day_number -> status
+        day_status = {}
+        for a in all_month_attendance:
+            day_status[a.date.day] = a.status   # 'Present' or 'Absent'
+
+        days_present = sum(1 for v in day_status.values() if v == 'Present')
+        days_absent  = sum(1 for v in day_status.values() if v == 'Absent')
+        total_days   = days_present + days_absent
         stats['monthly_percentage'] = (days_present / total_days * 100) if total_days > 0 else 0
-        report_data = all_month_attendance
+        stats['days_present'] = days_present
+        stats['days_absent']  = days_absent
+
+        # Calendar grid: list of weeks, each week a list of day numbers (0=blank)
+        first_weekday, num_days = calendar.monthrange(year, month)
+        # weekday(): Mon=0 … Sun=6; we want Sun=0 … Sat=6
+        start_offset = (first_weekday + 1) % 7   # shift so Sunday=0
+        all_days = [0] * start_offset + list(range(1, num_days + 1))
+        # Pad to complete last row
+        while len(all_days) % 7 != 0:
+            all_days.append(0)
+        cal_weeks = [all_days[i:i+7] for i in range(0, len(all_days), 7)]
+
+        student_obj = Student.query.get(student_id)
+        report_data = {
+            'student':    student_obj,
+            'day_status': day_status,
+            'cal_weeks':  cal_weeks,
+            'month_name': attendance_date.strftime('%B %Y'),
+            'year':       year,
+            'month':      month,
+        }
 
     elif report_type == 'monthly' and class_id:
         # Monthly summary for ALL students in a class/stream
