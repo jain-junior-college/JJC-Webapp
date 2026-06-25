@@ -1249,16 +1249,45 @@ def early_exit(id):
 @app.route('/students')
 @staff_required
 def student_list():
-    from sqlalchemy import case
     sort_by = request.args.get('sort_by', 'name')
 
-    query = Student.query
+    # Fetch all students — we sort in Python so we can apply surname + gender logic
+    students_raw = Student.query.all()
+
+    def get_surname(st):
+        if st and st.name and st.name.strip():
+            return st.name.strip().split()[-1].lower()
+        return ''
+
+    def get_gender_rank(st):
+        g = (st.gender or '').strip().lower()
+        if g.startswith('m') or g == 'boy':
+            return 0
+        elif g.startswith('f') or g == 'girl':
+            return 1
+        return 2
+
     if sort_by == 'student_id':
-        # Group by class+stream first, then by student_id within the group
-        students = query.order_by(Student.class_id, Student.stream_id, Student.student_id).all()
+        students = sorted(
+            students_raw,
+            key=lambda s: (
+                s.class_id or 0,
+                s.stream_id or 0,
+                get_gender_rank(s),
+                s.student_id or ''
+            )
+        )
     else:
-        # Group by class+stream first, then alphabetically by name within the group
-        students = query.order_by(Student.class_id, Student.stream_id, Student.name).all()
+        students = sorted(
+            students_raw,
+            key=lambda s: (
+                s.class_id or 0,
+                s.stream_id or 0,
+                get_gender_rank(s),
+                get_surname(s),
+                (s.name or '').lower()
+            )
+        )
 
     return render_template('students/list.html', students=students, current_sort=sort_by)
 

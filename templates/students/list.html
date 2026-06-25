@@ -44,6 +44,23 @@
   tbody tr:not(.group-header-row):hover td {
     background: rgba(99,102,241,0.03);
   }
+  .gender-header-row td {
+    background: rgba(99,102,241,0.04);
+    padding: 0.35rem 1.2rem !important;
+    border-bottom: 1px dashed rgba(99,102,241,0.15);
+  }
+  .gender-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .gender-boys  { color: #2563eb; }
+  .gender-girls { color: #db2777; }
+  .gender-other { color: #64748b; }
 </style>
 
 <div class="glass-card">
@@ -79,16 +96,27 @@
         </tr>
       </thead>
       <tbody>
-        {% set ns = namespace(last_group='', row_num=0) %}
+        {% set ns = namespace(last_group='', last_gender='', row_num=0) %}
         {% for student in students %}
-          {# Compute the group key for this student #}
+          {# Group key: class + stream #}
           {% set class_name  = student.academic_class.name if student.academic_class else '—' %}
           {% set stream_name = student.stream.name if student.stream else '—' %}
           {% set group_key   = class_name ~ '||' ~ stream_name %}
 
-          {# Emit group header whenever the group changes #}
+          {# Gender label for this student #}
+          {% set g = (student.gender or '')|lower %}
+          {% if g.startswith('m') or g == 'boy' %}
+            {% set current_gender = 'Boys' %}
+          {% elif g.startswith('f') or g == 'girl' %}
+            {% set current_gender = 'Girls' %}
+          {% else %}
+            {% set current_gender = 'Other' %}
+          {% endif %}
+
+          {# Emit class+stream group header when group changes #}
           {% if group_key != ns.last_group %}
             {% set ns.last_group = group_key %}
+            {% set ns.last_gender = '' %}
             {% set ns.row_num = 0 %}
             <tr class="group-header-row">
               <td colspan="5">
@@ -96,6 +124,19 @@
                   <i class="fas fa-layer-group" style="font-size: 0.7rem; opacity: 0.7;"></i>
                   Class&nbsp;<span class="group-badge">{{ class_name }}</span>
                   &nbsp;&nbsp;Stream&nbsp;<span class="group-stream-badge">{{ stream_name }}</span>
+                </span>
+              </td>
+            </tr>
+          {% endif %}
+
+          {# Emit Boys/Girls subgroup header when gender changes within the class+stream group #}
+          {% if current_gender != ns.last_gender %}
+            {% set ns.last_gender = current_gender %}
+            <tr class="gender-header-row">
+              <td colspan="5">
+                <span class="gender-label gender-{{ current_gender|lower }}">
+                  <i class="fas {% if current_gender == 'Boys' %}fa-male{% elif current_gender == 'Girls' %}fa-female{% else %}fa-genderless{% endif %}"></i>
+                  {{ current_gender }}
                 </span>
               </td>
             </tr>
