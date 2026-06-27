@@ -16,6 +16,7 @@
                     <select name="type" class="form-control" id="reportTypeSelect" onchange="toggleFields()">
                         <option value="daily"   {% if report_type == 'daily'   %}selected{% endif %}>📋 Daily Class Register</option>
                         <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>📅 Monthly Attendance</option>
+                        <option value="overall" {% if report_type == 'overall' %}selected{% endif %}>🌍 Overall Attendance</option>
                     </select>
                 </div>
 
@@ -62,6 +63,7 @@
                     <label class="filter-label">Sort By</label>
                     <select name="sort_by" class="form-control">
                         <option value="name"       {% if sort_by == 'name'       %}selected{% endif %}>Alphabetical (Name)</option>
+                        <option value="surname"    {% if sort_by == 'surname'    %}selected{% endif %}>Alphabetical (Surname)</option>
                         <option value="student_id" {% if sort_by == 'student_id' %}selected{% endif %}>Student ID</option>
                     </select>
                 </div>
@@ -103,7 +105,7 @@
             <p class="att-stat-sub">Individual Performance</p>
         </div>
         {% endif %}
-        {% if stats.report_mode == 'monthly_all' %}
+        {% if stats.report_mode in ['monthly_all', 'overall_all'] %}
         <div class="att-stat-card" style="background: linear-gradient(135deg, #0f766e, #14b8a6);">
             <p class="att-stat-label">Class Average — {{ stats.month_name }}</p>
             <h2 class="att-stat-value">{{ "{:.1f}%".format(stats.avg_percentage) }}</h2>
@@ -130,11 +132,12 @@
                 <strong>
                     {% if report_type == 'daily' %}DAILY ATTENDANCE REGISTER
                     {% elif stats.get('report_mode') == 'monthly_all' %}MONTHLY ATTENDANCE SUMMARY
+                    {% elif stats.get('report_mode') == 'overall_all' %}OVERALL ATTENDANCE SUMMARY
                     {% else %}ATTENDANCE REPORT
                     {% endif %}
                 </strong>
                 <span>
-                    {% if stats.get('report_mode') == 'monthly_all' %}{{ stats.month_name }}
+                    {% if stats.get('report_mode') in ['monthly_all', 'overall_all'] %}{{ stats.month_name }}
                     {% else %}{{ date_str }}{% endif %}
                 </span>
             </div>
@@ -142,11 +145,11 @@
 
         {% if report_data %}
 
-        {# ── MONTHLY ALL-STUDENTS TABLE ── #}
-        {% if stats.get('report_mode') == 'monthly_all' %}
+        {# ── MONTHLY/OVERALL ALL-STUDENTS TABLE ── #}
+        {% if stats.get('report_mode') in ['monthly_all', 'overall_all'] %}
 
         <div class="report-subheading">
-            Monthly Report — {{ stats.month_name }} &nbsp;|&nbsp; Sorted by: {{ 'Student ID' if sort_by == 'student_id' else 'Name' }}
+            {{ 'Monthly' if stats.get('report_mode') == 'monthly_all' else 'Overall' }} Report — {{ stats.month_name }} &nbsp;|&nbsp; Sorted by: {{ 'Student ID' if sort_by == 'student_id' else ('Surname' if sort_by == 'surname' else 'Name') }}
         </div>
 
         <!-- Desktop / wide table -->

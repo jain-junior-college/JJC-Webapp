@@ -1148,6 +1148,9 @@ def attendance_report():
 
         if sort_by == 'student_id':
             report_data = query.order_by(Student.student_id).all()
+        elif sort_by == 'surname':
+            report_data = query.all()
+            report_data.sort(key=lambda x: x.student.name.split()[-1].lower() if x.student and len(x.student.name.split()) > 1 else (x.student.name.lower() if x.student else ''))
         else:
             report_data = query.order_by(Student.name).all()
 
@@ -1224,6 +1227,9 @@ def attendance_report():
             
         if sort_by == 'student_id':
             all_students = student_query.order_by(Student.student_id).all()
+        elif sort_by == 'surname':
+            all_students = student_query.all()
+            all_students.sort(key=lambda s: s.name.split()[-1].lower() if len(s.name.split()) > 1 else s.name.lower())
         else:
             all_students = student_query.order_by(Student.name).all()
 
@@ -1257,6 +1263,49 @@ def attendance_report():
         report_data = monthly_report
         stats['report_mode']    = 'monthly_all'
         stats['month_name']     = month_name
+        stats['total_students'] = len(all_students)
+        stats['avg_percentage'] = (total_present_all / total_days_all * 100) if total_days_all > 0 else 0
+
+    elif report_type == 'overall' and class_id:
+        # Overall summary for ALL students in a class/stream (All-time)
+        student_query = Student.query.filter_by(class_id=class_id)
+        if stream_id:
+            student_query = student_query.filter_by(stream_id=stream_id)
+            
+        if sort_by == 'student_id':
+            all_students = student_query.order_by(Student.student_id).all()
+        elif sort_by == 'surname':
+            all_students = student_query.all()
+            all_students.sort(key=lambda s: s.name.split()[-1].lower() if len(s.name.split()) > 1 else s.name.lower())
+        else:
+            all_students = student_query.order_by(Student.name).all()
+
+        overall_report      = []
+        total_present_all   = 0
+        total_days_all      = 0
+
+        for s in all_students:
+            all_records = Attendance.query.filter(Attendance.student_id == s.id).all()
+
+            days_present = sum(1 for a in all_records if a.status == 'Present')
+            days_absent  = sum(1 for a in all_records if a.status == 'Absent')
+            total_days   = len(all_records)
+            pct          = (days_present / total_days * 100) if total_days > 0 else 0
+
+            total_present_all += days_present
+            total_days_all    += total_days
+
+            overall_report.append({
+                'student':      s,
+                'days_present': days_present,
+                'days_absent':  days_absent,
+                'total_days':   total_days,
+                'percentage':   pct,
+            })
+
+        report_data = overall_report
+        stats['report_mode']    = 'overall_all'
+        stats['month_name']     = 'All Time'
         stats['total_students'] = len(all_students)
         stats['avg_percentage'] = (total_present_all / total_days_all * 100) if total_days_all > 0 else 0
 
