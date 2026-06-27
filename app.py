@@ -1173,8 +1173,11 @@ def attendance_report():
 
         # Build a dict: day_number -> status
         day_status = {}
+        early_exits = {}
         for a in all_month_attendance:
             day_status[a.date.day] = a.status   # 'Present' or 'Absent'
+            if a.exit_time:
+                early_exits[a.date.day] = True
 
         days_present = sum(1 for v in day_status.values() if v == 'Present')
         days_absent  = sum(1 for v in day_status.values() if v == 'Absent')
@@ -1199,6 +1202,7 @@ def attendance_report():
         report_data = {
             'student':    student_obj,
             'day_status': day_status,
+            'early_exits': early_exits,
             'cal_weeks':  cal_weeks,
             'month_name': attendance_date.strftime('%B %Y'),
             'year':       year,

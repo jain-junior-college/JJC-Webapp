@@ -288,11 +288,13 @@
                       <div class="cal-cell cal-blank"></div>
                     {% else %}
                       {% set status = report_data.day_status.get(day) %}
+                      {% set is_early = report_data.early_exits.get(day) %}
                       <div class="cal-cell
-                        {% if status == 'Present' %}cal-present
+                        {% if status == 'Present' and not is_early %}cal-present
                         {% elif status == 'Absent' %}cal-absent
                         {% elif status == 'Late' %}cal-late
-                        {% else %}cal-norecord{% endif %}">
+                        {% elif not is_early %}cal-norecord{% endif %}"
+                        {% if is_early %}style="background: repeating-linear-gradient(45deg, #16a34a, #16a34a 5px, #eab308 5px, #eab308 10px); color: white;"{% endif %}>
                         <span class="cal-day-num">{{ day }}</span>
                         {% if status == 'Present' %}<span class="cal-day-lbl">P</span>
                         {% elif status == 'Absent' %}<span class="cal-day-lbl">A</span>
@@ -319,6 +321,9 @@
                 </span>
                 <span style="display: flex; align-items: center; gap: 0.4rem;">
                     <span style="width: 14px; height: 14px; border-radius: 3px; background: #f8fafc; border: 1px solid #e2e8f0; display: inline-block;"></span> No Record
+                </span>
+                <span style="display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="width: 14px; height: 14px; border-radius: 3px; background: repeating-linear-gradient(45deg, #16a34a, #16a34a 5px, #eab308 5px, #eab308 10px); display: inline-block;"></span> Left Early
                 </span>
             </div>
         </div>
