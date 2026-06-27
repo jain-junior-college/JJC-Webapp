@@ -1177,7 +1177,10 @@ def attendance_report():
         for a in all_month_attendance:
             day_status[a.date.day] = a.status   # 'Present' or 'Absent'
             if a.exit_time:
-                early_exits[a.date.day] = True
+                early_exits[a.date.day] = {
+                    'time': a.exit_time,
+                    'reason': a.exit_reason
+                }
 
         days_present = sum(1 for v in day_status.values() if v == 'Present')
         days_absent  = sum(1 for v in day_status.values() if v == 'Absent')
